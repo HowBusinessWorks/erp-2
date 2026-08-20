@@ -12,7 +12,7 @@ import {
   Textarea,
 } from "@/components/ui/primitives";
 import { format, formatShort } from "@/lib/money";
-import { ROUTING_EFFECT, ROUTING_LABELS, type RoutingContext } from "@/lib/routing";
+import { ROUTING_EFFECT, ROUTING_LABELS, type RoutingContext } from "@/lib/routing-types";
 
 /**
  * Ecranul 8 — decizia de rutare (§7).
