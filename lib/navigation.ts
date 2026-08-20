@@ -38,21 +38,22 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: "Comercial",
     items: [
-      { href: "/devize", label: "Devize" },
-      { href: "/situatii", label: "Situații de lucrări" },
+      { href: "/devize", label: "Devize", stub: true },
+      { href: "/situatii", label: "Situații de lucrări", stub: true },
     ],
   },
   {
     label: "Aprovizionare",
     items: [
-      { href: "/stoc", label: "Gestiuni și stoc", needs: "stoc.vezi" },
-      { href: "/achizitii", label: "Achiziții", needs: "achizitii.gestioneaza" },
+      { href: "/stoc", label: "Gestiuni și stoc", needs: "stoc.vezi", stub: true },
+      { href: "/achizitii", label: "Achiziții", needs: "achizitii.gestioneaza", stub: true },
     ],
   },
   {
     label: "Resurse",
     items: [
       { href: "/utilaje", label: "Utilaje" },
+      { href: "/utilaje/solicitari", label: "Solicitări de utilaj" },
       { href: "/unelte", label: "Unelte" },
       { href: "/transporturi", label: "Transporturi" },
     ],
@@ -63,8 +64,8 @@ export const NAVIGATION: NavGroup[] = [
       { href: "/documente", label: "Documente și PV" },
       { href: "/rapoarte", label: "Rapoarte lunare" },
       { href: "/rapoarte/inspectii", label: "Acoperirea inspecțiilor" },
-      { href: "/facturi", label: "Facturi", needs: "facturi.gestioneaza" },
-      { href: "/nomenclatoare", label: "Nomenclatoare" },
+      { href: "/facturi", label: "Facturi", needs: "facturi.gestioneaza", stub: true },
+      { href: "/nomenclatoare", label: "Nomenclatoare", stub: true },
     ],
   },
 ];
@@ -86,5 +87,5 @@ export const FIELD_NAVIGATION: NavItem[] = [
   { href: "/teren/pontaj", label: "Pontaj" },
   { href: "/teren/jurnal", label: "Jurnal" },
   { href: "/teren/necesar", label: "Necesar" },
-  // „Utilajele mele" (T7) intră aici odată cu blocul C.
+  { href: "/teren/utilaje", label: "Utilaje" },
 ];

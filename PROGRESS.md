@@ -48,7 +48,7 @@ secțiunea blocului tău din `PLAN.md` §3 și §5.
 
 ## 1. Unde suntem
 
-**Stare:** *fundația, banii și operaționalul merg cap-coadă. Teren → cerere → rutare → lucrare → cost → raport.*
+**Stare:** *fundația, banii, operaționalul și resursele merg cap-coadă. Teren → cerere → rutare → lucrare → cost → raport, plus flota cu PV și registrul de cost al utilajelor.*
 
 Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `damina`
 
@@ -57,7 +57,7 @@ Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `d
 | Fundație (schemă, seed, design system, shell, auth) | ✅ **gata** — schemă împinsă, seed rulat, verificat în browser |
 | A — Banii (contracte, plafoane, obiective, registru de cost, panou PM) | ✅ **gata** — ecranele 1–6, 14, 15 |
 | B — Operațional (cereri, rutare, UL, fișe, teren, raport lunar) | ✅ **gata** — ecranele 7–13, 34, 36, T1–T6 |
-| C — Resurse (utilaje, unelte, transporturi, fișiere, PV) | ⬜ |
+| C — Resurse (utilaje, unelte, transporturi, fișiere, PV) | ✅ **gata** — ecranele 26–33, T7 |
 | A2 — Deviz, pachete, SL, suplimentări, garanții | ⬜ |
 | B2 — Execuția lucrării (Gantt, buget pe etapă, jurnal) | ⬜ |
 | C2 — Stoc și achiziții | ⬜ |
@@ -70,8 +70,10 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 - Next.js 16.3.1 · React 19.2 · Tailwind 4 · Drizzle + postgres.js · tsx. `npm install` rulat.
 - `lib/db/schema.ts` — **toate cele ~49 de tabele**, cu enum-uri și relații.
 - `lib/`: `money` · `permissions` · `session` · `cost-ledger` · `budget` · `navigation` · `period` ·
-  `routing` (§7) · `work-units` (creare + promovare) · `monthly-report` (§20.1)
-- `app/actions/`: `session` · `periods` · `requests` · `work-units` · `field` · `reports`
+  `routing` (§7) + `routing-types` (partea pură) · `work-units` (creare + promovare) ·
+  `monthly-report` (§20.1) · `equipment` (scadențe pe dată **și** pe ore, imobilizare) · `pv-templates`
+- `app/actions/`: `session` · `periods` · `requests` · `work-units` · `field` · `reports` ·
+  `equipment` · `documents`
 - Design system „Registru": `app/globals.css` (tokeni OKLCH) + `components/ui/{primitives,table,gauge,modal,tabs}.tsx`
 - Shell: `components/shell/{Rail,TopBar}.tsx`, `app/(office)/layout.tsx`, login + comutator de perspectivă
 - Seed: `seed/{index,operations,run}.ts` — 5 firme, 9 contracte, 124 obiective, 756 unități de lucru,
@@ -79,18 +81,20 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 - Ecrane birou: `/panou` · `/contracte` · `/contracte/[id]` (§4.3) · `/contracte/[id]/ani` (§22.6) ·
   `/obiective` · `/obiective/[id]` (§5) · `/cost` (dubla analitică, §12) · `/perioade` (§13.1) ·
   `/cereri` · `/cereri/[id]` (rutarea din §7) · `/backlog` (Delta) · `/lucrari` · `/lucrari/[id]`
-  (5 tab-uri + mutarea finanțării) · `/realocari` (§13.1) · `/rapoarte` (§20.1) · `/rapoarte/inspectii` (§22.2)
+  (5 tab-uri + mutarea finanțării) · `/realocari` (§13.1) · `/rapoarte` (§20.1) · `/rapoarte/inspectii` (§22.2) ·
+  `/utilaje` (registru + Gantt + decalare în masă + PV deschise) · `/utilaje/[id]` (7 file) ·
+  `/utilaje/solicitari` (§18.1.2) · `/pv/[id]` (2 etape, semnătură, A4) · `/unelte` · `/transporturi` ·
+  `/documente` (arbore) · `/documente/sabloane` (câmpuri procentuale, ecranul 33)
 - Ecrane teren: `/teren` (Azi + ＋) · `/teren/[id]` (inspecție sau intervenție) · `/teren/necesar` ·
-  `/teren/pontaj` · `/teren/jurnal` · `/teren/constatare`
+  `/teren/pontaj` · `/teren/jurnal` · `/teren/constatare` · `/teren/utilaje` (T7 — cantități, zero lei)
 
 ---
 
 ## 2. Ce blochează acum
 
-**Nimic.** Blocul C (resurse) poate porni imediat; A2, B2, C2 după.
+**Nimic.** A2, B2 și C2 pot porni în paralel.
 
-Restanță din sesiunea blocului B: **plimbarea în browser nu s-a făcut.** Ecranele au trecut
-`tsc --noEmit`, schema e împinsă și seed-ul rulat, dar nimeni nu le-a văzut încă rulând.
+Plimbarea prin browser s-a făcut pe A, B și C — 31 + 14 rute, pe patru roluri. Vezi §6.
 
 De clarificat când e momentul, fără să blocheze:
 
@@ -107,6 +111,11 @@ De clarificat când e momentul, fără să blocheze:
 
 | Data | Decizie | De ce |
 |---|---|---|
+| 2026-08-20 | **`lib/routing-types.ts`** — tipurile și etichetele rutării, separate de interogări. | `RoutingForm.tsx` e componentă de client și importa din `lib/routing.ts`, care importă `lib/db`. Turbopack încerca să pună `postgres` în pachetul de browser și **tot blocul B dădea 500**. `tsc` trecea curat — se vedea doar deschizând ecranul. |
+| 2026-08-20 | **Solicitarea de utilaj din teren e o `request` cu `kind=solicitare_utilaj`**, nu o tabelă nouă. Sursa e `manual` (enumerarea nu are `teren`). | Cererea de utilaj e o cerere ca oricare alta: are autor, dată, decizie și devine planificare. O tabelă proprie ar fi însemnat al doilea inbox. |
+| 2026-08-20 | **Orele de utilaj intră în registrul de cost la închiderea PV-ului**, din diferența celor două citiri de contor, la rata internă. | E singurul moment în care știi sigur câte ore a lucrat. Un pontaj de utilaj separat ar fi fost o a doua sursă de adevăr pentru același număr. |
+| 2026-08-20 | **Tipar prin `@media print` + `data-print="hide"`**, nu un layout separat pentru PV. | PV-ul trebuie să rămână în shell-ul aplicației: are nevoie de sesiune, de navigație și de acțiunile de semnare. Un al doilea layout ar fi dublat autentificarea. |
+| 2026-08-20 | Intrările de navigație fără ecran se **afișează, dar nu sunt linkuri** — poartă eticheta „urmează". | Câmpul `stub` exista în `NavItem` și nu era folosit nicăieri: 10 intrări din bară dădeau 404. Un link mort e mai rău decât unul care spune că vine. |
 | 2026-08-20 | **Tabelă nouă `site_journal_entries`** pentru jurnalul de șantier (T6). | Ecranul e cerut în `PLAN.md` §3, dar jurnalul nu era în §2 și nu încape în nicio tabelă existentă fără să o deformeze. Nu produce bani ⇒ nu trece prin registrul de cost. |
 | 2026-08-20 | **Necesarul de material din teren (T4) e un `purchase_orders` draft fără furnizor**, cu `warehouse_check_until` la +24h. `supplier_id` a devenit nullable. | E exact intrarea canalului C din §16: necesar → filtrul de 24h la magazie → PO. O tabelă nouă de „necesar" ar fi fost aceeași tabelă cu alt nume. |
 | 2026-08-20 | Modalul deduce singur starea „modificat", ascultând `input`/`change` din interior. | Altfel fiecare ecran și-ar fi ținut propriul `useState` pentru regula 4 și s-ar fi uitat de ea într-un loc. |
@@ -131,6 +140,8 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 |---|---|---|---|
 | D1 | Utilaj și transport în pachetul de subcontractant — intră sau nu? Momentan pachetul e doar manoperă, ca în §8.3. | nimic acum | deschisă |
 | D2 | Raportul lunar: șablon per client cu branding, sau unul singur? | ecranul 34 | deschisă — momentan unul singur, pe ecran; export PDF nu există încă |
+| D4 | Operațiunile din seed se aleg fără să se uite la tipul obiectivului: „Înlocuire gresie deteriorată" pe o gură de canal, „Montaj schelă" pe o gură de canal, „Reabilitare fațadă" pe un rezervor. | nimic acum | deschisă — de filtrat pe `objectives.kind` la lustruire; un om din construcții vede din prima |
+| D5 | `reallocations` are 0 rânduri, deci `/realocari` — ecranul obligatoriu din §13.1 — e gol la demo. `pv_documents` la fel, gol. | demo | deschisă — de generat câteva în seed |
 | D3 | Ponturile din seed nu produc linii de cost (costul e generat cu ținte per componentă, ca marja să iasă în bandă). Pe fluxul viu, orele produc cost prin `recordCost`. De aliniat dacă cineva compară orele cu manopera. | nimic acum | deschisă |
 
 ---
@@ -155,6 +166,47 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 ---
 
 ## 6. Istoric pe sesiuni
+
+### 2026-08-20 — plimbarea prin browser pe A și B — GATA
+
+**S-a stricat / reparat:**
+- **Tot blocul B dădea 500.** `/cereri/[id]`, `/backlog`, `/lucrari`, `/lucrari/[id]`, `/rapoarte`,
+  `/rapoarte/inspectii`. O singură cauză: `RoutingForm.tsx` (client) importa din `lib/routing.ts`,
+  care importă `lib/db` → `postgres` → `fs`/`net`/`tls`/`perf_hooks`. După prima eroare de
+  rezolvare, **orice** pagină cerută dădea 500 (`application-code: 7ms` — pagina nici nu rula).
+  Reparat prin `lib/routing-types.ts`. `tsc --noEmit` trecea curat înainte și după.
+
+**Verificat, nu presupus:** 31 de rute pe 4 roluri. Regula 5 ține — **0 apariții** de „lei"/„RON"
+pe cele 7 ecrane de teren. `sef_santier` → 307 spre `/teren` pe toate ecranele de birou.
+
+### 2026-08-20 — blocul C (resurse) — GATA
+
+**A intrat:** `lib/equipment.ts` (scadențe pe dată **și** pe ore, imobilizare, intervale),
+`lib/pv-templates.ts`, `app/actions/equipment.ts`, `app/actions/documents.ts`,
+`components/domain/SignaturePad.tsx`, plus ecranele 26–33 și T7:
+
+- **26** `/utilaje` — registru + calendar Gantt pe 3 săptămâni + decalare în masă + PV deschise.
+- **27** `/utilaje/[id]` — dosar cu 7 file: Detalii / Accesorii / Motorină / Reparații /
+  Planificări / PV / Poze. Lei / oră la reparații, ca să se compare utilajele între ele.
+- **28** `/utilaje/solicitari` — biroul alege bucata concretă; utilajele ocupate se văd marcate,
+  nu dispar din listă.
+- **29** `/pv/[id]` — un document, două etape, semnătură pe canvas, tipar A4.
+- **30** `/unelte` · **31** `/transporturi` · **32** `/documente` · **33** `/documente/sabloane`
+  (câmpuri poziționate procentual, clic pe foaie ca să le așezi).
+- **T7** `/teren/utilaje` — doar ce am pe șantier, contor și zile rămase. Cerere și observație
+  în două atingeri.
+
+**Reguli respectate, verificat pe ecran:**
+- Regula 1 — motorina, reparațiile și orele de utilaj trec prin `recordCost`. Zero `insert` în
+  `cost_entries`.
+- Regula 5 — **0 apariții** de „lei"/„RON" pe cele 3 stări ale lui T7.
+- Utilajul imobilizat nu produce cost de exploatare la închiderea PV-ului.
+
+**Bară de navigație:** cele 10 intrări fără ecran nu mai dau 404 — se văd, marcate „urmează".
+
+**Verificat:** `tsc --noEmit` curat · `eslint` curat pe fișierele blocului C · `next build` trece
+cu toate cele 30 de rute · 14 rute noi plimbate pe `admin`, `flota` și `sef_santier`.
+
 
 ### 2026-08-20 — fundația — GATA
 

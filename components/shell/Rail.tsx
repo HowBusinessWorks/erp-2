@@ -15,7 +15,7 @@ export function Rail({ groups, firmName }: { groups: NavGroup[]; firmName: strin
   const pathname = usePathname();
 
   return (
-    <nav className="flex h-full w-56 shrink-0 flex-col bg-rail text-ink-rail">
+    <nav data-print="hide" className="flex h-full w-56 shrink-0 flex-col bg-rail text-ink-rail">
       <div className="border-b border-white/10 px-4 py-4">
         <div className="font-narrow text-[1.0625rem] font-bold uppercase tracking-[0.14em] text-white">
           Damina
@@ -33,6 +33,26 @@ export function Rail({ groups, firmName }: { groups: NavGroup[]; firmName: strin
               {group.items.map((item) => {
                 const active =
                   pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+                /* Intrarea fără ecran se VEDE — altfel harta aplicației pare mai mică
+                   decât e. Dar nu duce nicăieri: un link care dă 404 e mai rău decât
+                   unul care spune că urmează. */
+                if (item.stub) {
+                  return (
+                    <li key={item.href}>
+                      <span
+                        title="Ecranul urmează — vezi PLAN.md §5"
+                        className="flex cursor-default items-center justify-between gap-2 px-4 py-[0.3125rem] text-[0.8125rem] text-ink-rail-2/60"
+                      >
+                        {item.label}
+                        <span className="shrink-0 rounded-[2px] border border-white/15 px-1 text-[0.5625rem] uppercase tracking-wider">
+                          urmează
+                        </span>
+                      </span>
+                    </li>
+                  );
+                }
+
                 return (
                   <li key={item.href}>
                     <Link

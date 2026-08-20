@@ -23,7 +23,7 @@ export function TopBar({
   period: string;
 }) {
   return (
-    <header className="flex h-12 shrink-0 items-center gap-4 border-b border-rule bg-sheet px-4">
+    <header data-print="hide" className="flex h-12 shrink-0 items-center gap-4 border-b border-rule bg-sheet px-4">
       <span className="eyebrow">{period}</span>
 
       {impersonating ? (

@@ -58,8 +58,10 @@ export default async function OfficeLayout({ children }: { children: React.React
           unread={unread.length}
           period={period}
         />
-        <main className="grow overflow-y-auto">
-          <div className="mx-auto max-w-[1600px] px-6 py-5">{children}</div>
+        <main className="grow overflow-y-auto print:overflow-visible">
+          <div data-print="page" className="mx-auto max-w-[1600px] px-6 py-5">
+            {children}
+          </div>
         </main>
       </div>
     </div>

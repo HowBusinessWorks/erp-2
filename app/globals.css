@@ -143,3 +143,36 @@ table,
     transition-duration: 0.01ms !important;
   }
 }
+
+/**
+ * Tipar. Un PV de predare-primire se semneaza pe ecran, dar ajunge pe hartie —
+ * de asta bara de navigatie, antetul si butoanele ies din pagina la tiparire.
+ */
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+
+  [data-print="hide"] {
+    display: none !important;
+  }
+
+  html,
+  body {
+    height: auto;
+    background: #fff;
+  }
+
+  /* shell-ul aplicatiei tine totul intr-un flex cu overflow ascuns; la tiparire nu */
+  [data-print="page"] {
+    max-width: none;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .sheet,
+  [data-print="page"] * {
+    box-shadow: none !important;
+  }
+}
