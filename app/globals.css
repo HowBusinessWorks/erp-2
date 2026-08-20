@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════════════════════════════
+   Damina ERP — sistemul vizual „Registru"
+
+   Referința nu e un dashboard SaaS, ci un registru contabil tipărit bine:
+   hârtie calcaroasă, linii de cotă subțiri, cifre tabulare aliniate la dreapta,
+   albastru de planșă tehnică pentru acțiuni, teracotă pentru depășiri.
+
+   Regula de densitate: ecranele astea se citesc, nu se admiră. Aerul se pune
+   între secțiuni, nu în interiorul tabelelor.
+   ══════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* — suprafețe: hârtie, nu alb — */
+  --color-paper: oklch(97.4% 0.006 85);
+  --color-sheet: oklch(99.3% 0.003 85);
+  --color-sunk: oklch(95.2% 0.008 85);
+  --color-rail: oklch(23.5% 0.014 250);
+
+  /* — linii de cotă — */
+  --color-rule: oklch(89.5% 0.008 85);
+  --color-rule-strong: oklch(76% 0.012 85);
+
+  /* — cerneală — */
+  --color-ink: oklch(24% 0.014 60);
+  --color-ink-2: oklch(46% 0.012 60);
+  --color-ink-3: oklch(63% 0.010 60);
+  --color-ink-rail: oklch(88% 0.010 250);
+  --color-ink-rail-2: oklch(66% 0.014 250);
+
+  /* — albastru de planșă: singura culoare de acțiune — */
+  --color-blueprint: oklch(45% 0.115 248);
+  --color-blueprint-ink: oklch(38% 0.12 248);
+  --color-blueprint-soft: oklch(94.5% 0.028 248);
+
+  /* — stări de buget — */
+  --color-fill: oklch(53% 0.095 165); /* Delta umplută, verdigris */
+  --color-fill-soft: oklch(94% 0.035 165);
+  --color-warn: oklch(64% 0.125 75); /* 80% din plafon, ocru */
+  --color-warn-soft: oklch(95% 0.045 75);
+  --color-over: oklch(52% 0.155 32); /* depășire, teracotă */
+  --color-over-soft: oklch(94.5% 0.04 32);
+
+  /* — tipografie — */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-narrow: var(--font-archivo-narrow), var(--font-archivo), sans-serif;
+
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1rem;
+  --text-tiny: 0.75rem;
+  --text-tiny--line-height: 1.125rem;
+
+  /* — ritm — */
+  --radius-sheet: 3px;
+}
+
+/* ───────────────────────────── baza ───────────────────────────── */
+
+* {
+  border-color: var(--color-rule);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-feature-settings: "cv05" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Cifrele se aliniază pe coloană peste tot. E un registru. */
+table,
+[data-numeric],
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus vizibil, în albastrul de planșă — nu inelul implicit al browserului. */
+:focus-visible {
+  outline: 2px solid var(--color-blueprint);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--color-blueprint-soft);
+  color: var(--color-blueprint-ink);
+}
+
+/* ───────────────────────── utilitare proprii ───────────────────────── */
+
+/**
+ * Eticheta de secțiune: majuscule mici, spațiate, cu linie de cotă care merge
+ * până la capătul containerului. E elementul care ține tot sistemul împreună.
+ */
+@utility eyebrow {
+  font-family: var(--font-narrow);
+  font-size: var(--text-micro);
+  line-height: 1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  font-weight: 600;
+}
+
+/** Capul de tabel — aceeași voce ca eticheta de secțiune, dar mai strâns. */
+@utility th-label {
+  font-family: var(--font-narrow);
+  font-size: var(--text-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  font-weight: 600;
+}
+
+/** Suprafața de date: fundal de coală, chenar de o linie, colț aproape drept. */
+@utility sheet {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-sheet);
+}
+
+/* Bara de derulare, discretă — se vede mult tabel în aplicația asta. */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule-strong) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
