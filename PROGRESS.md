@@ -60,6 +60,7 @@ Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `d
 | B2 — Execuția lucrării (Gantt, buget pe etapă, jurnal) | ✅ **gata** — ecranul 22 |
 | C2 — Stoc și achiziții | ✅ **gata** — ecranele 23–25, plimbate în browser |
 | Integrare și lustruire | 🟨 **în lucru** — facturi, clopoțel viu, schelete declarate. Rămâne plimbarea pe cele 8 reguli |
+| E — Operabilitate (introducerea datelor) | ⬜ **neînceput** — `PLAN.md` §9, adăugat în plan azi. Ecranul 37 + creare pe ~25 de entități |
 
 Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
@@ -108,7 +109,13 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 `/stoc`, `/stoc/consum`, `/achizitii`, `/receptii` — toate 200. Primul `/stoc` a dat 500, dar la
 a doua cerere a mers: era prima compilare peste un pooler abia trezit, nu o regresie.
 
-**Ce a mai rămas din ziua 3** — singura zonă neterminată din tot planul:
+**Blocul E (`PLAN.md` §9) e acum cea mai mare zonă deschisă.** Cele 37 de ecrane arată și decid, dar
+în mare parte nu creează: datele vin din seed. Concret, azi nu se pot introduce din interfață
+contracte, obiective, produse, parteneri, utilaje, gestiuni, devize, pachete, etape de lucrare,
+fișiere sau costuri manuale. Ecranul 37 (Nomenclatoare) e singurul ecran din §3 rămas neconstruit —
+e încă intrare `stub` în bară și e primul pas al blocului, fiindcă restul alege din el.
+
+**Ce a mai rămas din ziua 3:**
 
 1. **Plimbarea cap-coadă pe cele 8 reguli de la §4 din documentul de business**, cu ochii, în
    aplicație. Punctul explicit din `PLAN.md` §5, ziua 3. Nefăcut.
@@ -280,24 +287,17 @@ lustruirea. Vezi §2.
    dădea 500**, cu `tsc` curat. De aici vin `lib/routing-types.ts` și `lib/notification-types.ts`.
 2. Ghilimelele `„…"` închise cu `"` drept **închid atributul JSX**. `„` se închide cu `”`.
 
-### 2026-08-20 — blocul C (resurse) — GATA (comprimat)
+### 2026-08-20 — blocul C, fundația, A și B — GATA (comprimat)
 
-`lib/equipment.ts` (scadențe pe dată **și** pe ore, imobilizare), `lib/pv-templates.ts`,
-`SignaturePad`, ecranele 26–33 și T7: registru + Gantt de flotă, dosar de utilaj cu 7 file,
-solicitări, PV cu semnătură pe canvas și tipar A4, unelte, transporturi, arbore de documente,
-șabloane cu câmpuri poziționate procentual. Regula 1 ține — motorina, reparațiile și orele trec
-prin `recordCost`. Regula 5 ține — 0 apariții de „lei" pe T7. Cele 10 intrări de navigație fără
-ecran nu mai dau 404: se văd, marcate „urmează". 14 rute plimbate pe `admin`, `flota`,
-`sef_santier`.
+**C (resurse):** `lib/equipment.ts` (scadențe pe dată **și** pe ore, imobilizare), `lib/pv-templates.ts`,
+`SignaturePad`, ecranele 26–33 și T7. Regula 1 ține (motorină, reparații, ore prin `recordCost`),
+regula 5 ține (0 „lei" pe T7). Cele 10 intrări de navigație fără ecran nu mai dau 404 — marcate „urmează".
 
-### 2026-08-20 — fundația, blocul A și blocul B — GATA (comprimat)
+**Fundația + A + B:** Next.js 16 + Tailwind 4, schema completă într-un fișier, nucleul din `lib/`,
+design system, shell, login, comutator de perspectivă, seed în două părți. Ecranele 2–6, 14, 15
+(banii) și 7–13, 34, 36, T1–T6 (operațional).
 
-Next.js 16 + Tailwind 4, schema completă într-un fișier, nucleul din `lib/`, design system, shell,
-login, comutator de perspectivă, seed în două părți. Apoi ecranele 2–6, 14, 15 (banii) și 7–13,
-34, 36, T1–T6 (operațional): rutarea din §7 pe cifre, backlogul Delta, UL cu 5 tab-uri, mutarea
-finanțării, raportul lunar, toată interfața de teren.
-
-Reparate atunci: panoul se încărca în 15s (N+1) → 0,7s după ce `budgetsForMonth` a devenit 5
-interogări în lot; stratul „angajat" lipsea la mentenanță (gauge-ul lui 4700 arăta 87% în loc de
-95%); adminul comutat pe „șef de șantier" rămânea blocat în teren; marjele din seed sunt acum
-16,7%–36,5% cu media 29,3%, ceea ce încadrează exemplul de 33,9% din documentul de business.
+Reparate atunci: panoul se încărca în 15s (N+1) → 0,7s cu `budgetsForMonth` în lot; stratul
+„angajat" lipsea la mentenanță (4700 arăta 87% în loc de 95%); adminul comutat pe „șef de șantier"
+rămânea blocat în teren; marjele din seed sunt 16,7%–36,5%, media 29,3% — încadrează exemplul de
+33,9% din documentul de business.

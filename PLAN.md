@@ -216,6 +216,9 @@ Grupate pe module. Toate au `id`, `created_at`; unde contează, `created_by`.
 | 36 | Acoperirea inspecțiilor | Câte obiective au fost inspectate luna asta (§22.2) — măsori fără să hărțuiești |
 | 37 | Nomenclatoare | Firme, parteneri, produse, calificări + rate card, catalog de operațiuni |
 
+> **Cele 37 de ecrane de mai sus arată și decid, dar în mare parte nu creează.** Datele vin din
+> seed. Ce trebuie adăugat ca aplicația să poată fi și *operată*, nu doar demonstrată, e în **§9**.
+
 ### Teren (mobil, atingeri puține)
 
 | # | Ecran | Regula |
@@ -350,3 +353,143 @@ se oprește intenționat și unde produsul real continuă.
    declarate? Dacă e ușor de aflat, modelez `sl_lines` compatibil de la început.
 3. **Cele 9 contracte reale** — valorile și ponderea componentelor. Cu cifre reale în seed, demo-ul
    convinge mult mai tare decât cu cifre inventate. Dacă nu sunt la îndemână, mergem pe inventate.
+
+---
+
+## 9. Blocul E — Operabilitate: introducerea datelor
+
+**Decizia care deschide blocul:** aplicația trebuie să poată fi *operată*, nu doar demonstrată pe
+datele din seed. Orice entitate pe care un om real o creează într-o zi de lucru are nevoie de un
+drum din interfață. Seed-ul rămâne — dar ca date de pornire, nu ca singura sursă de existență.
+
+### 9.0 Principiile care țin blocul unit
+
+1. **Creezi de unde începe fluxul, nu dintr-un „meniu de tabele".** Butonul de „＋" stă pe ecranul
+   care răspunde la întrebarea din care se naște înregistrarea: contractul nou pe `/contracte`,
+   utilajul nou pe `/utilaje`. Nu se construiește un panou de administrare paralel.
+2. **Un singur formular, refolosit.** `components/ui/form.tsx` — `Field`, `FormModal`,
+   `SubmitButton` cu stare de trimitere. Prima creare îl scrie, restul îl folosesc. Fără al doilea
+   `Table`, fără al doilea formular.
+3. **Regulile 1–6 din `CLAUDE.md` se aplică identic la creare.** Banii tot prin `cost-ledger`.
+   Finanțarea tot prin `funding_allocations`. Modalul tot cu buton explicit. Șeful de șantier tot
+   fără lei — deci `＋` pe teren nu deschide niciodată un câmp de preț.
+4. **Validarea stă în `lib/`, nu în componentă.** Aceeași funcție validează și server action-ul, și
+   seed-ul. Un formular care acceptă ce seed-ul refuză e o a doua definiție a adevărului.
+5. **Ce se creează automat nu primește buton manual.** Un PV se naște din alocare, o realocare din
+   mutarea finanțării, o garanție din SL aprobată. A doua cale de intrare le desincronizează.
+
+### 9.1 Ecranul 37 — Nomenclatoare (`/nomenclatoare`)
+
+Singurul ecran din §3 rămas neconstruit; azi e intrare `stub` în bară. E casa datelor de referință:
+file, fiecare cu listă + `＋` + editare. Fără el, nimic din restul blocului nu are ce alege în
+`<select>`.
+
+| Filă | Tabele | De reținut |
+|---|---|---|
+| Firme | `firms` | Serie de facturare per firmă (o folosește `lib/invoicing.ts`) |
+| Parteneri | `partners` | Client / furnizor / subcontractant — aceeași tabelă, roluri diferite |
+| Produse | `products` | Unitate de măsură, stoc minim/maxim, lead time — le citesc canalul A și semnalele |
+| Calificări + rate | `labor_rates` | Rata orară pe calificare; o consumă pontajul prin `recordCost` |
+| Catalog de operațiuni | `operation_catalog` + `operation_catalog_materials` | **Sursa rutării din §7.** O operațiune fără norme rutează greșit |
+| Șabloane de checklist | `checklist_templates` + `checklist_items` | Definesc ce vede omul pe teren la inspecție |
+| Utilizatori | `users` | Rol + firmă. Fără 2FA, fără invitații — parolă setată de admin |
+| Preț motorină | `fuel_prices` | Pe lună; intră în costul din `fuel_logs` |
+| Șabloane de PV | `pv_templates` | Creare + încărcare PDF; poziționarea câmpurilor există deja (ecranul 33) |
+
+### 9.2 Contractul cap-coadă (`/contracte`, `/contracte/[id]`)
+
+Cea mai adâncă lipsă: fără ea, aplicația nu poate primi un client nou. Un asistent în pași, pentru
+că un contract fără componente și fără plafoane rupe panoul PM.
+
+| Pas | Tabel | Regula |
+|---|---|---|
+| 1. Contract | `contracts` | Client, firmă, tip (mentenanță / individual), perioadă, valoare |
+| 2. Componente | `contract_components` | Cele 3 din §4.3. Suma ponderilor = 100% |
+| 3. Plafoane pe 12 luni | `component_budgets` | Generate din valoarea anuală, apoi ajustabile pe lună. **Plafonul de cost e 75% din venit** (§5 din PROGRESS) |
+| 4. Obiective arondate | `contract_objectives` | Legare din obiective existente sau creare pe loc (9.3) |
+| 5. An contractual + indexare | `contract_years` | Anul următor cu procent de indexare; nu se rescrie anul curent |
+
+Editarea unui contract activ se limitează la ce nu falsifică istoricul: plafoanele lunilor
+**deschise**, obiectivele arondate, datele de contact. Valoarea unei luni închise — niciodată.
+
+### 9.3 Obiective (`/obiective`)
+
+`objectives` — creare și editare: denumire, tip, adresă, coordonate, contract arondat. Tipul
+contează: `D4` din `PROGRESS.md` §4 arată ce iese când operațiunile nu se filtrează pe
+`objectives.kind`. Formularul de aici e locul unde se repară definitiv acea legătură.
+
+### 9.4 Cererea din birou (`/cereri`)
+
+Azi cererile intră doar din teren (T1–T6) și din `requestEquipment`. Lipsește cazul cel mai
+frecvent: **clientul sună la birou.** `＋ Cerere` pe inbox, cu `source = manual`, apoi exact aceeași
+rutare din §7 — fără ramură nouă de cod.
+
+### 9.5 Unități de lucru și etape (`/lucrari`, `/lucrari/[id]/executie`)
+
+| Ce | Tabel | De ce e nevoie |
+|---|---|---|
+| UL direct | `work_units` | Nu tot ce se lucrează trece printr-o cerere. Creare cu tip, obiectiv, perioadă — apoi finanțarea prin `funding_allocations`, ca regula 2 |
+| Etape | `work_unit_stages` | Ecranul 22 desenează Gantt-ul din ele, dar nu le poate crea. O lucrare nouă are azi Gantt gol |
+
+### 9.6 Deviz și derivatele lui (`/devize`, `/pachete`, `/situatii`)
+
+| Ce | Tabel | De reținut |
+|---|---|---|
+| Deviz nou | `devize` | Client sau intern, legat de UL, versionat |
+| Poziții | `deviz_lines` | Manual sau **din articole normate** (`normed_articles` are deja salvarea, nu și consumul) |
+| Din șablon | `deviz_templates` | Tabela există și nu o folosește nimeni. Un deviz pornit de la zero de fiecare dată e motivul pentru care lumea lucrează în Excel |
+| Pachet nou | `packages` | Adăugarea de linii există deja; crearea pachetului, nu. **Materialele rămân interzise** (§8.3) |
+| Situație nouă | `situatii_lucrari` + `sl_lines` | Cale manuală, pentru lucrările care nu vin prin portalul de subcontractanți. Aceleași verificări ca la `approveSituatie` — blocaj la depășirea contractatului (§10.1) |
+| Suplimentare | `supplements` | Există decizia, lipsește inițierea. Rămâne **atomică**: deviz + SL în aceeași tranzacție |
+
+### 9.7 Resurse (`/utilaje`, `/unelte`, `/transporturi`)
+
+`equipment`, `tools`, `transports` — creare și editare. La utilaj, formularul trebuie să ceară
+**ambele baze de scadență** (dată și ore de funcționare), pentru că `lib/equipment.ts` calculează pe
+amândouă și un utilaj introdus fără ore nu declanșează niciodată revizia. Transportul manual
+completează coada care azi se umple doar automat.
+
+### 9.8 Stoc și achiziții (`/stoc`, `/achizitii`)
+
+| Ce | Tabel | De reținut |
+|---|---|---|
+| Gestiune nouă | `warehouses` | Depozit sau șantier. Fără ea, un șantier nou n-are unde primi marfă |
+| Comandă manuală — canalul B | `purchase_orders` + `po_lines` | Canalul A (sub minim) și C (necesar din teren) există. B — comanda făcută de birou pentru o lucrare anume — nu. Analitica pe linie e obligatorie de la creare |
+
+### 9.9 Documente (`/documente`)
+
+`file_nodes` + `file_versions` — folder nou și încărcare de fișier pe Supabase Storage. Arborele se
+desenează deja și folderul per UL se creează automat; ce lipsește e **punerea unui fișier în el**.
+Upload simplu, într-o singură bucată — multipart rămâne în §7.
+
+### 9.10 Costul introdus manual (`/cost`)
+
+Factura de la furnizor care nu vine printr-o recepție (chirii, utilități, servicii) n-are azi drum.
+`＋ Cost` pe registru, cu `source_type` nou în **`lib/cost-ledger.ts`** — regula 1, literal. Nu un
+`insert` paralel. Refuzat pe o lună închisă, ca peste tot.
+
+### 9.11 Editare și ștergere — politica
+
+Ștergerea nu se implementează aproape nicăieri: un cost șters e o gaură într-un raport deja trimis.
+
+| Stare | Ce se poate |
+|---|---|
+| Ciornă / nefolosit de nimeni | Editare completă, ștergere |
+| Emis / aprobat / închis | Nimic. Corecția e un document nou (storno, versiune nouă, realocare) |
+| Nomenclator folosit deja | Editare de etichetă, **dezactivare** (`active = false`), nu ștergere |
+
+### 9.12 Ordinea de execuție
+
+```
+9.1 Nomenclatoare          ← primul, restul alege din el
+      ↓
+9.2 Contract → 9.3 Obiective → 9.5 UL + etape
+      ↓                              ↓
+9.6 Deviz și derivate          9.4 Cereri
+      ↓
+9.7 Resurse · 9.8 Stoc · 9.9 Documente · 9.10 Cost manual   ← independente între ele
+```
+
+Verificarea că blocul e gata: **un contract nou, dus cap-coadă până la factură, fără să atingi
+seed-ul.** Client → contract cu componente și plafoane → obiectiv → cerere → rutare → lucrare →
+deviz → etape → consum și pontaj → situație → raport lunar → factură.
