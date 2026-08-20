@@ -67,6 +67,7 @@ const MATRIX: Record<Role, Capability[]> = {
     "flota.solicita",
     "raport.aproba",
     "facturi.gestioneaza",
+    "nomenclatoare.editeaza",
   ],
 
   /**

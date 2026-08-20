@@ -70,7 +70,7 @@ export const NAVIGATION: NavGroup[] = [
       { href: "/rapoarte/inspectii", label: "Acoperirea inspecțiilor" },
       { href: "/facturi", label: "Facturi", needs: "facturi.gestioneaza" },
       { href: "/integrari", label: "Integrări și schelete" },
-      { href: "/nomenclatoare", label: "Nomenclatoare", stub: true },
+      { href: "/nomenclatoare", label: "Nomenclatoare", needs: "nomenclatoare.editeaza" },
     ],
   },
 ];

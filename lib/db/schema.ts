@@ -201,6 +201,8 @@ export const firms = pgTable("firms", {
   /** prefixul seriilor de documente ale firmei */
   documentPrefix: text("document_prefix").notNull(),
   color: text("color"),
+  /** nomenclator folosit deja ⇒ dezactivare, nu ștergere (PLAN.md §9.11) */
+  active: boolean("active").notNull().default(true),
   createdAt: createdAt(),
 });
 
@@ -702,6 +704,8 @@ export const laborRates = pgTable("labor_rates", {
   hourlyCost: money("hourly_cost").notNull(),
   validFrom: date("valid_from").notNull(),
   validTo: date("valid_to"),
+  /** nomenclator folosit deja ⇒ dezactivare, nu ștergere (PLAN.md §9.11) */
+  active: boolean("active").notNull().default(true),
   createdAt: createdAt(),
 });
 
@@ -1374,6 +1378,8 @@ export const pvTemplates = pgTable("pv_templates", {
   storageKey: text("storage_key"),
   /** câmpuri poziționate PROCENTUAL față de pagină, nu în puncte fixe */
   fields: jsonb("fields").notNull().default(sql`'[]'::jsonb`),
+  /** nomenclator folosit deja ⇒ dezactivare, nu ștergere (PLAN.md §9.11) */
+  active: boolean("active").notNull().default(true),
   createdAt: createdAt(),
 });
 
