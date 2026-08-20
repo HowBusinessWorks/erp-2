@@ -590,6 +590,124 @@ export async function seedOperations(ctx: SeedContext) {
     await db.insert(s.costEntries).values(stageCosts);
   }
 
+  /**
+   * Fișele — partea din care se construiește raportul lunar către client.
+   *
+   * NOTĂ: ponturile de aici NU produc linii de cost; costul de manoperă e deja
+   * generat mai sus, cu ținte per componentă. Dacă s-ar genera din ore, plafoanele
+   * ar ieși din banda de marjă. Pe fluxul viu (teren → pontaj) orele produc cost,
+   * prin `recordCost`.
+   */
+  console.log("→ fișe de lucru");
+
+  const answerValues: (typeof s.inspectionAnswers.$inferInsert)[] = [];
+  const detailValues: (typeof s.interventionDetails.$inferInsert)[] = [];
+  const timesheetValues: (typeof s.timesheets.$inferInsert)[] = [];
+  const journalValues: (typeof s.siteJournalEntries.$inferInsert)[] = [];
+
+  const workers = userRows.filter((u) => u.role === "sef_santier" || u.role === "pm");
+  const NOK_NOTES = [
+    "Fisură vizibilă, se lărgește față de luna trecută.",
+    "Curge la îmbinare, s-a strâns provizoriu.",
+    "Lipsește capacul de protecție.",
+    "Corp de iluminat nefuncțional.",
+    "Colmatare avansată, necesită curățare mecanizată.",
+  ];
+
+  for (const unit of workUnitRows) {
+    const day = unit.endDate ?? unit.startDate ?? dayIn(YEAR, MONTH, 15);
+    const worker = workers.length ? pick(workers) : pm;
+
+    if (unit.kind === "inspectie") {
+      // Fișa completă, cu 10–20% puncte NOK. Fiecare NOK are IEȘIRE — fără ea
+      // constatarea moare în fișă și Delta rămâne neumplută.
+      const template = pick(checklistTemplates);
+      for (const text of template.items) {
+        const ok = !chance(0.15);
+        answerValues.push({
+          workUnitId: unit.id,
+          itemText: text,
+          ok,
+          note: ok ? null : pick(NOK_NOTES),
+          outcome: ok ? null : pick(["rezolvat", "interventie", "propunere", "propunere"]),
+        });
+      }
+      timesheetValues.push({
+        userId: worker.id,
+        workUnitId: unit.id,
+        day,
+        hours: String(int(2, 5)),
+        qualification: "muncitor",
+        createdBy: worker.id,
+      });
+    } else if (unit.kind === "interventie") {
+      const hours = int(2, 8);
+      detailValues.push({
+        workUnitId: unit.id,
+        description: pick([
+          "Înlocuit piesa defectă, testat în funcționare.",
+          "Curățat și degripat, refăcută etanșarea.",
+          "Remediat provizoriu, necesită intervenție de fond.",
+          "Reparat și repus în funcțiune, fără observații.",
+        ]),
+        hoursDeclared: String(hours),
+        peopleCount: int(1, 3),
+        resolvedAt: new Date(day),
+      });
+      timesheetValues.push({
+        userId: worker.id,
+        workUnitId: unit.id,
+        day,
+        hours: String(hours),
+        qualification: pick(["muncitor", "electrician", "instalator"]),
+        createdBy: worker.id,
+      });
+    } else if (chance(0.25)) {
+      // Jurnal doar pe un sfert din lucrări — atât cât se scrie și în realitate.
+      for (let i = 0; i < int(1, 3); i++) {
+        journalValues.push({
+          workUnitId: unit.id,
+          day: unit.startDate ?? day,
+          text: pick([
+            "S-a lucrat la structură. Echipa completă, fără incidente.",
+            "Turnat beton la fundație. Livrarea a întârziat două ore.",
+            "Montaj instalație electrică, etapa 1. Restul materialului mâine.",
+            "Finisaje interioare. Zona a fost predată curată beneficiarului.",
+          ]),
+          weather: pick(["senin", "înnorat", "ploaie", "vânt"]),
+          peopleCount: int(2, 6),
+          blocker: chance(0.25)
+            ? pick([
+                "Lipsă material — necesarul e la magazie.",
+                "Acces blocat de beneficiar până la ora 11.",
+                "Ploaie, s-a oprit turnarea.",
+              ])
+            : null,
+          createdBy: worker.id,
+        });
+      }
+    }
+  }
+
+  for (let i = 0; i < answerValues.length; i += 500) {
+    await db.insert(s.inspectionAnswers).values(answerValues.slice(i, i + 500));
+  }
+  for (let i = 0; i < detailValues.length; i += 500) {
+    await db.insert(s.interventionDetails).values(detailValues.slice(i, i + 500));
+  }
+  for (let i = 0; i < timesheetValues.length; i += 500) {
+    await db.insert(s.timesheets).values(timesheetValues.slice(i, i + 500));
+  }
+  if (journalValues.length) {
+    for (let i = 0; i < journalValues.length; i += 500) {
+      await db.insert(s.siteJournalEntries).values(journalValues.slice(i, i + 500));
+    }
+  }
+  console.log(
+    `   ${answerValues.length} puncte de checklist · ${detailValues.length} fișe de intervenție · ` +
+      `${timesheetValues.length} ponturi · ${journalValues.length} însemnări de jurnal`,
+  );
+
   /* ───────────────── cereri, backlog, decizii de rutare ───────────────── */
   console.log("→ cereri și backlog");
 

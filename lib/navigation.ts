@@ -28,8 +28,10 @@ export const NAVIGATION: NavGroup[] = [
     label: "Operațional",
     items: [
       { href: "/cereri", label: "Cereri și tichete" },
+      { href: "/backlog", label: "Backlog Delta", needs: "cost.vezi" },
       { href: "/lucrari", label: "Unități de lucru" },
       { href: "/cost", label: "Registrul de cost", needs: "cost.vezi" },
+      { href: "/realocari", label: "Realocări", needs: "cost.vezi" },
       { href: "/perioade", label: "Închiderea lunii", needs: "perioada.inchide" },
     ],
   },
@@ -59,7 +61,8 @@ export const NAVIGATION: NavGroup[] = [
     label: "Evidență",
     items: [
       { href: "/documente", label: "Documente și PV" },
-      { href: "/rapoarte", label: "Rapoarte" },
+      { href: "/rapoarte", label: "Rapoarte lunare" },
+      { href: "/rapoarte/inspectii", label: "Acoperirea inspecțiilor" },
       { href: "/facturi", label: "Facturi", needs: "facturi.gestioneaza" },
       { href: "/nomenclatoare", label: "Nomenclatoare" },
     ],
@@ -74,11 +77,14 @@ export function navigationFor(role: Role): NavGroup[] {
 }
 
 /** Ecranele de teren — interfață separată, nu aceleași pagini cu mai puține butoane (§18.1.1). */
+/**
+ * Patru intrări, nu șase: bara de jos stă sub degetul mare, iar tot ce se poate
+ * ajunge din „Azi" nu merită un buton propriu. Restul se deschide din ＋.
+ */
 export const FIELD_NAVIGATION: NavItem[] = [
   { href: "/teren", label: "Azi" },
-  { href: "/teren/inspectii", label: "Inspecții" },
   { href: "/teren/pontaj", label: "Pontaj" },
   { href: "/teren/jurnal", label: "Jurnal" },
-  { href: "/teren/utilaje", label: "Utilajele mele" },
-  { href: "/teren/poze", label: "Poze" },
+  { href: "/teren/necesar", label: "Necesar" },
+  // „Utilajele mele" (T7) intră aici odată cu blocul C.
 ];

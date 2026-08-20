@@ -705,6 +705,29 @@ export const laborRates = pgTable("labor_rates", {
   createdAt: createdAt(),
 });
 
+/**
+ * Jurnalul de șantier (T6). O însemnare pe zi și pe unitate de lucru: ce s-a lucrat,
+ * cine a fost, ce a blocat. Nu produce bani — de asta nu trece prin registrul de cost.
+ *
+ * NOTĂ: tabela asta nu era în PLAN.md §2. Ecranul T6 e cerut, iar jurnalul nu încape
+ * în nicio tabelă existentă fără să o deformeze. Vezi PROGRESS.md §3.
+ */
+export const siteJournalEntries = pgTable("site_journal_entries", {
+  id: id(),
+  workUnitId: uuid("work_unit_id")
+    .notNull()
+    .references(() => workUnits.id, { onDelete: "cascade" }),
+  day: date("day").notNull(),
+  text: text("text").notNull(),
+  /** starea vremii — la lucrări în exterior e motiv real de întârziere */
+  weather: text("weather"),
+  peopleCount: integer("people_count"),
+  /** ce a blocat lucrul azi; gol = nimic */
+  blocker: text("blocker"),
+  createdBy: uuid("created_by").references(() => users.id),
+  createdAt: createdAt(),
+});
+
 /* ══════════════════════════ 7. DEVIZ ══════════════════════════ */
 
 /**
@@ -1057,9 +1080,12 @@ export const purchaseOrders = pgTable("purchase_orders", {
   firmId: uuid("firm_id")
     .notNull()
     .references(() => firms.id),
-  supplierId: uuid("supplier_id")
-    .notNull()
-    .references(() => partners.id),
+  /**
+   * GOL până la alegerea furnizorului. Necesarul de material venit din teren (T4)
+   * intră tot aici, ca draft fără furnizor — el e intrarea filtrului de 24h de la
+   * magazie (§16). Achizițiile îi pun furnizorul când îl lansează.
+   */
+  supplierId: uuid("supplier_id").references(() => partners.id),
   channel: purchaseChannel("channel").notNull(),
   status: poStatus("status").notNull().default("draft"),
   orderedAt: date("ordered_at"),

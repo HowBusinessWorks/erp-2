@@ -11,7 +11,7 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
-import { sql } from "drizzle-orm";
+import { inArray, isNull, sql } from "drizzle-orm";
 
 import { db } from "../lib/db";
 import * as s from "../lib/db/schema";
@@ -66,6 +66,7 @@ async function wipe() {
     "package_lines", "packages",
     "deviz_templates", "normed_articles", "deviz_mapping", "deviz_lines", "devize",
     "labor_rates", "timesheets", "intervention_details", "inspection_answers",
+    "site_journal_entries",
     "checklist_items", "checklist_templates",
     "operation_catalog_materials", "operation_catalog", "requests",
     "periods", "cost_entries", "reallocations", "funding_allocations",
@@ -408,6 +409,27 @@ async function main() {
     );
     checklistTemplates.push({ tpl, items: spec.items });
   }
+
+  /**
+   * Profilul de inspecție stă pe LEGĂTURA contract–obiectiv (§5), nu pe obiectiv.
+   * Se atașează după ce există șabloanele: cel potrivit tipului de obiectiv, altfel
+   * cel electric, care se aplică peste tot.
+   */
+  const genericTemplate = checklistTemplates.find((t) => t.tpl.objectiveKind === null)!.tpl;
+  for (const { tpl } of checklistTemplates) {
+    const ids = objectiveRows
+      .filter((o) => o.kind === tpl.objectiveKind)
+      .map((o) => o.id);
+    if (!ids.length) continue;
+    await db
+      .update(s.contractObjectives)
+      .set({ checklistTemplateId: tpl.id })
+      .where(inArray(s.contractObjectives.objectiveId, ids));
+  }
+  await db
+    .update(s.contractObjectives)
+    .set({ checklistTemplateId: genericTemplate.id })
+    .where(isNull(s.contractObjectives.checklistTemplateId));
 
   /* ── produse ── */
   console.log("→ produse");

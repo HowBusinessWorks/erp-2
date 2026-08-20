@@ -28,6 +28,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# sursa de adevar pentru business - nu intra in repo, vezi CLAUDE.md
+"DaminaStructuraCapCoada FInal.md"
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
