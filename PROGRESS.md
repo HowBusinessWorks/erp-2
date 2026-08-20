@@ -59,7 +59,7 @@ Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `d
 | B — Operațional (cereri, rutare, UL, fișe, teren, raport lunar) | ✅ **gata** — ecranele 7–13, 34, 36, T1–T6 |
 | C — Resurse (utilaje, unelte, transporturi, fișiere, PV) | ✅ **gata** — ecranele 26–33, T7 |
 | A2 — Deviz, pachete, SL, suplimentări, garanții | ✅ **gata** — ecranele 16–21, T8 |
-| B2 — Execuția lucrării (Gantt, buget pe etapă, jurnal) | ⬜ |
+| B2 — Execuția lucrării (Gantt, buget pe etapă, jurnal) | ✅ **gata** — ecranul 22 |
 | C2 — Stoc și achiziții | ⬜ |
 | Integrare și lustruire | ⬜ |
 
@@ -72,7 +72,8 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 - `lib/`: `money` · `permissions` · `session` · `cost-ledger` · `budget` · `navigation` · `period` ·
   `routing` (§7) + `routing-types` (partea pură) · `work-units` (creare + promovare) ·
   `monthly-report` (§20.1) · `equipment` (scadențe pe dată **și** pe ore, imobilizare) · `pv-templates` ·
-  `deviz` (materialele nu intră în pachet, cumulatul nu depășește contractatul, trasabilitate)
+  `deviz` (materialele nu intră în pachet, cumulatul nu depășește contractatul, trasabilitate) ·
+  `execution` (stare de etapă, derivă bani-vs-timp, geometria barelor, verificări de închidere)
 - `app/actions/`: `session` · `periods` · `requests` · `work-units` · `field` · `reports` ·
   `equipment` · `documents` · `deviz`
 - Design system „Registru": `app/globals.css` (tokeni OKLCH) + `components/ui/{primitives,table,gauge,modal,tabs}.tsx`
@@ -88,7 +89,8 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
   `/documente` (arbore) · `/documente/sabloane` (câmpuri procentuale, ecranul 33) ·
   `/devize` + `/devize/[id]` (client / intern / mapare N:M cu bară de trasabilitate) ·
   `/devize/articole` · `/pachete` + `/pachete/[id]` · `/situatii` + `/situatii/[id]` (cele 5
-  cumulate) · `/garantii` (suplimentare atomică + scadențar)
+  cumulate) · `/garantii` (suplimentare atomică + scadențar) ·
+  `/lucrari/[id]/executie` (Gantt pe consum, jurnal, necesar pe etape, închidere)
 - Ecrane teren: `/teren` (Azi + ＋) · `/teren/[id]` (inspecție sau intervenție) · `/teren/necesar` ·
   `/teren/pontaj` · `/teren/jurnal` · `/teren/constatare` · `/teren/utilaje` (T7) ·
   `/teren/situatii` + `/teren/situatii/[id]` (T8 — cantități, zero lei)
@@ -97,7 +99,7 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
 ## 2. Ce blochează acum
 
-**Nimic.** B2 (execuția lucrării, ecranul 22) și C2 (stoc și achiziții, 23–25) pot porni în paralel.
+**Nimic.** Mai rămâne **C2** (stoc și achiziții, ecranele 23–25) și integrarea din ziua 3.
 
 Plimbarea prin browser s-a făcut pe A, B și C — 31 + 14 rute, pe patru roluri. Vezi §6.
 
@@ -116,6 +118,8 @@ De clarificat când e momentul, fără să blocheze:
 
 | Data | Decizie | De ce |
 |---|---|---|
+| 2026-08-20 | **Bara din Gantt arată consumul din buget, nu durata.** Poziția și lățimea vin din date, umplerea din bani. | Un grafic care spune că etapa e la zi, dar tace despre faptul că a mâncat 94% din buget în 40% din durată, te minte politicos. |
+| 2026-08-20 | Ecranul 22 e rută proprie (`/lucrari/[id]/executie`), nu al șaselea tab. Tabul „Etape” a rămas, cu link către el. | Tabul răspunde la „ce etape are”, ecranul la „cum merge execuția”. Graficul, jurnalul, necesarul și închiderea nu încap într-un tab fără să-l facă ilizibil. |
 | 2026-08-20 | **Regula „materialele nu intră în pachet" e impusă în `addPackageLine`**, nu doar desenată pe ecran. Liniile de material nu au buton de adăugare. | Un avertisment pe care îl închizi nu e o regulă. Un pachet cu material în el înseamnă că plătești aceeași țeavă de două ori — o dată la furnizor, o dată în prețul subcontractantului (§8.3). |
 | 2026-08-20 | **`approveSituatie` refuză** dacă vreo linie ar depăși contractatul sau e marcată suspect. | Blocajul la introducere înseamnă că discuția e cu omul care tocmai a scris cifra. La factură, ai deja o lună de întârziere (§10.1). |
 | 2026-08-20 | **Garanția se naște din situația aprobată**, în aceeași acțiune, cu scadență la 1 an. | O tabelă de garanții completată de mână se desincronizează de situații în prima lună. |
@@ -182,6 +186,25 @@ cod — se repornește serverul de dev sau se iau datele din aplicație, prin `c
 ---
 
 ## 6. Istoric pe sesiuni
+
+### 2026-08-20 — blocul B2 (execuția lucrării) — GATA
+
+**A intrat:** `lib/execution.ts` + `/lucrari/[id]/executie` (ecranul 22): Gantt în care bara arată
+**consumul din buget**, nu durata; tabelul de buget pe etapă cu coloana **derivă** (consumat % −
+timp trecut %, singura cifră care prezice o depășire înainte să se întâmple); jurnalul de șantier
+cu blocajele evidențiate; necesarul de material grupat pe etape; panoul de închidere cu patru
+verificări care **nu blochează**, doar se afișează.
+
+**Două defecte de logică prinse abia pe ecran, nu de `tsc`:**
+- O etapă terminată la 98% apărea „Atenție”. Pragul de 80% e un avertisment despre o etapă *care
+  încă merge*; pe una încheiată în buget tocea exact semnalul pentru care există. Ordinea din
+  `stageState` a fost corectată: `depasita` → `incheiata` → `atentie`.
+- „Fără blocaje deschise ✓” apărea pe o lucrare **fără jurnal**. Absența blocajelor notate nu e
+  absența blocajelor; acum verificarea cere `hasJournal`.
+
+**Verificat:** `tsc` curat · `eslint` curat · `next build` cu 44 de rute · ecranul plimbat pe cele
+3 lucrări cu etape, pe una fără (starea goală) și pe `sef_santier` (307 spre `/teren`).
+
 
 ### 2026-08-20 — blocul A2 (deviz, pachete, SL, garanții) — GATA
 

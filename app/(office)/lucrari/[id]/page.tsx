@@ -607,6 +607,9 @@ async function StagesTab({ id, showPrices }: { id: string; showPrices: boolean }
     );
   }
 
+  /* Tabul răspunde la „ce etape are lucrarea”. La „cum merge execuția” răspunde
+     ecranul 22, care are graficul, jurnalul, necesarul pe etape și închiderea. */
+
   const stageCosts = await db
     .select({ stageId: costEntries.stageId, total: raw<string>`sum(${costEntries.value})` })
     .from(costEntries)
@@ -615,7 +618,20 @@ async function StagesTab({ id, showPrices }: { id: string; showPrices: boolean }
   const costBy = new Map(stageCosts.map((c) => [c.stageId, fromDb(c.total)]));
 
   return (
-    <Sheet>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="max-w-prose text-tiny text-ink-2">
+          Etapele sunt scheletul lucrării. Graficul de execuție, jurnalul de șantier și
+          închiderea stau pe ecranul de execuție.
+        </p>
+        <Link href={`/lucrari/${id}/executie`} className="shrink-0">
+          <Button size="sm" variant="primary">
+            Grafic de execuție
+          </Button>
+        </Link>
+      </div>
+
+      <Sheet>
       <Table>
         <THead>
           <TR>
@@ -653,7 +669,8 @@ async function StagesTab({ id, showPrices }: { id: string; showPrices: boolean }
           })}
         </TBody>
       </Table>
-    </Sheet>
+      </Sheet>
+    </div>
   );
 }
 
