@@ -34,10 +34,10 @@ vede prețuri nicăieri.
 | `PLAN.md` | planul complet: ce se construiește, ce **nu** se construiește și de ce, cele ~48 de tabele, cele 45 de ecrane, împărțirea pe sesiuni |
 | `PROGRESS.md` | unde am ajuns, ce blochează, capcanele deja plătite. **Citește §0 și §1 înainte de orice.** |
 | `CLAUDE.md` | regulile care nu se negociază în codul ăsta |
+| `DaminaStructuraCapCoada FInal.md` | sursa de adevăr pentru business — toate regulile pe secțiuni (§4.3, §13.1, §18.1) |
 
-Sursa de adevăr pentru regulile de business e documentul `DaminaStructuraCapCoada`. Referințele
-de tip §4.2, §12, §13.1, §18.1.4 din cod și din plan trimit acolo. Documentul **nu e în repo** —
-cere-l separat.
+Sursa de adevăr pentru regulile de business e `DaminaStructuraCapCoada FInal.md`, **în rădăcina
+repo-ului**. Referințele de tip §4.2, §12, §13.1, §18.1.4 din cod și din plan trimit acolo.
 
 ## Stivă
 

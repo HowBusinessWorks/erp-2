@@ -39,8 +39,8 @@ meargă pe **6543**, nu pe 5432.
 **Ordinea de citit:** `CLAUDE.md` (regulile care nu se negociază) → §1 și §2 de mai jos →
 secțiunea blocului tău din `PLAN.md` §3 și §5.
 
-**Sursa de adevăr pentru business:** `DaminaStructuraCapCoada FInal.md`. Referințele de tip §4.2,
-§13.1, §18.1.4 din cod și din plan trimit acolo. **Nu e în repo** — cere-o separat.
+**Sursa de adevăr pentru business:** `DaminaStructuraCapCoada FInal.md`, **în rădăcina repo-ului**.
+Referințele de tip §4.2, §13.1, §18.1.4 din cod și din plan trimit acolo.
 
 ---
 

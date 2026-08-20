@@ -48,6 +48,3 @@ next-env.d.ts
 
 # modelul de configurare TREBUIE sa fie in repo (nu contine valori reale)
 !.env.local.example
-
-# Sursa de adevar pentru business -- se cere separat, nu intra in repo
-DaminaStructuraCapCoada*.md

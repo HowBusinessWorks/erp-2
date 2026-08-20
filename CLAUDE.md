@@ -9,9 +9,9 @@ specificație vie.
 1. Citește **`PROGRESS.md` §1 și §2** — unde suntem și ce blochează. Atât, nu tot fișierul.
 2. Citește din **`PLAN.md`** doar secțiunea blocului la care lucrezi.
 
-Sursa de adevăr pentru regulile de business:
-`C:\Users\firul\Downloads\DaminaStructuraCapCoada FInal (1).md` (referințele de tip §11, §18.1 din
-`PLAN.md` trimit acolo).
+Sursa de adevăr pentru regulile de business: **`DaminaStructuraCapCoada FInal.md`, în rădăcina
+repo-ului** (referințele de tip §11, §18.1 din `PLAN.md` trimit acolo). E lung — deschide-l la
+secțiunea de care ai nevoie, nu tot.
 
 ## La final de sesiune
 
