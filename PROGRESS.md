@@ -58,7 +58,7 @@ Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `d
 | A — Banii (contracte, plafoane, obiective, registru de cost, panou PM) | ✅ **gata** — ecranele 1–6, 14, 15 |
 | B — Operațional (cereri, rutare, UL, fișe, teren, raport lunar) | ✅ **gata** — ecranele 7–13, 34, 36, T1–T6 |
 | C — Resurse (utilaje, unelte, transporturi, fișiere, PV) | ✅ **gata** — ecranele 26–33, T7 |
-| A2 — Deviz, pachete, SL, suplimentări, garanții | ⬜ |
+| A2 — Deviz, pachete, SL, suplimentări, garanții | ✅ **gata** — ecranele 16–21, T8 |
 | B2 — Execuția lucrării (Gantt, buget pe etapă, jurnal) | ⬜ |
 | C2 — Stoc și achiziții | ⬜ |
 | Integrare și lustruire | ⬜ |
@@ -71,9 +71,10 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 - `lib/db/schema.ts` — **toate cele ~49 de tabele**, cu enum-uri și relații.
 - `lib/`: `money` · `permissions` · `session` · `cost-ledger` · `budget` · `navigation` · `period` ·
   `routing` (§7) + `routing-types` (partea pură) · `work-units` (creare + promovare) ·
-  `monthly-report` (§20.1) · `equipment` (scadențe pe dată **și** pe ore, imobilizare) · `pv-templates`
+  `monthly-report` (§20.1) · `equipment` (scadențe pe dată **și** pe ore, imobilizare) · `pv-templates` ·
+  `deviz` (materialele nu intră în pachet, cumulatul nu depășește contractatul, trasabilitate)
 - `app/actions/`: `session` · `periods` · `requests` · `work-units` · `field` · `reports` ·
-  `equipment` · `documents`
+  `equipment` · `documents` · `deviz`
 - Design system „Registru": `app/globals.css` (tokeni OKLCH) + `components/ui/{primitives,table,gauge,modal,tabs}.tsx`
 - Shell: `components/shell/{Rail,TopBar}.tsx`, `app/(office)/layout.tsx`, login + comutator de perspectivă
 - Seed: `seed/{index,operations,run}.ts` — 5 firme, 9 contracte, 124 obiective, 756 unități de lucru,
@@ -84,15 +85,19 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
   (5 tab-uri + mutarea finanțării) · `/realocari` (§13.1) · `/rapoarte` (§20.1) · `/rapoarte/inspectii` (§22.2) ·
   `/utilaje` (registru + Gantt + decalare în masă + PV deschise) · `/utilaje/[id]` (7 file) ·
   `/utilaje/solicitari` (§18.1.2) · `/pv/[id]` (2 etape, semnătură, A4) · `/unelte` · `/transporturi` ·
-  `/documente` (arbore) · `/documente/sabloane` (câmpuri procentuale, ecranul 33)
+  `/documente` (arbore) · `/documente/sabloane` (câmpuri procentuale, ecranul 33) ·
+  `/devize` + `/devize/[id]` (client / intern / mapare N:M cu bară de trasabilitate) ·
+  `/devize/articole` · `/pachete` + `/pachete/[id]` · `/situatii` + `/situatii/[id]` (cele 5
+  cumulate) · `/garantii` (suplimentare atomică + scadențar)
 - Ecrane teren: `/teren` (Azi + ＋) · `/teren/[id]` (inspecție sau intervenție) · `/teren/necesar` ·
-  `/teren/pontaj` · `/teren/jurnal` · `/teren/constatare` · `/teren/utilaje` (T7 — cantități, zero lei)
+  `/teren/pontaj` · `/teren/jurnal` · `/teren/constatare` · `/teren/utilaje` (T7) ·
+  `/teren/situatii` + `/teren/situatii/[id]` (T8 — cantități, zero lei)
 
 ---
 
 ## 2. Ce blochează acum
 
-**Nimic.** A2, B2 și C2 pot porni în paralel.
+**Nimic.** B2 (execuția lucrării, ecranul 22) și C2 (stoc și achiziții, 23–25) pot porni în paralel.
 
 Plimbarea prin browser s-a făcut pe A, B și C — 31 + 14 rute, pe patru roluri. Vezi §6.
 
@@ -111,6 +116,10 @@ De clarificat când e momentul, fără să blocheze:
 
 | Data | Decizie | De ce |
 |---|---|---|
+| 2026-08-20 | **Regula „materialele nu intră în pachet" e impusă în `addPackageLine`**, nu doar desenată pe ecran. Liniile de material nu au buton de adăugare. | Un avertisment pe care îl închizi nu e o regulă. Un pachet cu material în el înseamnă că plătești aceeași țeavă de două ori — o dată la furnizor, o dată în prețul subcontractantului (§8.3). |
+| 2026-08-20 | **`approveSituatie` refuză** dacă vreo linie ar depăși contractatul sau e marcată suspect. | Blocajul la introducere înseamnă că discuția e cu omul care tocmai a scris cifra. La factură, ai deja o lună de întârziere (§10.1). |
+| 2026-08-20 | **Garanția se naște din situația aprobată**, în aceeași acțiune, cu scadență la 1 an. | O tabelă de garanții completată de mână se desincronizează de situații în prima lună. |
+| 2026-08-20 | `formatShort` se importă direct în componentele de client, nu se pasează ca prop. | Funcțiile nu trec granița server/client. `lib/money.ts` e pur, deci se poate importa de ambele părți. A costat un 500 pe `/devize/[id]?fila=mapare`. |
 | 2026-08-20 | **`lib/routing-types.ts`** — tipurile și etichetele rutării, separate de interogări. | `RoutingForm.tsx` e componentă de client și importa din `lib/routing.ts`, care importă `lib/db`. Turbopack încerca să pună `postgres` în pachetul de browser și **tot blocul B dădea 500**. `tsc` trecea curat — se vedea doar deschizând ecranul. |
 | 2026-08-20 | **Solicitarea de utilaj din teren e o `request` cu `kind=solicitare_utilaj`**, nu o tabelă nouă. Sursa e `manual` (enumerarea nu are `teren`). | Cererea de utilaj e o cerere ca oricare alta: are autor, dată, decizie și devine planificare. O tabelă proprie ar fi însemnat al doilea inbox. |
 | 2026-08-20 | **Orele de utilaj intră în registrul de cost la închiderea PV-ului**, din diferența celor două citiri de contor, la rata internă. | E singurul moment în care știi sigur câte ore a lucrat. Un pontaj de utilaj separat ar fi fost o a doua sursă de adevăr pentru același număr. |
@@ -140,6 +149,7 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 |---|---|---|---|
 | D1 | Utilaj și transport în pachetul de subcontractant — intră sau nu? Momentan pachetul e doar manoperă, ca în §8.3. | nimic acum | deschisă |
 | D2 | Raportul lunar: șablon per client cu branding, sau unul singur? | ecranul 34 | deschisă — momentan unul singur, pe ecran; export PDF nu există încă |
+| D6 | Blocajul din §10.1 (cumulat > contractat) **nu are caz vizibil în seed** — toate liniile au rest pozitiv. Ecranul îl implementează, dar la demo nu se vede. | demo | deschisă — de forțat o linie în seed |
 | D4 | Operațiunile din seed se aleg fără să se uite la tipul obiectivului: „Înlocuire gresie deteriorată" pe o gură de canal, „Montaj schelă" pe o gură de canal, „Reabilitare fațadă" pe un rezervor. | nimic acum | deschisă — de filtrat pe `objectives.kind` la lustruire; un om din construcții vede din prima |
 | D5 | `reallocations` are 0 rânduri, deci `/realocari` — ecranul obligatoriu din §13.1 — e gol la demo. `pv_documents` la fel, gol. | demo | deschisă — de generat câteva în seed |
 | D3 | Ponturile din seed nu produc linii de cost (costul e generat cu ținte per componentă, ca marja să iasă în bandă). Pe fluxul viu, orele produc cost prin `recordCost`. De aliniat dacă cineva compară orele cu manopera. | nimic acum | deschisă |
@@ -148,10 +158,16 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ## 5. Capcane cunoscute
 
+**Pooler-ul Supabase are 15 conexiuni.** Cu `next dev` pornit de câteva ore, scripturile
+`tsx` separate primesc `EMAXCONNSESSION: max clients reached in session mode`. Nu e o eroare de
+cod — se repornește serverul de dev sau se iau datele din aplicație, prin `curl`.
+
+
 *Lucruri care s-au stricat o dată și se pot strica din nou. Scurt, doar simptomul și leacul.*
 
 | Simptom | Leac |
 |---|---|
+| `TS1382: Unexpected token` într-un atribut JSX (`meta="…"`, `hint="…"`) | Ghilimeaua românească de închidere s-a scris `"` drept, care închide atributul. `„` se închide cu `”`. A rupt două ecrane în blocul A2. |
 | `TS1127: Invalid character` într-un string cu ghilimele românești | Ghilimelele de închidere „…” ies uneori ASCII. Folosește apostrof simplu pentru stringul din jur. |
 | Drizzle refuză un `insert` cu ternar pe o coloană de enum | Ternarul dă `string`. Pune `as "a" \| "b"` pe expresie. |
 | Import circular între `seed/index.ts` și `seed/operations.ts` | Punctul de intrare e `seed/run.ts`; `index.ts` nu are efecte secundare. |
@@ -166,6 +182,32 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 ---
 
 ## 6. Istoric pe sesiuni
+
+### 2026-08-20 — blocul A2 (deviz, pachete, SL, garanții) — GATA
+
+**A intrat:** `lib/deviz.ts`, `app/actions/deviz.ts`, plus ecranele 16–21 și T8.
+
+- **16 + 17** `/devize/[id]` cu trei file: client, intern, **mapare N:M**. Bara de trasabilitate
+  arată cât din ofertă are cost calculat și cât din cost a intrat în pachete; partea nemapată e
+  hașurată cu roșu, nu lăsată goală.
+- **18** `/devize/articole` — biblioteca, ordonată după numărul de folosiri.
+- **19** `/pachete` + `/pachete/[id]` — materialele **nu au buton de adăugare**, cu motivul scris
+  lângă fiecare.
+- **20** `/situatii/[id]` — cele cinci cumulate, una lângă alta; aprobarea e blocată dacă vreo
+  linie depășește contractatul sau e suspectă, cu motivul scris deasupra butonului.
+- **21** `/garantii` — suplimentare atomică (pachet + SL în aceeași tranzacție) și scadențar pe
+  patru găleți.
+- **T8** `/teren/situatii` — două butoane cât o falangă, „Nu e așa" cere motiv. **Zero prețuri.**
+
+**S-a stricat / reparat:**
+- `/devize/[id]?fila=mapare` dădea 500: pasam `formatShort` ca prop către o componentă de client.
+  Funcțiile nu trec granița server/client.
+- Ghilimelele românești `„…"` închise cu `"` drept **închid atributul JSX**. A rupt două ecrane;
+  reparat în 13 fișiere printr-o trecere cu regex. `„` se închide cu `”`, nu cu `"`.
+
+**Verificat:** `tsc` curat · `eslint` curat pe fișierele blocului · `next build` trece cu toate
+cele 40 de rute · 10 rute noi plimbate pe `admin` și `sef_santier` · **0 apariții de „lei" pe T8**.
+
 
 ### 2026-08-20 — plimbarea prin browser pe A și B — GATA
 
@@ -210,71 +252,20 @@ cu toate cele 30 de rute · 14 rute noi plimbate pe `admin`, `flota` și `sef_sa
 
 ### 2026-08-20 — fundația — GATA
 
-**A intrat:**
-- Scheletul Next.js 16 + Tailwind 4, `npm install` (5 vulnerabilități, toate în lanțul de dev al
-  `drizzle-kit`/esbuild — nu ajung în aplicație).
-- Schema completă, ~48 tabele, într-un singur fișier, cu comentarii care trimit la secțiunile din
-  documentul de business (§4.2, §11, §12, §13, §18.1.4 etc.).
-- Cele 5 fișiere de nucleu din `lib/`. `cost-ledger.ts` implementă și regula §13.1 completă
-  (`moveWorkUnitFunding`), cu cele două comportamente după cum luna e închisă sau nu.
-- Design system + shell + login + comutator de perspectivă.
-- Seed în două părți, cu ținte de umplere per contract.
-- `/panou` — primul ecran real.
-
-- Schema împinsă pe Supabase (`drizzle-kit push`), seed rulat: **756 unități de lucru, ~1.900 linii
-  de cost**, 124 obiective, 15 utilaje, SL-uri, comenzi, notificări.
-- Verificat în browser: login → panou → comutator de perspectivă → teren.
-
-**S-a stricat / reparat:**
-- Cinci capcane, toate în §5 de mai sus. Cea mai costisitoare: host-ul direct Supabase e IPv6-only.
-- Panoul se încărca în ~15s (N+1). Rescris `budgetsForMonth` ca 5 interogări în lot → **0,7s**.
-- Stratul „angajat" era gol la mentenanță; adăugat în seed. Fără el, gauge-ul lui 4700 arăta 87%
-  în loc de 95%, adică exact minciuna pe care o previne P6.
+Next.js 16 + Tailwind 4, schema completă (~48 tabele într-un fișier), cele 5 fișiere de nucleu din
+`lib/`, design system, shell, login, comutator de perspectivă, seed în două părți. Schema împinsă,
+seed rulat. Reparat pe parcurs: panoul se încărca în 15s (N+1) → 0,7s după ce `budgetsForMonth` a
+devenit 5 interogări în lot; stratul „angajat” lipsea la mentenanță, fără el gauge-ul lui 4700
+arăta 87% în loc de 95%.
 
 ### 2026-08-20 — blocul A (banii) — GATA
 
-**A intrat:** `lib/period.ts`, `components/domain/MonthNav.tsx`, plus ecranele 2–6, 14, 15:
-lista de contracte cu gauge-uri inline și alertă de expirare · detaliul de contract (aranjamentul
-din §4.3, cu marjă lunară și cumulată pe an contractual) · curba de marjă pe 4 ani cu ipoteză de
-creștere comutabilă · obiective cu filtre · istoricul obiectivului pe analitica **folosit** ·
-registrul de cost cu comutator descărcat/folosit și raportul de reconciliere · închiderea de lună
-pe firmă × lună.
-
-**S-a stricat / reparat:**
-- Adminul comutat pe „șef de șantier" rămânea **blocat** în interfața de teren, fără drum înapoi.
-  Adăugat `backToOffice()`.
-- Marje de 50% și 59,5% pe ecran — aritmetică greșită a țintelor din seed. Corectate; banda e
-  acum 16,7%–36,5%, cu media 29,3%, ceea ce încadrează exemplul de 33,9% din documentul de business.
-- Anul 1 al contractelor arăta 96,8% marjă din 1 lună de date. Adăugată detecția de acoperire:
-  sub 60% ⇒ „date parțiale", fără procent.
-
-**Timpi:** `/contracte` 0,6s · `/panou` 1,0s · `/obiective` 1,5s · `/cost` 2,2s.
+`lib/period.ts`, `MonthNav`, ecranele 2–6, 14, 15. Reparat: adminul comutat pe „șef de șantier”
+rămânea blocat în teren (adăugat `backToOffice()`); marjele din seed erau greșite, banda e acum
+16,7%–36,5% cu media 29,3%, ceea ce încadrează exemplul de 33,9% din documentul de business.
 
 ### 2026-08-20 — blocul B (operațional) — GATA
 
-**A intrat:** `lib/{routing,work-units,monthly-report}.ts`, `app/actions/{requests,work-units,field,reports}.ts`,
-`components/ui/{modal,tabs}.tsx`, `components/domain/FieldKit.tsx`, plus ecranele 7–13, 34, 36 și T1–T6:
-
-- **Rutarea (§7)** calculează cele 3 ramuri din catalogul de operațiuni, pragul contractului și
-  capacitatea liberă a componentelor lunii. Sistemul recomandă, omul decide, decizia produce
-  ATOMIC unitatea de lucru **și** alocarea ei de finanțare. Nu rămâne „aprobat" fără urmare.
-- **Backlogul Delta** filtrează propunerile după cât mai e liber în Delta lunii, cu alertă de
-  neumplut după ziua 10.
-- **Mutarea finanțării (§13.1)** e un modal care spune înainte de apăsare care dintre cele două
-  comportamente se declanșează, fiindcă numără lunile închise cu cost pe unitate. `/realocari`
-  listează documentele emise.
-- **Terenul**: ＋ cu 4 acțiuni, fișă de inspecție cu ieșire impusă la NOK (care deschide singură
-  cererea), intervenție care scade stocul echipei și pontează, necesar material în 3 atingeri,
-  pontaj împărțit pe mai multe UL, jurnal care se deschide gata de scris. Zero lei pe teren.
-- **Raportul lunar (§20.1)** se agregă pe analitica *folosit*, se versionează și se îngheață la
-  emitere. **Acoperirea inspecțiilor (§22.2)** măsoară obiectivele atinse, nu oamenii.
-- Seed nou pentru fișe; șabloanele de checklist se atașează pe legătura contract–obiectiv (§5).
-
-**S-a stricat / reparat:** nimic notabil. `tsc --noEmit` curat, `db:push` aplicat, seed 139,7s.
-
-**Nu s-a făcut:** plimbarea în browser — sesiunea s-a oprit înainte. **Prima treabă a sesiunii
-următoare:** `npm run dev`, login, și cap-coadă pe `/cereri` → rutare → `/lucrari/[id]` → mutare
-finanțare → `/realocari`, plus perspectiva „șef de șantier" pe `/teren`.
-
-**Rămâne:** blocul C (resurse) — nu atinge aceleași tabele, poate porni oricând. Apoi A2, B2, C2
-și integrarea.
+Ecranele 7–13, 34, 36 și T1–T6: rutarea din §7 cu cele 3 ramuri calculate pe cifre, backlogul
+Delta, unitățile de lucru cu 5 tab-uri, mutarea finanțării, raportul lunar, acoperirea
+inspecțiilor, plus toată interfața de teren.

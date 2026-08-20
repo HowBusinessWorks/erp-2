@@ -38,8 +38,10 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: "Comercial",
     items: [
-      { href: "/devize", label: "Devize", stub: true },
-      { href: "/situatii", label: "Situații de lucrări", stub: true },
+      { href: "/devize", label: "Devize" },
+      { href: "/pachete", label: "Pachete", needs: "pachete.gestioneaza" },
+      { href: "/situatii", label: "Situații de lucrări" },
+      { href: "/garantii", label: "Suplimentări și garanții", needs: "preturi.vezi" },
     ],
   },
   {
@@ -88,4 +90,5 @@ export const FIELD_NAVIGATION: NavItem[] = [
   { href: "/teren/jurnal", label: "Jurnal" },
   { href: "/teren/necesar", label: "Necesar" },
   { href: "/teren/utilaje", label: "Utilaje" },
+  { href: "/teren/situatii", label: "Verific" },
 ];
