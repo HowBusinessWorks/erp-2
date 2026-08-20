@@ -18,7 +18,7 @@ import { ReportIssueForm, RequestEquipmentForm } from "./FieldEquipmentForms";
 export const dynamic = "force-dynamic";
 
 /**
- * T7 — „Utilajele mele".
+ * T7 — „Utilajele mele”.
  *
  * Doar ce am pe șantier, nu toată flota. **Cantități, nu bani** — contorul, litrii,
  * zilele rămase. Rata internă și costul reparațiilor nu au ce căuta aici; regula 5

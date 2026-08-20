@@ -272,7 +272,7 @@ export default async function CostPage({
 
       {sp.diferite ? (
         <p className="border-l-2 border-warn bg-warn-soft px-3 py-2 text-tiny text-warn">
-          Liniile unde analitica „folosit" diferă de „descărcat" — munca s-a făcut într-un loc,
+          Liniile unde analitica „folosit” diferă de „descărcat” — munca s-a făcut într-un loc,
           banul s-a dus pe alt buget. Fiecare are motiv obligatoriu. Dacă lista crește de la lună
           la lună, decizia de rutare se ia prost, iar problema e în proces, nu în software.
         </p>

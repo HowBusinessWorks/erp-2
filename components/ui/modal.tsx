@@ -11,7 +11,7 @@ import { Button } from "./primitives";
  *
  * `dirty` se calculează din formular: dacă vreun câmp a fost atins, e true.
  * Componenta îl deduce singură ascultând evenimentele de input din interior, ca să
- * nu fie nevoie ca fiecare ecran să-și țină starea de „modificat".
+ * nu fie nevoie ca fiecare ecran să-și țină starea de „modificat”.
  */
 export function Modal({
   open,

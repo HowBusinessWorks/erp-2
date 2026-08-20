@@ -5,7 +5,7 @@ import { labelPeriod, shiftPeriod, type Period } from "@/lib/period";
 
 /**
  * Navigația pe lună. Toate ecranele de bani au aceeași — plafoanele, marja și
- * registrul se citesc întotdeauna „pe o lună", niciodată cumulat implicit.
+ * registrul se citesc întotdeauna „pe o lună”, niciodată cumulat implicit.
  */
 export function MonthNav({
   period,

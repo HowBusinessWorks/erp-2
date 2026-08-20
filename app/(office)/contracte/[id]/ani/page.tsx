@@ -13,7 +13,7 @@ import { requireSession } from "@/lib/session";
 export const dynamic = "force-dynamic";
 
 /**
- * §22.6 — „5% pe an nu e o lege a naturii, e o presupunere."
+ * §22.6 — „5% pe an nu e o lege a naturii, e o presupunere.”
  *
  * Indexarea acoperă jumătate din risc. Cealaltă jumătate se vede doar aici: dacă
  * materialele cresc cu 9% și salariile cu 12%, iar indexarea e 5%, marja se erodează
@@ -130,7 +130,7 @@ export default async function MarjaPeAniPage({
     /**
      * Un an cu date pe 1 lună din 12 produce o marjă de 96% — o cifră care arată
      * spectaculos și e falsă. Mai bine niciun număr decât un număr greșit: anii
-     * sub 60% acoperire se marchează „date parțiale" și ies din curbă.
+     * sub 60% acoperire se marchează „date parțiale” și ies din curbă.
      */
     const cov = coverage.get(y.yearNo) ?? { withData: 0, expected: 0 };
     const partial = cov.expected > 0 && cov.withData / cov.expected < 0.6;

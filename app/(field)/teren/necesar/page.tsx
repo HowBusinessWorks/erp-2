@@ -12,13 +12,13 @@ export const dynamic = "force-dynamic";
  * T4 — necesar material. TREI atingeri cap-coadă.
  *
  *   1. ＋
- *   2. „Necesar material"
+ *   2. „Necesar material”
  *   3. Trimite
  *
  * Ca să iasă trei, tot ce se poate precompleta e precompletat: unitatea de lucru
  * (prima deschisă, sau cea din care ai venit), unitatea de măsură (din produs),
  * gestiunea de livrare. Câmpul de cantitate se deschide focalizat, cu tastatura
- * numerică — scrii „5" și apeși Trimite.
+ * numerică — scrii „5” și apeși Trimite.
  */
 export default async function NecesarPage({
   searchParams,

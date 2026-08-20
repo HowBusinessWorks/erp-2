@@ -5,12 +5,12 @@ import { formatShort, type Bani } from "@/lib/money";
 /**
  * Cele două direcții, care sunt inversul una alteia (§4.2):
  *
- *   „consuma" — Mentenanță, Lucrări. Plafon de COST. Vrei să NU-l depășești.
+ *   „consuma” — Mentenanță, Lucrări. Plafon de COST. Vrei să NU-l depășești.
  *               Bara curge de la stânga, trece în ocru la 80%, în teracotă peste 100%.
  *
- *   „umple"   — Delta. Plafon de VENIT. Vrei să-l UMPLI, iar ce rămâne neumplut
+ *   „umple”   — Delta. Plafon de VENIT. Vrei să-l UMPLI, iar ce rămâne neumplut
  *               e venit pierdut fără cost. De-aia restul se desenează HAȘURAT,
- *               nu gol: golul se citește ca „e bine", hașura se citește ca „lipsește".
+ *               nu gol: golul se citește ca „e bine”, hașura se citește ca „lipsește”.
  */
 
 export type GaugeDirection = "consuma" | "umple";

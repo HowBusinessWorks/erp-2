@@ -24,7 +24,7 @@ export default async function FieldLayout({ children }: { children: React.ReactN
             <div className="text-micro text-ink-rail-2">{session.name}</div>
           </div>
           <div className="flex items-center gap-3">
-            {/* Adminul care s-a uitat „ca șef de șantier" trebuie să se poată întoarce.
+            {/* Adminul care s-a uitat „ca șef de șantier” trebuie să se poată întoarce.
                 Fără asta rămâne blocat pe teren până expiră cookie-ul de perspectivă. */}
             {session.impersonating ? (
               <form action={backToOffice}>

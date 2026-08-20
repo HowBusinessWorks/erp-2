@@ -32,9 +32,9 @@ const KIND_LABEL: Record<string, string> = {
 };
 
 /**
- * Ecranul „istoric obiectiv" (§5) — cerut explicit.
+ * Ecranul „istoric obiectiv” (§5) — cerut explicit.
  *
- * Se citește pe analitica „FOLOSIT", nu „descărcat": aici contează unde s-a
+ * Se citește pe analitica „FOLOSIT”, nu „descărcat”: aici contează unde s-a
  * întâmplat fizic munca, nu pe ce buget s-a dus banul. De-aia istoricul rămâne
  * corect și după ce finanțarea se mută de pe un contract pe altul (§13.1).
  */
@@ -60,7 +60,7 @@ export default async function ObiectivPage({ params }: { params: Promise<{ id: s
     .orderBy(desc(workUnits.startDate))
     .limit(200);
 
-  // costul pe unitate de lucru, pe analitica „folosit"
+  // costul pe unitate de lucru, pe analitica „folosit”
   const costRows = await db
     .select({
       workUnitId: costEntries.workUnitId,

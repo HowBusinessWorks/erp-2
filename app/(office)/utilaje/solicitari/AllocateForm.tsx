@@ -21,7 +21,7 @@ export type Candidate = {
 /**
  * Ecranul 28 — biroul alege bucata concretă (§18.1.2).
  *
- * Omul din teren a cerut o capacitate: „excavator, trei zile, la Berceni". Aici se
+ * Omul din teren a cerut o capacitate: „excavator, trei zile, la Berceni”. Aici se
  * vede care excavator e liber în fereastra aia și care nu, cu motivul scris lângă.
  * Utilajele ocupate nu dispar din listă — se văd, marcate, pentru că uneori decizia
  * corectă e să decalezi cealaltă planificare.

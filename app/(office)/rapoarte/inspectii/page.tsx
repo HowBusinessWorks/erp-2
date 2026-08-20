@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 /**
  * Ecranul 36 — acoperirea inspecțiilor (§22.2).
  *
- * Măsoară fără să hărțuiască: nu „câte inspecții a făcut Gigi", ci câte obiective din
+ * Măsoară fără să hărțuiască: nu „câte inspecții a făcut Gigi”, ci câte obiective din
  * cele contractate au fost atinse luna asta. Un obiectiv neinspectat de trei luni e o
  * problemă de contract, nu de om — și e, în plus, Delta neumplută, pentru că
  * inspecțiile sunt sursa constatărilor.
