@@ -142,6 +142,28 @@ export async function recordCosts(inputs: CostInput[]) {
   return out;
 }
 
+/**
+ * Stinge angajamentul lăsat de un document (comanda lansată, la recepția completă).
+ *
+ * Un angajament există ca să avertizeze ÎNAINTE. Odată ce marfa a intrat în gestiune,
+ * el nu mai avertizează pe nimeni — dar dacă rămâne, componenta apare consumată de
+ * două ori: o dată angajat, o dată la bonul de consum. Ștergerea se face doar de aici,
+ * ca regula 1 să rămână adevărată în ambele sensuri: nimeni altcineva nu atinge tabela.
+ */
+export async function releaseCommitment(documentType: string, documentId: string) {
+  const deleted = await db
+    .delete(costEntries)
+    .where(
+      and(
+        eq(costEntries.documentType, documentType),
+        eq(costEntries.documentId, documentId),
+        eq(costEntries.stage, "angajat"),
+      ),
+    )
+    .returning({ id: costEntries.id });
+  return deleted.length;
+}
+
 async function activeAllocationFor(workUnitId: string) {
   const [row] = await db
     .select({

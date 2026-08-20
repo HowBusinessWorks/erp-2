@@ -47,8 +47,10 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: "Aprovizionare",
     items: [
-      { href: "/stoc", label: "Gestiuni și stoc", needs: "stoc.vezi", stub: true },
-      { href: "/achizitii", label: "Achiziții", needs: "achizitii.gestioneaza", stub: true },
+      { href: "/stoc", label: "Gestiuni și stoc", needs: "stoc.vezi" },
+      { href: "/stoc/consum", label: "Bonuri de consum", needs: "stoc.opereaza" },
+      { href: "/achizitii", label: "Achiziții", needs: "achizitii.gestioneaza" },
+      { href: "/receptii", label: "Recepții și NIR", needs: "stoc.opereaza" },
     ],
   },
   {

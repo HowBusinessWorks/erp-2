@@ -58,7 +58,7 @@ Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `d
 | C — Resurse (utilaje, unelte, transporturi, fișiere, PV) | ✅ **gata** — ecranele 26–33, T7 |
 | A2 — Deviz, pachete, SL, suplimentări, garanții | ✅ **gata** — ecranele 16–21, T8 |
 | B2 — Execuția lucrării (Gantt, buget pe etapă, jurnal) | ✅ **gata** — ecranul 22 |
-| C2 — Stoc și achiziții | ⬜ |
+| C2 — Stoc și achiziții | ✅ **gata** — ecranele 23–25 (neplimbat în browser, vezi §2) |
 | Integrare și lustruire | ⬜ |
 
 Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
@@ -71,9 +71,10 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
   `routing` (§7) + `routing-types` (partea pură) · `work-units` (creare + promovare) ·
   `monthly-report` (§20.1) · `equipment` (scadențe pe dată **și** pe ore, imobilizare) · `pv-templates` ·
   `deviz` (materialele nu intră în pachet, cumulatul nu depășește contractatul, trasabilitate) ·
-  `execution` (stare de etapă, derivă bani-vs-timp, geometria barelor, verificări de închidere)
+  `execution` (stare de etapă, derivă bani-vs-timp, geometria barelor, verificări de închidere) ·
+  `stock` (CMP, disponibil = cantitate − rezervat, NIR, bon de consum, cele 3 canale)
 - `app/actions/`: `session` · `periods` · `requests` · `work-units` · `field` · `reports` ·
-  `equipment` · `documents` · `deviz`
+  `equipment` · `documents` · `deviz` · `stock`
 - Design system „Registru": `app/globals.css` (tokeni OKLCH) + `components/ui/{primitives,table,gauge,modal,tabs}.tsx`
 - Shell: `components/shell/{Rail,TopBar}.tsx`, `app/(office)/layout.tsx`, login + comutator de perspectivă
 - Seed: `seed/{index,operations,run}.ts` — 5 firme, 9 contracte, 124 obiective, 756 unități de lucru,
@@ -88,7 +89,10 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
   `/devize` + `/devize/[id]` (client / intern / mapare N:M cu bară de trasabilitate) ·
   `/devize/articole` · `/pachete` + `/pachete/[id]` · `/situatii` + `/situatii/[id]` (cele 5
   cumulate) · `/garantii` (suplimentare atomică + scadențar) ·
-  `/lucrari/[id]/executie` (Gantt pe consum, jurnal, necesar pe etape, închidere)
+  `/lucrari/[id]/executie` (Gantt pe consum, jurnal, necesar pe etape, închidere) ·
+  `/stoc` (disponibil, semnale, transfer, inventar) · `/stoc/consum` (bon de consum, ecranul 23) ·
+  `/achizitii` (cele 3 canale, filtrul de 24h) · `/achizitii/[id]` (analitică pe linie, lansare) ·
+  `/receptii` (recepție + NIR, ecranul 25)
 - Ecrane teren: `/teren` (Azi + ＋) · `/teren/[id]` (inspecție sau intervenție) · `/teren/necesar` ·
   `/teren/pontaj` · `/teren/jurnal` · `/teren/constatare` · `/teren/utilaje` (T7) ·
   `/teren/situatii` + `/teren/situatii/[id]` (T8 — cantități, zero lei)
@@ -97,7 +101,17 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
 ## 2. Ce blochează acum
 
-**Nimic.** Mai rămâne **C2** (stoc și achiziții, ecranele 23–25) și integrarea din ziua 3.
+**Baza de date refuză autentificarea** — `password authentication failed for user "postgres"`, cu
+credențiale corecte, și din dev server, și din `tsx`. E capcana din §5 (pooler-ul Supavisor după o
+rafală de conexiuni), nu o regresie de cod. Leacul: Project Settings → Database → Connection
+pooling → **Restart pooler**, sau ~15 minute de așteptare.
+
+Consecință directă: **cele 5 rute noi din C2 n-au fost plimbate în browser.** `tsc`, `eslint` și
+`next build` (49 de rute) trec curat, dar istoricul spune limpede că blocul B dădea 500 pe toate
+ecranele cu `tsc` curat. Prima sesiune care prinde baza vie: `npm run seed` (seed-ul are acum
+necesar din teren pe canalul C) și apoi plimbarea pe `admin`, `achizitii`, `magazie`, `sef_santier`.
+
+Mai rămâne integrarea din ziua 3.
 
 Plimbarea prin browser s-a făcut pe A, B și C — 31 + 14 rute, pe patru roluri. Vezi §6.
 
@@ -116,6 +130,11 @@ De clarificat când e momentul, fără să blocheze:
 
 | Data | Decizie | De ce |
 |---|---|---|
+| 2026-08-20 | **Materialul devine cost la CONSUM, nu la recepție.** NIR-ul mută marfa în gestiune și recalculează CMP-ul, dar nu scrie nicio linie de cheltuială. | În magazie materialul e activ, nu cheltuială. Dacă ar scrie și NIR-ul, și bonul de consum, `consumedByComponent` (care însumează recepționat + consumat) ar număra aceiași bani de două ori. |
+| 2026-08-20 | **`releaseCommitment` în `lib/cost-ledger.ts`** — comanda lansată scrie `angajat`, recepția completă îl șterge. | Un angajament există ca să avertizeze *înainte*. După ce marfa a intrat, el nu mai avertizează, doar umflă componenta. Ștergerea stă în cost-ledger, ca regula 1 să fie adevărată în ambele sensuri: nimeni altcineva nu atinge tabela. |
+| 2026-08-20 | Valoarea de pe bonul de consum e la **CMP-ul gestiunii**, nu la prețul ultimei facturi. | Cu trei livrări la trei prețuri, ultima factură ar rescrie retroactiv costul lucrărilor de luna trecută. |
+| 2026-08-20 | „Am pe stoc" pe filtrul de 24h (§16) **rezervă**, nu transferă. Comanda trece în `anulata` + `warehouseCoveredFromStock`. | Mutarea fizică are nevoie de transport și de o zi. Rezervarea e ce se poate promite pe loc — și e exact ce înseamnă `disponibil = cantitate − rezervat` (§17). |
+| 2026-08-20 | Inventarul scrie o mișcare `inventar` cu diferența, nu doar `UPDATE` pe cantitate. | O cantitate care se schimbă fără document e o cantitate pe care nimeni nu o mai poate explica peste trei luni. |
 | 2026-08-20 | **Bara din Gantt arată consumul din buget, nu durata.** Poziția și lățimea vin din date, umplerea din bani. | Un grafic care spune că etapa e la zi, dar tace despre faptul că a mâncat 94% din buget în 40% din durată, te minte politicos. |
 | 2026-08-20 | Ecranul 22 e rută proprie (`/lucrari/[id]/executie`), nu al șaselea tab. Tabul „Etape” a rămas, cu link către el. | Tabul răspunde la „ce etape are”, ecranul la „cum merge execuția”. Graficul, jurnalul, necesarul și închiderea nu încap într-un tab fără să-l facă ilizibil. |
 | 2026-08-20 | **Regula „materialele nu intră în pachet" e impusă în `addPackageLine`**, nu doar desenată pe ecran. Liniile de material nu au buton de adăugare. | Un avertisment pe care îl închizi nu e o regulă. Un pachet cu material în el înseamnă că plătești aceeași țeavă de două ori — o dată la furnizor, o dată în prețul subcontractantului (§8.3). |
@@ -198,6 +217,30 @@ așteptare. Baza nu e afectată, doar pooler-ul.
 ---
 
 ## 6. Istoric pe sesiuni
+
+### 2026-08-20 — blocul C2 (stoc și achiziții) — COD GATA, NEPLIMBAT
+
+**A intrat:** `lib/stock.ts`, `app/actions/stock.ts`, `releaseCommitment` în `lib/cost-ledger.ts`,
+plus ecranele 23–25 pe 5 rute.
+
+- **23** `/stoc` — coloana centrală e **disponibil** (cantitate − rezervat), nu cantitate; semnale
+  epuizat / sub minim / peste maxim; transfer între gestiuni pe rând; inventar cu mișcare scrisă;
+  consignația marcată explicit, cu valoarea de stoc neraportată. `/stoc/consum` — bonul de consum,
+  cu linii adăugabile, blocaj peste disponibil și zero preț în formular (prețul e CMP-ul).
+- **24** `/achizitii` — cele 3 canale ca file separate, pentru că sunt trei fluxuri, nu trei
+  etichete. Canalul C arată ceasul magaziei (ore rămase din 24) și două butoane opuse: „acopăr din
+  stoc" (rezervă, comanda moare) sau lansarea comenzii. Canalul A propune singur ce a scăzut sub
+  minim, ordonat după lead time, cu bifa pusă implicit pe ce e epuizat sau are lead time ≥ 7 zile.
+  `/achizitii/[id]` ține analitica **pe linie** și avertizează câte linii n-au componentă.
+- **25** `/receptii` — se recepționează ce s-a descărcat, la prețul de pe factură; CMP-ul se
+  recalculează; angajamentul se stinge la recepția completă; lucrările cu `autoConsumeOnReceipt`
+  își consumă materialul în aceeași apăsare (§22.1). Comenzile cu termen depășit sunt marcate.
+
+**Seed:** trei comenzi „necesar din teren" pe canalul C, cu fereastra de 24h deschisă (una la 3 ore,
+ca să se vadă și avertismentul). **Cere `npm run seed`** ca să apară.
+
+**Nu s-a putut verifica pe ecran:** baza a căzut pe capcana din §5 (vezi §2). `tsc` curat · `eslint`
+curat pe fișierele blocului · `next build` cu **49 de rute**.
 
 ### 2026-08-20 — blocul B2 (execuția lucrării) — GATA
 

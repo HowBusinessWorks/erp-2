@@ -1055,6 +1055,45 @@ export async function seedOperations(ctx: SeedContext) {
     );
   }
 
+  /**
+   * Necesarul din teren, canalul C (§16): comenzi în stare de necesar, fără furnizor,
+   * cu fereastra de 24h a magaziei încă deschisă. Fără ele, ecranul 24 arată filtrul
+   * de 24h ca pe o stare goală — adică exact regula pe care demo-ul trebuie să o arate.
+   */
+  console.log("→ necesar din teren, în fereastra de 24h");
+  const lucrariCuEtape = workUnitRows.filter((w) => w.kind === "lucrare").slice(0, 3);
+  for (const [i, unit] of lucrariCuEtape.entries()) {
+    const [need] = await db
+      .insert(s.purchaseOrders)
+      .values({
+        code: `N-${5100 + i}`,
+        firmId: mainFirm.id,
+        channel: "lucrare",
+        status: "draft",
+        deliverToWarehouseId: centralWarehouse.id,
+        // una aproape expirată, ca să se vadă și avertismentul, nu doar starea liniștită
+        warehouseCheckUntil: new Date(Date.now() + (i === 0 ? 3 : 14 + i) * 3600 * 1000),
+        createdBy: sefSantier.id,
+      })
+      .returning();
+
+    await db.insert(s.poLines).values(
+      Array.from({ length: int(1, 3) }, () => {
+        const product = pick(productRows);
+        const q = int(4, 30);
+        const price = Number(product.lastPrice) * 100;
+        return {
+          poId: need.id,
+          productId: product.id,
+          quantity: String(q),
+          unitPrice: toDb(price),
+          value: toDb(price * q),
+          workUnitId: unit.id,
+        };
+      }),
+    );
+  }
+
   /* ───────────────── documente ───────────────── */
   console.log("→ arbore de documente și șabloane de PV");
   const [root] = await db
