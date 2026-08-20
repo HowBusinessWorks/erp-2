@@ -1,10 +1,12 @@
 "use client";
 
 import clsx from "clsx";
-import { Bell, ChevronDown, Eye, LogOut } from "lucide-react";
+import { ChevronDown, Eye, LogOut } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { logout, switchPerspective } from "@/app/actions/session";
+import { NotificationBell } from "@/components/shell/NotificationBell";
+import type { Signal } from "@/lib/notification-types";
 import { PERSPECTIVES, ROLE_LABELS, type Role } from "@/lib/permissions";
 
 export function TopBar({
@@ -12,14 +14,14 @@ export function TopBar({
   role,
   actualRole,
   impersonating,
-  unread,
+  signals,
   period,
 }: {
   userName: string;
   role: Role;
   actualRole: Role;
   impersonating: boolean;
-  unread: number;
+  signals: Signal[];
   period: string;
 }) {
   return (
@@ -34,18 +36,7 @@ export function TopBar({
       ) : null}
 
       <div className="ml-auto flex items-center gap-1">
-        <button
-          type="button"
-          className="relative flex h-8 w-8 items-center justify-center rounded-[3px] text-ink-2 transition-colors hover:bg-sunk hover:text-ink"
-          aria-label={`Notificări${unread ? ` (${unread} necitite)` : ""}`}
-        >
-          <Bell size={16} strokeWidth={1.75} />
-          {unread > 0 ? (
-            <span className="absolute right-1 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-over px-1 text-[0.5625rem] font-bold leading-none text-white">
-              {unread > 9 ? "9+" : unread}
-            </span>
-          ) : null}
-        </button>
+        <NotificationBell signals={signals} />
 
         {actualRole === "admin" ? (
           <PerspectiveMenu current={role} />

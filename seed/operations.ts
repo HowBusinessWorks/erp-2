@@ -1162,18 +1162,12 @@ export async function seedOperations(ctx: SeedContext) {
   await db.insert(s.monthlyReports).values(reportValues);
   await db.insert(s.invoices).values(invoiceValues);
 
-  /* ───────────────── notificări ───────────────── */
-  console.log("→ notificări");
-  await db.insert(s.notifications).values([
-    { role: "pm", kind: "delta_neumpluta", title: "Delta contract 4700 — 4.100 lei neumpluți", body: "Mai sunt 9 zile din lună. 3 propuneri disponibile în backlog.", href: "/panou" },
-    { role: "pm", kind: "buget_80", title: "Mentenanță 4740 — 97% din plafon", body: "Consumul lunii aproape a atins plafonul de cost.", href: "/contracte" },
-    { role: "pm", kind: "sl_de_aprobat", title: "3 situații de lucrări așteaptă aprobare", href: "/situatii" },
-    { role: "flota", kind: "pv_deschis", title: "4 PV-uri de predare rămase deschise", body: "Sunt utilaje neîntoarse.", href: "/utilaje" },
-    { role: "flota", kind: "revizie_scadenta", title: "EXC-01 — revizie scadentă la ore", body: "Contorul a depășit pragul de 250 de ore.", href: "/utilaje" },
-    { role: "flota", kind: "solicitare_utilaj", title: "4 solicitări de utilaj în așteptare", href: "/utilaje" },
-    { role: "achizitii", kind: "stoc_minim", title: "6 articole sub stocul minim", href: "/stoc" },
-    { role: "pm", kind: "contract_expira", title: "Contract 4725 expiră în 5 luni", body: "Pragul de alertă e 6 luni.", href: "/contracte" },
-  ]);
+  /*
+   * Notificările NU se mai seedează. Clopoțelul își calculează semnalele din date
+   * la fiecare încărcare (`lib/notifications.ts`), deci rânduri fixe aici ar fi
+   * fost un al doilea adevăr — și primul care se strică, pentru că nu le schimbă
+   * nimeni când situația se rezolvă. Tabela rămâne pentru mesaje om-către-om.
+   */
 
   console.log("→ gata partea 2");
 }

@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
-import { and, eq, isNull, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { Rail } from "@/components/shell/Rail";
 import { TopBar } from "@/components/shell/TopBar";
 import { db } from "@/lib/db";
-import { firms, notifications } from "@/lib/db/schema";
+import { firms } from "@/lib/db/schema";
 import { navigationFor } from "@/lib/navigation";
+import { liveSignals } from "@/lib/notifications";
 import { getSession } from "@/lib/session";
 
 const MONTHS = [
@@ -33,15 +34,9 @@ export default async function OfficeLayout({ children }: { children: React.React
     ? await db.select().from(firms).where(eq(firms.id, session.firmId)).limit(1)
     : await db.select().from(firms).limit(1);
 
-  const unread = await db
-    .select({ id: notifications.id })
-    .from(notifications)
-    .where(
-      and(
-        isNull(notifications.readAt),
-        or(eq(notifications.userId, session.id), eq(notifications.role, session.role)),
-      ),
-    );
+  // Semnalele se recalculează la fiecare încărcare — nu există job care să le scrie,
+  // deci nu există nici momentul în care rămân în urmă (vezi `lib/notifications.ts`).
+  const signals = await liveSignals(session.role, firm?.id ?? null);
 
   const now = new Date();
   const period = `${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
@@ -55,7 +50,7 @@ export default async function OfficeLayout({ children }: { children: React.React
           role={session.role}
           actualRole={session.actualRole}
           impersonating={session.impersonating}
-          unread={unread.length}
+          signals={signals}
           period={period}
         />
         <main className="grow overflow-y-auto print:overflow-visible">

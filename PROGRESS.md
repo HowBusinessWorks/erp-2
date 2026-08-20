@@ -46,7 +46,7 @@ secțiunea blocului tău din `PLAN.md` §3 și §5.
 
 ## 1. Unde suntem
 
-**Stare:** *fundația, banii, operaționalul și resursele merg cap-coadă. Teren → cerere → rutare → lucrare → cost → raport, plus flota cu PV și registrul de cost al utilajelor.*
+**Stare:** *toate cele șase blocuri sunt gata și plimbate. Teren → cerere → rutare → lucrare → cost → raport → **factură**, plus flota, stocul și cele 3 canale de achiziție. A început ziua 3.*
 
 Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `damina`
 
@@ -58,8 +58,8 @@ Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `d
 | C — Resurse (utilaje, unelte, transporturi, fișiere, PV) | ✅ **gata** — ecranele 26–33, T7 |
 | A2 — Deviz, pachete, SL, suplimentări, garanții | ✅ **gata** — ecranele 16–21, T8 |
 | B2 — Execuția lucrării (Gantt, buget pe etapă, jurnal) | ✅ **gata** — ecranul 22 |
-| C2 — Stoc și achiziții | ✅ **gata** — ecranele 23–25 (neplimbat în browser, vezi §2) |
-| Integrare și lustruire | ⬜ |
+| C2 — Stoc și achiziții | ✅ **gata** — ecranele 23–25, plimbate în browser |
+| Integrare și lustruire | 🟨 **în lucru** — facturi, clopoțel viu, schelete declarate. Rămâne plimbarea pe cele 8 reguli |
 
 Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
@@ -72,9 +72,11 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
   `monthly-report` (§20.1) · `equipment` (scadențe pe dată **și** pe ore, imobilizare) · `pv-templates` ·
   `deviz` (materialele nu intră în pachet, cumulatul nu depășește contractatul, trasabilitate) ·
   `execution` (stare de etapă, derivă bani-vs-timp, geometria barelor, verificări de închidere) ·
-  `stock` (CMP, disponibil = cantitate − rezervat, NIR, bon de consum, cele 3 canale)
+  `stock` (CMP, disponibil = cantitate − rezervat, NIR, bon de consum, cele 3 canale) ·
+  `notifications` (semnalele clopoțelului, calculate la fiecare încărcare) + `notification-types`
+  (partea pură) · `invoicing` (abonamentul lunii, TVA, vechimea creanței)
 - `app/actions/`: `session` · `periods` · `requests` · `work-units` · `field` · `reports` ·
-  `equipment` · `documents` · `deviz` · `stock`
+  `equipment` · `documents` · `deviz` · `stock` · `invoices`
 - Design system „Registru": `app/globals.css` (tokeni OKLCH) + `components/ui/{primitives,table,gauge,modal,tabs}.tsx`
 - Shell: `components/shell/{Rail,TopBar}.tsx`, `app/(office)/layout.tsx`, login + comutator de perspectivă
 - Seed: `seed/{index,operations,run}.ts` — 5 firme, 9 contracte, 124 obiective, 756 unități de lucru,
@@ -92,7 +94,8 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
   `/lucrari/[id]/executie` (Gantt pe consum, jurnal, necesar pe etape, închidere) ·
   `/stoc` (disponibil, semnale, transfer, inventar) · `/stoc/consum` (bon de consum, ecranul 23) ·
   `/achizitii` (cele 3 canale, filtrul de 24h) · `/achizitii/[id]` (analitică pe linie, lansare) ·
-  `/receptii` (recepție + NIR, ecranul 25)
+  `/receptii` (recepție + NIR, ecranul 25) ·
+  `/facturi` (emitere din raportul înghețat, vechimea creanței) · `/integrari` (scheletele, §7)
 - Ecrane teren: `/teren` (Azi + ＋) · `/teren/[id]` (inspecție sau intervenție) · `/teren/necesar` ·
   `/teren/pontaj` · `/teren/jurnal` · `/teren/constatare` · `/teren/utilaje` (T7) ·
   `/teren/situatii` + `/teren/situatii/[id]` (T8 — cantități, zero lei)
@@ -101,19 +104,19 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
 ## 2. Ce blochează acum
 
-**Baza de date refuză autentificarea** — `password authentication failed for user "postgres"`, cu
-credențiale corecte, și din dev server, și din `tsx`. E capcana din §5 (pooler-ul Supavisor după o
-rafală de conexiuni), nu o regresie de cod. Leacul: Project Settings → Database → Connection
-pooling → **Restart pooler**, sau ~15 minute de așteptare.
+**Nimic.** Baza a revenit (pooler-ul se dezmorțise), iar cele 5 rute din C2 au fost plimbate:
+`/stoc`, `/stoc/consum`, `/achizitii`, `/receptii` — toate 200. Primul `/stoc` a dat 500, dar la
+a doua cerere a mers: era prima compilare peste un pooler abia trezit, nu o regresie.
 
-Consecință directă: **cele 5 rute noi din C2 n-au fost plimbate în browser.** `tsc`, `eslint` și
-`next build` (49 de rute) trec curat, dar istoricul spune limpede că blocul B dădea 500 pe toate
-ecranele cu `tsc` curat. Prima sesiune care prinde baza vie: `npm run seed` (seed-ul are acum
-necesar din teren pe canalul C) și apoi plimbarea pe `admin`, `achizitii`, `magazie`, `sef_santier`.
+**Ce a mai rămas din ziua 3** — singura zonă neterminată din tot planul:
 
-Mai rămâne integrarea din ziua 3.
+1. **Plimbarea cap-coadă pe cele 8 reguli de la §4 din documentul de business**, cu ochii, în
+   aplicație. Punctul explicit din `PLAN.md` §5, ziua 3. Nefăcut.
+2. **Date demo acolo unde ecranele arată gol** — de umblat după plimbare, când se vede care sunt.
+3. **Lustruire**: aliniere, spațiere, stări goale, stări de încărcare.
 
-Plimbarea prin browser s-a făcut pe A, B și C — 31 + 14 rute, pe patru roluri. Vezi §6.
+`npm run seed` nu s-a rerulat după ce s-au scos notificările statice din seed — nu e nevoie
+(clopoțelul nu le mai citește), dar la următorul seed tabela va rămâne goală, cum e intenția.
 
 De clarificat când e momentul, fără să blocheze:
 
@@ -130,6 +133,11 @@ De clarificat când e momentul, fără să blocheze:
 
 | Data | Decizie | De ce |
 |---|---|---|
+| 2026-08-20 | **Clopoțelul calculează semnalele la fiecare încărcare**, din aceleași interogări din care se desenează ecranele. Tabela `notifications` nu mai e citită și nu mai e seedată. | Un tabel de notificări are nevoie de un job, iar un job care nu rulează face clopoțelul să mintă: „3 situații de aprobat" a doua zi după ce au fost aprobate. Un semnal calculat nu poate fi desincronizat, pentru că nu există un al doilea loc unde e scris. |
+| 2026-08-20 | **`lib/notification-types.ts`** — tipurile și etichetele semnalelor, separate de interogări. | Aceeași capcană ca la `routing-types`: `NotificationBell` e componentă de client, iar `lib/notifications.ts` importă `lib/db`. Fără separare, Turbopack pune `postgres` în pachetul de browser și cade **tot shell-ul**, pe toate ecranele. `tsc` trece curat. |
+| 2026-08-20 | **Factura se naște din raportul lunar înghețat**, iar acțiunea refuză un raport neînghețat. | §20.1: banii se primesc în baza unui raport. Dacă documentul pe care îl are clientul se mai poate schimba, factura emisă pe el n-are acoperire. |
+| 2026-08-20 | **Factura NU trece prin `lib/cost-ledger.ts`.** | Regula 1 spune că fiecare leu de **cost** trece pe acolo. Factura către client e venit; scrisă în `cost_entries` ar strica exact analiza pe care o apără regula. |
+| 2026-08-20 | Scheletele au **ecran propriu** (`/integrari`), cu numărul de documente care ar trece azi prin fiecare. | Un prototip care se preface că are e-Factura e mai rău decât unul care n-are: cineva planifică pe o funcție inexistentă. `PLAN.md` §7 e adevărul, dar nu-l citește nimeni în timp ce se uită la ecran. |
 | 2026-08-20 | **Materialul devine cost la CONSUM, nu la recepție.** NIR-ul mută marfa în gestiune și recalculează CMP-ul, dar nu scrie nicio linie de cheltuială. | În magazie materialul e activ, nu cheltuială. Dacă ar scrie și NIR-ul, și bonul de consum, `consumedByComponent` (care însumează recepționat + consumat) ar număra aceiași bani de două ori. |
 | 2026-08-20 | **`releaseCommitment` în `lib/cost-ledger.ts`** — comanda lansată scrie `angajat`, recepția completă îl șterge. | Un angajament există ca să avertizeze *înainte*. După ce marfa a intrat, el nu mai avertizează, doar umflă componenta. Ștergerea stă în cost-ledger, ca regula 1 să fie adevărată în ambele sensuri: nimeni altcineva nu atinge tabela. |
 | 2026-08-20 | Valoarea de pe bonul de consum e la **CMP-ul gestiunii**, nu la prețul ultimei facturi. | Cu trei livrări la trei prețuri, ultima factură ar rescrie retroactiv costul lucrărilor de luna trecută. |
@@ -179,24 +187,16 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ## 5. Capcane cunoscute
 
-**`EMAXCONNSESSION` — aplicația trebuie să meargă pe portul 6543, nu 5432.**
+**Portul 6543, nu 5432.** 5432 e *session mode*: fiecare conexiune ține blocată una pe server, plafon
+15, iar Next.js încarcă `lib/db` o dată per graf de module. 6543 e *transaction mode* — conexiunea
+se întoarce în bazin după fiecare tranzacție. `DATABASE_URL` pe 6543, `DIRECT_URL` (`db:push`, seed)
+pe 5432, fiindcă `drizzle-kit` are nevoie de stare pe sesiune. `lib/db/index.ts` avertizează dacă
+cineva pune iar 5432 pe `DATABASE_URL`.
 
-Portul **5432 e session mode**: fiecare conexiune de client ține blocată una pe server pentru
-toată sesiunea, iar plafonul e 15. Next.js încarcă `lib/db` o dată per graf de module — server
-components, acțiuni de server, fiecare reîncărcare Turbopack — și fiecare instanță își deschidea
-propriul bazin. Trei instanțe × 5 conexiuni = exact plafonul.
-
-Portul **6543 e transaction mode**: conexiunea se întoarce în bazin după fiecare tranzacție.
-`DATABASE_URL` (aplicația) stă pe 6543, `DIRECT_URL` (`db:push`, seed) pe 5432, pentru că
-`drizzle-kit` are nevoie de stare pe sesiune. `lib/db/index.ts` avertizează în consolă dacă cineva
-pune iar 5432 pe `DATABASE_URL`.
-
-**Nu da rafale de conexiuni către pooler.** Un test cu 24–30 de cereri simultane l-a făcut pe
-Supavisor să răspundă `password authentication failed` pe ambele porturi, cu credențiale corecte
-și baza `ACTIVE_HEALTHY` (verificat prin API: 14 conexiuni, toate ale infrastructurii Supabase).
-Leacul: Project Settings → Database → Connection pooling → **Restart pooler**, sau ~15 minute de
-așteptare. Baza nu e afectată, doar pooler-ul.
-
+**Nu da rafale de conexiuni către pooler.** 24–30 de cereri simultane l-au făcut pe Supavisor să
+răspundă `password authentication failed` pe ambele porturi, cu credențiale corecte. Leacul:
+Database → Connection pooling → **Restart pooler**, sau ~15 minute. Baza nu e afectată, doar
+pooler-ul. Prima cerere după trezire poate da un 500 izolat — a doua merge.
 
 *Lucruri care s-au stricat o dată și se pot strica din nou. Scurt, doar simptomul și leacul.*
 
@@ -218,132 +218,86 @@ așteptare. Baza nu e afectată, doar pooler-ul.
 
 ## 6. Istoric pe sesiuni
 
-### 2026-08-20 — blocul C2 (stoc și achiziții) — COD GATA, NEPLIMBAT
+### 2026-08-20 — ziua 3, partea 1: facturi, clopoțel viu, schelete declarate
 
-**A intrat:** `lib/stock.ts`, `app/actions/stock.ts`, `releaseCommitment` în `lib/cost-ledger.ts`,
-plus ecranele 23–25 pe 5 rute.
+**Baza a revenit.** Cele 5 rute din C2, neplimbate sesiunea trecută, dau acum 200 pe `admin`:
+`/stoc`, `/stoc/consum`, `/achizitii`, `/receptii`. (Primul `/stoc` a dat 500; la a doua cerere,
+200 — prima compilare peste un pooler abia trezit.)
+
+**A intrat:**
+
+- `lib/notifications.ts` + `lib/notification-types.ts` — opt familii de semnale calculate din
+  date: buget la 80%, Delta neumplută, SL de aprobat, PV rămas deschis, revizie scadentă (pe dată
+  **și** pe ore), contract care expiră, stoc sub minim, solicitări de utilaj. Fiecare familie e
+  sărită complet dacă rolul n-are dreptul — clopoțelul nu scapă lei către cine nu vede lei.
+- `components/shell/NotificationBell.tsx` — popover cu semnalele, grupate pe severitate, fiecare
+  cu link către ecranul unde se rezolvă. Fără „marchează ca citit": n-ai ce citi, ai ce rezolva.
+  Pe `admin`, cu datele din seed: **12 semnale**.
+- `/facturi` (`lib/invoicing.ts`, `app/actions/invoices.ts`) — coada „de facturat" (rapoarte
+  înghețate fără factură) cu emitere într-o apăsare, registrul cu stare și e-Factura, și vechimea
+  creanței pe patru cupe. Numărul de factură e următorul din serie, per firmă.
+- `/integrari` — cele șase cusături din `PLAN.md` §7 care au corespondent în aplicație, fiecare cu
+  ce face prototipul azi, ce ar însemna în producție și câte documente ar trece prin ea acum.
+- Intrările `/facturi` și `/integrari` au ieșit din starea `stub` în bara de navigație.
+
+**S-a scos:** blocul de notificări statice din `seed/operations.ts` (8 rânduri inventate).
+
+**Verificat:** `tsc`, `eslint`, `next build` (**51 de rute**) curate; cele 7 rute atinse, plimbate
+cu sesiune de admin — toate 200.
+
+**Rămâne din ziua 3:** plimbarea pe cele 8 reguli de la §4, date demo unde ecranele arată gol,
+lustruirea. Vezi §2.
+
+### 2026-08-20 — blocul C2 (stoc și achiziții) — GATA, plimbat în sesiunea următoare
+
+`lib/stock.ts`, `app/actions/stock.ts`, `releaseCommitment` în `lib/cost-ledger.ts`, ecranele 23–25.
 
 - **23** `/stoc` — coloana centrală e **disponibil** (cantitate − rezervat), nu cantitate; semnale
-  epuizat / sub minim / peste maxim; transfer între gestiuni pe rând; inventar cu mișcare scrisă;
-  consignația marcată explicit, cu valoarea de stoc neraportată. `/stoc/consum` — bonul de consum,
-  cu linii adăugabile, blocaj peste disponibil și zero preț în formular (prețul e CMP-ul).
-- **24** `/achizitii` — cele 3 canale ca file separate, pentru că sunt trei fluxuri, nu trei
-  etichete. Canalul C arată ceasul magaziei (ore rămase din 24) și două butoane opuse: „acopăr din
-  stoc" (rezervă, comanda moare) sau lansarea comenzii. Canalul A propune singur ce a scăzut sub
-  minim, ordonat după lead time, cu bifa pusă implicit pe ce e epuizat sau are lead time ≥ 7 zile.
-  `/achizitii/[id]` ține analitica **pe linie** și avertizează câte linii n-au componentă.
-- **25** `/receptii` — se recepționează ce s-a descărcat, la prețul de pe factură; CMP-ul se
-  recalculează; angajamentul se stinge la recepția completă; lucrările cu `autoConsumeOnReceipt`
-  își consumă materialul în aceeași apăsare (§22.1). Comenzile cu termen depășit sunt marcate.
+  epuizat / sub minim / peste maxim; transfer pe rând; inventar cu mișcare scrisă; consignația
+  marcată, cu valoarea neraportată. `/stoc/consum` — bon de consum, blocaj peste disponibil, zero
+  preț în formular (prețul e CMP-ul).
+- **24** `/achizitii` — cele 3 canale ca file separate, fiindcă sunt trei fluxuri, nu trei
+  etichete. Canalul C arată ceasul de 24h și două butoane opuse: „acopăr din stoc" (rezervă,
+  comanda moare) sau lansarea comenzii. Canalul A propune singur ce a scăzut sub minim, ordonat
+  după lead time. `/achizitii/[id]` ține analitica **pe linie**.
+- **25** `/receptii` — recepție la prețul de pe factură, CMP recalculat, angajament stins la
+  recepția completă, auto-consum unde lucrarea o cere (§22.1).
 
-**Seed:** trei comenzi „necesar din teren" pe canalul C, cu fereastra de 24h deschisă (una la 3 ore,
-ca să se vadă și avertismentul). **Cere `npm run seed`** ca să apară.
+### 2026-08-20 — B2, A2 și plimbarea pe A+B — GATA (comprimat)
 
-**Nu s-a putut verifica pe ecran:** baza a căzut pe capcana din §5 (vezi §2). `tsc` curat · `eslint`
-curat pe fișierele blocului · `next build` cu **49 de rute**.
+- **B2** `lib/execution.ts` + `/lucrari/[id]/executie`. Două defecte prinse doar pe ecran, nu de
+  `tsc`: o etapă încheiată la 98% apărea „Atenție" (ordinea din `stageState` corectată:
+  `depasita` → `incheiata` → `atentie`); „fără blocaje deschise ✓" apărea pe o lucrare **fără
+  jurnal** — absența notărilor nu e absența blocajelor, verificarea cere acum `hasJournal`.
+- **A2** `lib/deviz.ts` + ecranele 16–21 și T8: mapare N:M cu bară de trasabilitate, materialele
+  fără buton de adăugare în pachet, aprobare de SL blocată pe depășire, suplimentare atomică,
+  scadențar de garanții. T8 cu zero prețuri.
+- **Plimbarea pe A+B:** 31 de rute, 4 roluri. Regula 5 ține — 0 apariții de „lei"/„RON" pe cele 7
+  ecrane de teren; `sef_santier` → 307 spre `/teren` pe tot biroul.
 
-### 2026-08-20 — blocul B2 (execuția lucrării) — GATA
+**Cele două accidente care se repetă și de care merită să-ți amintești:**
+1. `RoutingForm.tsx` (client) importa din `lib/routing.ts` → `lib/db` → `postgres`. **Tot blocul B
+   dădea 500**, cu `tsc` curat. De aici vin `lib/routing-types.ts` și `lib/notification-types.ts`.
+2. Ghilimelele `„…"` închise cu `"` drept **închid atributul JSX**. `„` se închide cu `”`.
 
-**A intrat:** `lib/execution.ts` + `/lucrari/[id]/executie` (ecranul 22): Gantt în care bara arată
-**consumul din buget**, nu durata; tabelul de buget pe etapă cu coloana **derivă** (consumat % −
-timp trecut %, singura cifră care prezice o depășire înainte să se întâmple); jurnalul de șantier
-cu blocajele evidențiate; necesarul de material grupat pe etape; panoul de închidere cu patru
-verificări care **nu blochează**, doar se afișează.
+### 2026-08-20 — blocul C (resurse) — GATA (comprimat)
 
-**Două defecte de logică prinse abia pe ecran, nu de `tsc`:**
-- O etapă terminată la 98% apărea „Atenție”. Pragul de 80% e un avertisment despre o etapă *care
-  încă merge*; pe una încheiată în buget tocea exact semnalul pentru care există. Ordinea din
-  `stageState` a fost corectată: `depasita` → `incheiata` → `atentie`.
-- „Fără blocaje deschise ✓” apărea pe o lucrare **fără jurnal**. Absența blocajelor notate nu e
-  absența blocajelor; acum verificarea cere `hasJournal`.
+`lib/equipment.ts` (scadențe pe dată **și** pe ore, imobilizare), `lib/pv-templates.ts`,
+`SignaturePad`, ecranele 26–33 și T7: registru + Gantt de flotă, dosar de utilaj cu 7 file,
+solicitări, PV cu semnătură pe canvas și tipar A4, unelte, transporturi, arbore de documente,
+șabloane cu câmpuri poziționate procentual. Regula 1 ține — motorina, reparațiile și orele trec
+prin `recordCost`. Regula 5 ține — 0 apariții de „lei" pe T7. Cele 10 intrări de navigație fără
+ecran nu mai dau 404: se văd, marcate „urmează". 14 rute plimbate pe `admin`, `flota`,
+`sef_santier`.
 
-**Verificat:** `tsc` curat · `eslint` curat · `next build` cu 44 de rute · ecranul plimbat pe cele
-3 lucrări cu etape, pe una fără (starea goală) și pe `sef_santier` (307 spre `/teren`).
+### 2026-08-20 — fundația, blocul A și blocul B — GATA (comprimat)
 
+Next.js 16 + Tailwind 4, schema completă într-un fișier, nucleul din `lib/`, design system, shell,
+login, comutator de perspectivă, seed în două părți. Apoi ecranele 2–6, 14, 15 (banii) și 7–13,
+34, 36, T1–T6 (operațional): rutarea din §7 pe cifre, backlogul Delta, UL cu 5 tab-uri, mutarea
+finanțării, raportul lunar, toată interfața de teren.
 
-### 2026-08-20 — blocul A2 (deviz, pachete, SL, garanții) — GATA
-
-**A intrat:** `lib/deviz.ts`, `app/actions/deviz.ts`, plus ecranele 16–21 și T8.
-
-- **16 + 17** `/devize/[id]` cu trei file: client, intern, **mapare N:M**. Bara de trasabilitate
-  arată cât din ofertă are cost calculat și cât din cost a intrat în pachete; partea nemapată e
-  hașurată cu roșu, nu lăsată goală.
-- **18** `/devize/articole` — biblioteca, ordonată după numărul de folosiri.
-- **19** `/pachete` + `/pachete/[id]` — materialele **nu au buton de adăugare**, cu motivul scris
-  lângă fiecare.
-- **20** `/situatii/[id]` — cele cinci cumulate, una lângă alta; aprobarea e blocată dacă vreo
-  linie depășește contractatul sau e suspectă, cu motivul scris deasupra butonului.
-- **21** `/garantii` — suplimentare atomică (pachet + SL în aceeași tranzacție) și scadențar pe
-  patru găleți.
-- **T8** `/teren/situatii` — două butoane cât o falangă, „Nu e așa" cere motiv. **Zero prețuri.**
-
-**S-a stricat / reparat:**
-- `/devize/[id]?fila=mapare` dădea 500: pasam `formatShort` ca prop către o componentă de client.
-  Funcțiile nu trec granița server/client.
-- Ghilimelele românești `„…"` închise cu `"` drept **închid atributul JSX**. A rupt două ecrane;
-  reparat în 13 fișiere printr-o trecere cu regex. `„` se închide cu `”`, nu cu `"`.
-
-**Verificat:** `tsc` curat · `eslint` curat pe fișierele blocului · `next build` trece cu toate
-cele 40 de rute · 10 rute noi plimbate pe `admin` și `sef_santier` · **0 apariții de „lei" pe T8**.
-
-
-### 2026-08-20 — plimbarea prin browser pe A și B — GATA
-
-**S-a stricat / reparat:**
-- **Tot blocul B dădea 500.** `/cereri/[id]`, `/backlog`, `/lucrari`, `/lucrari/[id]`, `/rapoarte`,
-  `/rapoarte/inspectii`. O singură cauză: `RoutingForm.tsx` (client) importa din `lib/routing.ts`,
-  care importă `lib/db` → `postgres` → `fs`/`net`/`tls`/`perf_hooks`. După prima eroare de
-  rezolvare, **orice** pagină cerută dădea 500 (`application-code: 7ms` — pagina nici nu rula).
-  Reparat prin `lib/routing-types.ts`. `tsc --noEmit` trecea curat înainte și după.
-
-**Verificat, nu presupus:** 31 de rute pe 4 roluri. Regula 5 ține — **0 apariții** de „lei"/„RON"
-pe cele 7 ecrane de teren. `sef_santier` → 307 spre `/teren` pe toate ecranele de birou.
-
-### 2026-08-20 — blocul C (resurse) — GATA
-
-**A intrat:** `lib/equipment.ts` (scadențe pe dată **și** pe ore, imobilizare, intervale),
-`lib/pv-templates.ts`, `app/actions/equipment.ts`, `app/actions/documents.ts`,
-`components/domain/SignaturePad.tsx`, plus ecranele 26–33 și T7:
-
-- **26** `/utilaje` — registru + calendar Gantt pe 3 săptămâni + decalare în masă + PV deschise.
-- **27** `/utilaje/[id]` — dosar cu 7 file: Detalii / Accesorii / Motorină / Reparații /
-  Planificări / PV / Poze. Lei / oră la reparații, ca să se compare utilajele între ele.
-- **28** `/utilaje/solicitari` — biroul alege bucata concretă; utilajele ocupate se văd marcate,
-  nu dispar din listă.
-- **29** `/pv/[id]` — un document, două etape, semnătură pe canvas, tipar A4.
-- **30** `/unelte` · **31** `/transporturi` · **32** `/documente` · **33** `/documente/sabloane`
-  (câmpuri poziționate procentual, clic pe foaie ca să le așezi).
-- **T7** `/teren/utilaje` — doar ce am pe șantier, contor și zile rămase. Cerere și observație
-  în două atingeri.
-
-**Reguli respectate, verificat pe ecran:**
-- Regula 1 — motorina, reparațiile și orele de utilaj trec prin `recordCost`. Zero `insert` în
-  `cost_entries`.
-- Regula 5 — **0 apariții** de „lei"/„RON" pe cele 3 stări ale lui T7.
-- Utilajul imobilizat nu produce cost de exploatare la închiderea PV-ului.
-
-**Bară de navigație:** cele 10 intrări fără ecran nu mai dau 404 — se văd, marcate „urmează".
-
-**Verificat:** `tsc --noEmit` curat · `eslint` curat pe fișierele blocului C · `next build` trece
-cu toate cele 30 de rute · 14 rute noi plimbate pe `admin`, `flota` și `sef_santier`.
-
-
-### 2026-08-20 — fundația — GATA
-
-Next.js 16 + Tailwind 4, schema completă (~48 tabele într-un fișier), cele 5 fișiere de nucleu din
-`lib/`, design system, shell, login, comutator de perspectivă, seed în două părți. Schema împinsă,
-seed rulat. Reparat pe parcurs: panoul se încărca în 15s (N+1) → 0,7s după ce `budgetsForMonth` a
-devenit 5 interogări în lot; stratul „angajat” lipsea la mentenanță, fără el gauge-ul lui 4700
-arăta 87% în loc de 95%.
-
-### 2026-08-20 — blocul A (banii) — GATA
-
-`lib/period.ts`, `MonthNav`, ecranele 2–6, 14, 15. Reparat: adminul comutat pe „șef de șantier”
-rămânea blocat în teren (adăugat `backToOffice()`); marjele din seed erau greșite, banda e acum
+Reparate atunci: panoul se încărca în 15s (N+1) → 0,7s după ce `budgetsForMonth` a devenit 5
+interogări în lot; stratul „angajat" lipsea la mentenanță (gauge-ul lui 4700 arăta 87% în loc de
+95%); adminul comutat pe „șef de șantier" rămânea blocat în teren; marjele din seed sunt acum
 16,7%–36,5% cu media 29,3%, ceea ce încadrează exemplul de 33,9% din documentul de business.
-
-### 2026-08-20 — blocul B (operațional) — GATA
-
-Ecranele 7–13, 34, 36 și T1–T6: rutarea din §7 cu cele 3 ramuri calculate pe cifre, backlogul
-Delta, unitățile de lucru cu 5 tab-uri, mutarea finanțării, raportul lunar, acoperirea
-inspecțiilor, plus toată interfața de teren.
