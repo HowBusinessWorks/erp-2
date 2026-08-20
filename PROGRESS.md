@@ -17,8 +17,10 @@ Planul e în `PLAN.md` și e **sursa de adevăr**. Fișierul ăsta spune doar un
 
 ## 0. Predare — citește asta prima dată pe o mașină nouă
 
+**Repo:** https://github.com/HowBusinessWorks/erp-2 (privat)
+
 ```bash
-git clone <repo> && cd erp-2
+git clone https://github.com/HowBusinessWorks/erp-2.git && cd erp-2
 npm install
 cp .env.local.example .env.local     # completează valorile, vezi mai jos
 npm run db:push                      # împinge schema (idempotent)
