@@ -5,10 +5,10 @@
 ## Regula de scurtime — se aplică și ție
 
 Fișierul ăsta **nu are voie să treacă de 300 de linii.** Când se apropie, comprimi istoricul vechi
-în una-două linii per sesiune și ștergi detaliile care nu mai ajută pe nimeni.
+în una-două linii per sesiune.
 
-Fiecare intrare: **fapte, nu narațiune.** Ce a intrat, ce s-a stricat, ce a rămas. Fără povești
-despre cum ai ajuns acolo. Dacă o observație nu schimbă ce face următoarea sesiune, nu o scrie.
+Fiecare intrare: **fapte, nu narațiune.** Ce a intrat, ce s-a stricat, ce a rămas. Dacă o
+observație nu schimbă ce face următoarea sesiune, nu o scrie.
 
 Planul e în `PLAN.md` și e **sursa de adevăr**. Fișierul ăsta spune doar unde am ajuns în el.
 
@@ -31,12 +31,10 @@ npm run dev                          # http://localhost:3000
 Login: `admin@damina.ro` / parola din `SEED_PASSWORD`. Contul de admin comută perspectiva
 din bara de sus — așa se verifică în 10 secunde că șeful de șantier nu vede prețuri.
 
-**`.env.local` NU e în repo** (e în `.gitignore`, intenționat). Cere-i valorile proprietarului
-proiectului sau ia-le din Supabase → Project Settings → Database / API. Sunt patru:
-`DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SEED_PASSWORD`.
-
-**Atenție la `DATABASE_URL`:** host-ul direct `db.<ref>.supabase.co` e IPv6-only și nu e rutabil
-din multe rețele. Folosește pooler-ul — vezi capcana din §5.
+**`.env.local` NU e în repo** (e în `.gitignore`, intenționat). Vezi `.env.local.example` pentru
+chei și pentru ce port merge pe fiecare. Două capcane, amândouă în §5: host-ul direct
+`db.<ref>.supabase.co` e IPv6-only și nu e rutabil din multe rețele, iar aplicația trebuie să
+meargă pe **6543**, nu pe 5432.
 
 **Ordinea de citit:** `CLAUDE.md` (regulile care nu se negociază) → §1 și §2 de mai jos →
 secțiunea blocului tău din `PLAN.md` §3 și §5.
@@ -162,9 +160,23 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ## 5. Capcane cunoscute
 
-**Pooler-ul Supabase are 15 conexiuni.** Cu `next dev` pornit de câteva ore, scripturile
-`tsx` separate primesc `EMAXCONNSESSION: max clients reached in session mode`. Nu e o eroare de
-cod — se repornește serverul de dev sau se iau datele din aplicație, prin `curl`.
+**`EMAXCONNSESSION` — aplicația trebuie să meargă pe portul 6543, nu 5432.**
+
+Portul **5432 e session mode**: fiecare conexiune de client ține blocată una pe server pentru
+toată sesiunea, iar plafonul e 15. Next.js încarcă `lib/db` o dată per graf de module — server
+components, acțiuni de server, fiecare reîncărcare Turbopack — și fiecare instanță își deschidea
+propriul bazin. Trei instanțe × 5 conexiuni = exact plafonul.
+
+Portul **6543 e transaction mode**: conexiunea se întoarce în bazin după fiecare tranzacție.
+`DATABASE_URL` (aplicația) stă pe 6543, `DIRECT_URL` (`db:push`, seed) pe 5432, pentru că
+`drizzle-kit` are nevoie de stare pe sesiune. `lib/db/index.ts` avertizează în consolă dacă cineva
+pune iar 5432 pe `DATABASE_URL`.
+
+**Nu da rafale de conexiuni către pooler.** Un test cu 24–30 de cereri simultane l-a făcut pe
+Supavisor să răspundă `password authentication failed` pe ambele porturi, cu credențiale corecte
+și baza `ACTIVE_HEALTHY` (verificat prin API: 14 conexiuni, toate ale infrastructurii Supabase).
+Leacul: Project Settings → Database → Connection pooling → **Restart pooler**, sau ~15 minute de
+așteptare. Baza nu e afectată, doar pooler-ul.
 
 
 *Lucruri care s-au stricat o dată și se pot strica din nou. Scurt, doar simptomul și leacul.*
