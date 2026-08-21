@@ -15,7 +15,7 @@ export default async function FieldLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-dvh flex-col bg-paper">
-      <header className="sticky top-0 z-20 bg-rail px-4 py-3 text-white">
+      <header className="sticky top-0 z-20 bg-rail px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-white">
         <div className="flex items-center justify-between">
           <div>
             <div className="font-narrow text-[0.9375rem] font-bold uppercase tracking-[0.14em]">
@@ -45,10 +45,12 @@ export default async function FieldLayout({ children }: { children: React.ReactN
         </div>
       </header>
 
-      <main className="grow pb-20">{children}</main>
+      <main className="grow pb-[max(5rem,calc(3.5rem+env(safe-area-inset-bottom)))]">
+        {children}
+      </main>
 
       {/* Bara de jos, la degete. Maximum 3 atingeri de la aici până la trimis. */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-rule bg-sheet">
+      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-rule bg-sheet pb-[env(safe-area-inset-bottom)]">
         {FIELD_NAVIGATION.map((item) => (
           <Link
             key={item.href}
