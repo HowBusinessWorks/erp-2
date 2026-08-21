@@ -1,7 +1,8 @@
 import { asc, desc, eq, inArray } from "drizzle-orm";
 
 import { submitJournal } from "@/app/actions/field";
-import { FieldHeader, SubmitBar } from "@/components/domain/FieldKit";
+import { SubmitBar } from "@/components/domain/FieldKit";
+import { Block, Empty, FieldBar, Label, longDate, shortDate } from "@/components/domain/FieldUI";
 import { db } from "@/lib/db";
 import { objectives, siteJournalEntries, workUnits } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
@@ -13,8 +14,9 @@ const WEATHER = ["senin", "înnorat", "ploaie", "vânt", "ger", "caniculă"];
 /**
  * T6 — jurnalul de șantier.
  *
- * Se deschide GATA DE SCRIS: cursorul e deja în câmpul de text, unitatea de lucru e
- * precompletată, vremea are butoane. Trimite e singura atingere pe care o mai faci.
+ * Se deschide GATA DE SCRIS: cursorul e deja în câmpul de text, lucrarea e
+ * precompletată din locul de unde ai venit, vremea are butoane. Trimite e singura
+ * atingere pe care o mai faci.
  */
 export default async function JurnalPage({
   searchParams,
@@ -33,6 +35,7 @@ export default async function JurnalPage({
     .limit(30);
 
   const selected = sp.ul ?? rows[0]?.unit.id ?? "";
+  const place = rows.find((r) => r.unit.id === selected);
 
   const recent = selected
     ? await db
@@ -44,99 +47,87 @@ export default async function JurnalPage({
     : [];
 
   return (
-    <div className="px-4 py-4">
+    <>
       <form action={submitJournal}>
-        <FieldHeader
-          eyebrow="Jurnal de șantier"
-          title={new Intl.DateTimeFormat("ro-RO", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-          }).format(new Date())}
+        <FieldBar
+          title="Jurnal de șantier"
+          sub={`${longDate(new Date())}${place?.objective ? ` · ${place.objective.name}` : ""}`}
+          back="/teren"
         />
 
-        <div className="mt-3 space-y-3">
-          <textarea
-            name="text"
-            rows={5}
-            autoFocus
-            required
-            placeholder="Ce s-a lucrat azi"
-            className="w-full rounded-[3px] border border-rule-strong bg-sheet px-3 py-2.5 text-[0.9375rem] leading-relaxed text-ink"
-          />
+        <h2 className="f-q">Ce s-a lucrat azi?</h2>
+        <p className="f-qs">Scrie pe scurt, cum i-ai spune unui coleg la telefon.</p>
 
-          <div className="flex flex-wrap gap-1.5">
-            {WEATHER.map((w, i) => (
-              <label key={w}>
-                <input
-                  type="radio"
-                  name="weather"
-                  value={w}
-                  defaultChecked={i === 0}
-                  className="peer sr-only"
-                />
-                <span className="block cursor-pointer rounded-[3px] border border-rule-strong bg-sheet px-3 py-2 text-tiny text-ink-2 peer-checked:border-blueprint peer-checked:bg-blueprint peer-checked:text-white">
-                  {w}
-                </span>
-              </label>
-            ))}
+        <Block>
+          <div className="f-fld">
+            <textarea
+              name="text"
+              required
+              autoFocus
+              placeholder="Ex: s-a montat polistiren pe fațada de nord, tronsonul 2, cam 180 mp"
+            />
           </div>
+        </Block>
 
-          <div className="grid grid-cols-3 gap-2">
-            <label className="block">
-              <span className="eyebrow mb-1 block">Oameni</span>
-              <input
-                name="people"
-                inputMode="numeric"
-                defaultValue="3"
-                className="h-11 w-full rounded-[3px] border border-rule-strong bg-sheet px-2.5 text-right text-[0.9375rem] tabular text-ink"
-              />
+        <Label>Vremea</Label>
+        <div className="f-chz">
+          {WEATHER.map((weather, i) => (
+            <label key={weather}>
+              <input type="radio" name="weather" value={weather} defaultChecked={i === 0} />
+              <span>{weather}</span>
             </label>
-            <label className="col-span-2 block">
-              <span className="eyebrow mb-1 block">Ce a blocat</span>
-              <input
-                name="blocker"
-                placeholder="gol dacă nimic"
-                className="h-11 w-full rounded-[3px] border border-rule-strong bg-sheet px-2.5 text-[0.875rem] text-ink"
-              />
-            </label>
+          ))}
+        </div>
+
+        <Label>Detalii</Label>
+        <Block>
+          <div className="f-fld">
+            <label htmlFor="people">Câți oameni au fost</label>
+            <input id="people" name="people" inputMode="numeric" defaultValue="3" />
           </div>
-
-          <label className="block">
-            <span className="eyebrow mb-1 block">Lucrarea</span>
-            <select
-              name="workUnitId"
-              defaultValue={selected}
-              className="h-11 w-full rounded-[3px] border border-rule-strong bg-sheet px-2 text-[0.875rem] text-ink"
-            >
+          <div className="f-fld">
+            <label htmlFor="blocker">Ce a blocat lucrul</label>
+            <input id="blocker" name="blocker" placeholder="Gol dacă nimic" />
+          </div>
+          <div className="f-fld">
+            <label htmlFor="workUnitId">Lucrarea</label>
+            <select id="workUnitId" name="workUnitId" defaultValue={selected}>
               {rows.map(({ unit, objective }) => (
                 <option key={unit.id} value={unit.id}>
-                  {unit.code} — {objective?.name ?? unit.title}
+                  {objective?.name ?? unit.title} — {unit.code}
                 </option>
               ))}
             </select>
-          </label>
-        </div>
+          </div>
+        </Block>
 
-        <SubmitBar label="Trimite" />
+        <SubmitBar label="Salvează în jurnal" />
       </form>
 
-      {recent.length ? (
-        <section className="mt-6">
-          <div className="eyebrow mb-2">Ultimele însemnări</div>
-          <ul className="divide-y divide-rule border-y border-rule">
-            {recent.map((entry) => (
-              <li key={entry.id} className="py-2.5">
-                <div className="text-micro text-ink-3">
-                  {entry.day}
-                  {entry.weather ? ` · ${entry.weather}` : ""}
-                </div>
-                <p className="mt-0.5 text-tiny leading-relaxed text-ink">{entry.text}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-    </div>
+      <Label>Ultimele însemnări</Label>
+      {recent.length === 0 ? (
+        <Empty icon="file" title="Jurnalul e gol">
+          Prima însemnare de pe lucrarea asta o scrii tu, acum.
+        </Empty>
+      ) : (
+        recent.map((entry) => (
+          <div key={entry.id} className="f-jc">
+            <div className="f-h">
+              <b style={{ fontSize: 16 }}>{shortDate(entry.day)}</b>
+              {entry.weather ? <span className="f-pil">{entry.weather}</span> : null}
+            </div>
+            <p>{entry.text}</p>
+            <div className="f-m">
+              {entry.peopleCount ? <span>{entry.peopleCount} oameni</span> : null}
+              {entry.blocker ? (
+                <span style={{ color: "var(--f-rd)", fontWeight: 700 }}>blocaj: {entry.blocker}</span>
+              ) : (
+                <span style={{ color: "var(--f-gr)", fontWeight: 700 }}>fără blocaje</span>
+              )}
+            </div>
+          </div>
+        ))
+      )}
+    </>
   );
 }

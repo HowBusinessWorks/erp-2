@@ -1,12 +1,21 @@
 import { and, asc, eq, inArray, or } from "drizzle-orm";
 
 import { submitTimesheet } from "@/app/actions/field";
-import { FieldHeader, SubmitBar } from "@/components/domain/FieldKit";
+import { SubmitBar } from "@/components/domain/FieldKit";
+import { Block, Empty, FieldBar, Label, Note, longDate } from "@/components/domain/FieldUI";
 import { db } from "@/lib/db";
 import { objectives, timesheets, workUnits } from "@/lib/db/schema";
+import { todayIso } from "@/lib/field";
 import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+const QUALIFICATIONS = [
+  { value: "muncitor", label: "Muncitor" },
+  { value: "electrician", label: "Electrician" },
+  { value: "instalator", label: "Instalator" },
+  { value: "sef_santier", label: "Șef de șantier" },
+];
 
 /**
  * T5 — pontaj.
@@ -14,10 +23,12 @@ export const dynamic = "force-dynamic";
  * Ziua se împarte pe mai multe unități de lucru, pe același ecran. Dacă nu se poate
  * împărți, cineva pune opt ore pe o singură lucrare când a lucrat la trei, iar costul
  * de manoperă al fiecăreia devine ficțiune.
+ *
+ * O singură atingere aici: Trimite. Câmpurile de ore sunt mari, cu tastatură numerică.
  */
 export default async function PontajPage() {
   const session = await requireSession();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
 
   const [rows, existing] = await Promise.all([
     db
@@ -38,62 +49,82 @@ export default async function PontajPage() {
       .where(and(eq(timesheets.userId, session.id), eq(timesheets.day, today))),
   ]);
 
-  const alreadyBy = new Map(existing.map((t) => [t.workUnitId, Number(t.hours)]));
-  const total = existing.reduce((a, t) => a + Number(t.hours), 0);
+  const alreadyBy = new Map<string, number>();
+  for (const entry of existing) {
+    alreadyBy.set(entry.workUnitId, (alreadyBy.get(entry.workUnitId) ?? 0) + Number(entry.hours));
+  }
+  const total = existing.reduce((sum, entry) => sum + Number(entry.hours), 0);
 
   return (
-    <form action={submitTimesheet} className="px-4 py-4">
+    <form action={submitTimesheet}>
       <input type="hidden" name="day" value={today} />
 
-      <FieldHeader
-        eyebrow="Pontaj"
-        title={new Intl.DateTimeFormat("ro-RO", { weekday: "long", day: "numeric", month: "long" }).format(
-          new Date(),
-        )}
-        meta={total > 0 ? `${total} ore deja pontate azi` : "Nimic pontat azi"}
-      />
+      <FieldBar
+        title="Pontajul de azi"
+        sub={longDate(new Date())}
+        back="/teren/eu"
+      >
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+          <div className="f-stat-dark">
+            <div className="f-n">{total}</div>
+            <div className="f-l">ore pontate azi</div>
+          </div>
+          <div className="f-stat-dark">
+            <div className="f-n">{rows.length}</div>
+            <div className="f-l">lucrări deschise</div>
+          </div>
+        </div>
+      </FieldBar>
 
-      <label className="mt-4 block">
-        <span className="eyebrow mb-1 block">Calificare</span>
-        <select
-          name="qualification"
-          defaultValue={session.role === "sef_santier" ? "muncitor" : "muncitor"}
-          className="h-11 w-full rounded-[3px] border border-rule-strong bg-sheet px-2 text-[0.875rem] text-ink"
-        >
-          <option value="muncitor">Muncitor</option>
-          <option value="electrician">Electrician</option>
-          <option value="instalator">Instalator</option>
-        </select>
-      </label>
+      <Label>Calificare</Label>
+      <Block>
+        <div className="f-fld">
+          <label htmlFor="qualification">Cum ai lucrat azi</label>
+          <select id="qualification" name="qualification" defaultValue="muncitor">
+            {QUALIFICATIONS.map((q) => (
+              <option key={q.value} value={q.value}>
+                {q.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </Block>
 
-      <ul className="mt-4 divide-y divide-rule border-y border-rule">
-        {rows.map(({ unit, objective }) => (
-          <li key={unit.id} className="flex items-center justify-between gap-3 py-3">
-            <input type="hidden" name="workUnitId" value={unit.id} />
-            <span className="min-w-0">
-              <span className="block text-[0.9375rem] leading-snug text-ink">{unit.title}</span>
-              <span className="block text-tiny text-ink-2">
-                {objective?.name ?? "—"} · {unit.code}
-                {alreadyBy.has(unit.id) ? (
-                  <span className="text-fill"> · {alreadyBy.get(unit.id)} ore</span>
-                ) : null}
-              </span>
-            </span>
-            <input
-              name={`hours_${unit.id}`}
-              inputMode="decimal"
-              placeholder="0"
-              className="h-12 w-20 shrink-0 rounded-[3px] border border-rule-strong bg-sheet px-2 text-right text-[1rem] tabular text-ink"
-            />
-          </li>
-        ))}
-      </ul>
-
+      <Label>Câte ore, pe fiecare lucrare</Label>
       {rows.length === 0 ? (
-        <p className="py-8 text-tiny text-ink-2">Nu ai unități de lucru deschise.</p>
-      ) : null}
+        <Empty icon="clock" title="Nu ai lucrări deschise">
+          Pontajul se pune pe o unitate de lucru. Când biroul îți atribuie una, apare aici.
+        </Empty>
+      ) : (
+        <Block>
+          {rows.map(({ unit, objective }) => (
+            <div key={unit.id} className="f-li">
+              <input type="hidden" name="workUnitId" value={unit.id} />
+              <div className="f-tx">
+                <b>{unit.title}</b>
+                <span>
+                  {objective?.name ?? "—"} · {unit.code}
+                  {alreadyBy.has(unit.id) ? ` · ${alreadyBy.get(unit.id)} ore deja` : ""}
+                </span>
+              </div>
+              <input
+                className="f-num"
+                name={`hours_${unit.id}`}
+                inputMode="decimal"
+                placeholder="0"
+                aria-label={`Ore pe ${unit.title}`}
+              />
+            </div>
+          ))}
+        </Block>
+      )}
 
-      <SubmitBar label="Trimite pontajul" hint="Orele intră direct pe costul fiecărei unități de lucru." />
+      <Note>
+        Orele intră direct pe costul fiecărei lucrări. De aceea contează pe care le pui,
+        nu doar câte.
+      </Note>
+
+      <SubmitBar label="Trimite pontajul" />
     </form>
   );
 }

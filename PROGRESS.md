@@ -7,10 +7,8 @@
 Fișierul ăsta **nu are voie să treacă de 300 de linii.** Când se apropie, comprimi istoricul vechi
 în una-două linii per sesiune.
 
-Fiecare intrare: **fapte, nu narațiune.** Ce a intrat, ce s-a stricat, ce a rămas. Dacă o
-observație nu schimbă ce face următoarea sesiune, nu o scrie.
-
-Planul e în `PLAN.md` și e **sursa de adevăr**. Fișierul ăsta spune doar unde am ajuns în el.
+Fiecare intrare: **fapte, nu narațiune.** Dacă o observație nu schimbă ce face următoarea
+sesiune, nu o scrie. Planul e în `PLAN.md` și e **sursa de adevăr**. Fișierul ăsta spune doar unde am ajuns în el.
 
 
 ---
@@ -61,6 +59,7 @@ Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `d
 | C2 — Stoc și achiziții | ✅ **gata** — ecranele 23–25, plimbate în browser |
 | Integrare și lustruire | 🟨 **în lucru** — facturi, clopoțel viu, schelete declarate. Rămâne plimbarea pe cele 8 reguli |
 | E — Operabilitate (introducerea datelor) | ✅ **gata** — ecranul 37 + §9.2–§9.10. Rămâne plimbarea cap-coadă a contractului nou |
+| Aplicația de teren (3 tab-uri) + concedii | ✅ **gata ca și cod** — `tsc` și `build` curate. **Neplimbată în browser**, `db:push` nerulat |
 
 Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
@@ -96,10 +95,17 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
   `/stoc` (disponibil, semnale, transfer, inventar) · `/stoc/consum` (bon de consum, ecranul 23) ·
   `/achizitii` (cele 3 canale, filtrul de 24h) · `/achizitii/[id]` (analitică pe linie, lansare) ·
   `/receptii` (recepție + NIR, ecranul 25) ·
-  `/facturi` (emitere din raportul înghețat, vechimea creanței) · `/integrari` (scheletele, §7)
-- Ecrane teren: `/teren` (Azi + ＋) · `/teren/[id]` (inspecție sau intervenție) · `/teren/necesar` ·
-  `/teren/pontaj` · `/teren/jurnal` · `/teren/constatare` · `/teren/utilaje` (T7) ·
-  `/teren/situatii` + `/teren/situatii/[id]` (T8 — cantități, zero lei)
+  `/facturi` (emitere din raportul înghețat, vechimea creanței) · `/integrari` (scheletele, §7) ·
+  `/concedii` (aprobarea cererilor venite din teren)
+- **Aplicația de teren — 3 tab-uri (Azi · Locuri · Eu)**, limbaj vizual propriu în
+  `app/(field)/teren/field.css` (clase cu prefix `f-`), `components/domain/{FieldUI,FieldKit,FieldIcons,FieldTabs,LeaveWizard}.tsx`,
+  date în `lib/field.ts`:
+  - Azi: `/teren` (checklist al zilei + următoarea acțiune) · `/teren/notificari` ·
+    `/teren/cereri` + `/teren/cereri/[id]` (fir cronologic peste PO și request)
+  - Locuri: `/teren/locuri` + `/teren/locuri/[id]` (meniul locului) · `/teren/[id]` ·
+    `/teren/jurnal` · `/teren/necesar` · `/teren/constatare` · `/teren/inventar` ·
+    `/teren/consum` (bon de consum) · `/teren/utilaje` (T7) · `/teren/situatii` + `[id]` (T8)
+  - Eu: `/teren/eu` · `/teren/pontaj` · `/teren/concediu` + `/teren/concediu/nou` (wizard 3 pași)
 
 ---
 
@@ -107,10 +113,7 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
 **Nimic.** `npx tsc --noEmit` și `npm run build` trec curat, cu `/contracte/nou` în lista de rute.
 
-**Blocul E e închis ca și cod** (`PLAN.md` §9). Toate cele nouă zone au drum din interfață:
-nomenclatoare, contract cu asistent în 3 pași, obiective, cereri de birou, unități de lucru și
-etape, deviz + poziții + șabloane + pachete + situații + suplimentări, resurse, gestiuni și canalul
-B de achiziție, foldere și încărcare de fișiere, cost manual.
+**Blocul E e închis ca și cod** (`PLAN.md` §9): toate cele nouă zone au drum din interfață.
 
 **Ce a mai rămas din ziua 3:**
 
@@ -136,6 +139,12 @@ De clarificat când e momentul, fără să blocheze:
 
 | Data | Decizie | De ce |
 |---|---|---|
+| 2026-08-21 | Un „loc" din teren e un **obiectiv**, nu o unitate de lucru. | Omul spune „sunt la Bloc A2", nu „sunt pe UL-2411". Pe obiectiv se adună lucrarea, inspecțiile, intervențiile, inventarul și actele — altfel aceleași ecrane s-ar cere de cinci ori, cu alt filtru de fiecare dată. |
+| 2026-08-21 | Terenul are **CSS propriu** (`field.css`, clase `f-`), nu clasele Tailwind din birou. | Biroul se citește ca un registru; terenul se apasă cu mănuși, în soare, cu o mână. Prefixul `f-` garantează că foaia nu atinge niciun ecran de birou, deși CSS-ul e global odată încărcat. |
+| 2026-08-21 | `workingDays` se **îngheață la depunere** pe cererea de concediu. | Sărbătorile legale se schimbă de la an la an. O cerere aprobată în 2026 nu are voie să-și schimbe numărul de zile fiindcă cineva a corectat lista în 2028. |
+| 2026-08-21 | Concediile **nu trec prin `lib/cost-ledger.ts`**. | Regula 1 vorbește despre costuri. O zi liberă nu e o cheltuială înregistrată acolo — manopera intră în cost prin pontaj, iar în concediu nu există pontaj. |
+| 2026-08-21 | Soldul de concediu se verifică **la depunere**, nu la aprobare. `pending` se scade din rămas. | Discuția e cu omul care tocmai a ales datele, nu cu PM-ul peste trei zile. Iar dacă cererile în aprobare n-ar scădea din rămas, cineva ar cere de două ori aceleași zile. |
+| 2026-08-21 | `FIELD_NAVIGATION` a fost **scos** din `lib/navigation.ts`. | Bara de teren are trei tab-uri și trăiește în `FieldTabs.tsx`. O a doua listă în `navigation.ts` ar fi fost al doilea adevăr despre aceeași bară. |
 | 2026-08-20 | **Clopoțelul calculează semnalele la fiecare încărcare**, din aceleași interogări din care se desenează ecranele. Tabela `notifications` nu mai e citită și nu mai e seedată. | Un tabel de notificări are nevoie de un job, iar un job care nu rulează face clopoțelul să mintă: „3 situații de aprobat" a doua zi după ce au fost aprobate. Un semnal calculat nu poate fi desincronizat, pentru că nu există un al doilea loc unde e scris. |
 | 2026-08-20 | **`lib/notification-types.ts`** — tipurile și etichetele semnalelor, separate de interogări. | Aceeași capcană ca la `routing-types`: `NotificationBell` e componentă de client, iar `lib/notifications.ts` importă `lib/db`. Fără separare, Turbopack pune `postgres` în pachetul de browser și cade **tot shell-ul**, pe toate ecranele. `tsc` trece curat. |
 | 2026-08-20 | **Factura se naște din raportul lunar înghețat**, iar acțiunea refuză un raport neînghețat. | §20.1: banii se primesc în baza unui raport. Dacă documentul pe care îl are clientul se mai poate schimba, factura emisă pe el n-are acoperire. |
@@ -228,65 +237,45 @@ pooler-ul. Prima cerere după trezire poate da un 500 izolat — a doua merge.
 
 ## 6. Istoric pe sesiuni
 
-### 2026-08-21 — coordonatele obiectivului se aleg de pe hartă
+### 2026-08-21 — aplicația de teren, refăcută pe 3 tab-uri; concedii
 
-`components/ui/map-picker.tsx`: hartă „slippy” peste dalele OpenStreetMap, scrisă direct (pan,
-zoom, click ⇒ punct), fără Leaflet și fără dependență nouă. Căutare de adresă prin Nominatim
-(`countrycodes=ro`), cu revenire la alegerea manuală dacă nu răspunde. Câmpurile `lat`/`lng` au
-rămas în formular, controlate de hartă și editabile la mână. Folosită în `ObjectiveForm`.
-
-### 2026-08-21 — bazinul de conexiuni se reface singur
-
-Aplicația atârna la infinit pe **orice** pagină cu cookie de sesiune — browserul raporta „network
-error” pe `/nomenclatoare?fila=produse`, dar ecranul n-avea nicio vină. Vezi capcana din §5.
-`lib/db/index.ts`: fiecare interogare are termen limită de 20s, la depășire bazinul se aruncă și se
-redeschide, iar `db`/`sql` sunt proxy-uri, deci importatorii nu observă. `keep_alive` 60s → 15s.
-
-### 2026-08-21 — blocul E: aplicația poate fi operată, nu doar demonstrată
-
-`npx tsc --noEmit` curat, `npm run build` curat. **Neplimbat în browser.**
+`npx tsc --noEmit` curat, `npm run build` curat, 64 de rute.
 
 **A intrat:**
 
-- `lib/contracts-types.ts` · `app/actions/contracts.ts` · `/contracte/nou` (§9.2) — asistent în
-  3 pași, o singură trimitere, într-o tranzacție: contract + componente + 12 luni de plafoane +
-  anul 1. Ponderile trebuie să dea exact 100%. Plafonul de cost se derivă ca
-  `venit × (100 − marjă)`, cu 25% implicit — adică 75% din venit, regula din §5. Fiecare lună se
-  poate rescrie cu mâna la pasul 3, iar butonul de recalculare le aduce înapoi pe formulă.
-- Fișa contractului: editare (fără componente — au produs deja alocări), plafonul lunii
-  (refuzat pe lună închisă), obiective arondate cu profil de inspecție pe **legătură**, ani
-  contractuali cu indexare din ultimul an.
-- `components/domain/ObjectiveForm.tsx` (§9.3) — `objectives.kind` e listă închisă, nu text liber:
-  D4 din §4 de mai jos e exact ce iese când nu e.
-- `lib/operability-types.ts` · `app/actions/operability.ts` · `components/domain/OperabilityForms.tsx`
-  (§9.4–§9.10) — cerere de birou cu `source = manual` pe aceeași rutare, unitate de lucru directă
-  cu finanțarea ca alocare, etape (Gantt-ul avea desenul, nu și crearea), utilaj cu **ambele** baze
-  de scadență, unealtă, transport manual, gestiune, canalul B de achiziție cu analitică obligatorie
-  pe linie, folder + încărcare de fișier, cost manual.
-- Costul manual trece prin `recordCost` cu `documentType = "factura_manuala"` — regula 1, literal.
-  Zero `insert` paralel în `cost_entries`.
-- `components/domain/DevizForms.tsx` + adaosul la `app/actions/deviz.ts` (§9.6) — deviz versionat
-  (`max + 1` pe lucrare × fel), poziții manuale sau **din articole normate** (catalogul avea
-  salvarea, acum are și consumul), șabloane de deviz (tabela exista și n-o folosea nimeni), pachet
-  nou, situație manuală cu blocajul de la §10.1 la depășirea contractatului, suplimentare propusă.
-- `lib/pickers.ts` — listele de referință ale tuturor `<select>`-urilor, într-un singur loc.
+- Aplicația de teren are limbaj vizual propriu (`app/(field)/teren/field.css`): bară
+  închisă la culoare, un singur accent (chihlimbar) care înseamnă mereu „aici e treaba
+  ta", ținte de minimum 44px. Nu mai împrumută designul „Registru" din birou.
+- Bara de jos: **Azi · Locuri · Eu**, în `components/domain/FieldTabs.tsx`. Apartenența
+  unui ecran la un tab se decide pe prefixul căii.
+- `lib/field.ts` — sursa unică a cifrelor de teren: `myPlaces`, `dayState`, `myRequests`.
+- Ecrane noi: meniul unui **loc** (obiectiv, nu unitate de lucru), cererile mele cu fir
+  cronologic peste `purchase_orders` **și** `requests`, inventarul echipei (disponibil,
+  nu cantitate), bonul de consum din teren, notificările.
+- **Concedii** (nu existau): `leave_requests` + `users.annual_leave_days`, `lib/leave.ts`
+  (pur — zile lucrătoare cu sărbătorile RO, sold), `app/actions/leave.ts`, wizard în 3 pași
+  pe teren, `/concedii` pentru aprobare la birou. Seed: zile luate + o cerere în aprobare.
 
-**Decizii:**
+**Decizii:** vezi §3.
 
-- Asistentul de contract e o **pagină**, nu un modal: 12 coloane de plafoane nu încap într-o
-  fereastră. Pașii 4 și 5 (obiective, ani) sunt legături și stau pe fișa contractului.
-- Situația manuală se declară **de pe pachet**, nu de pe `/situatii`: acolo se știu pozițiile și
-  cumulatele. `/situatii` doar trimite acolo.
-- Încărcarea de fișiere merge prin REST-ul Supabase Storage, cu `fetch` — fără dependență nouă.
+### 2026-08-21 — hartă, bazin de conexiuni, blocul E (comprimat)
+
+- `components/ui/map-picker.tsx` — hartă „slippy" peste dalele OSM, scrisă direct, fără
+  Leaflet; căutare de adresă prin Nominatim. Folosită în `ObjectiveForm`.
+- `lib/db/index.ts` — termen limită de 20s pe interogare; la depășire bazinul se aruncă și
+  se redeschide. Vezi capcana din §5.
+- **Blocul E** (§9.2–§9.10): `/contracte/nou` (asistent în 3 pași, o tranzacție),
+  `ObjectiveForm` cu `kind` listă închisă, `OperabilityForms` (cerere de birou, UL directă,
+  etape, utilaj, unealtă, transport, gestiune, canalul B, foldere, cost manual prin
+  `recordCost`), `DevizForms` (deviz versionat, poziții din articole normate, șabloane,
+  pachete, situație manuală cu blocajul de la §10.1, suplimentare), `lib/pickers.ts`.
+  Asistentul de contract e **pagină**, nu modal: 12 coloane de plafoane nu încap altfel.
 
 ### 2026-08-20 — ziua 3, partea 1: facturi, clopoțel viu, integrări (comprimat)
 
-- `lib/notifications.ts` + `NotificationBell` — opt familii de semnale calculate din date, sărite
-  complet dacă rolul n-are dreptul. Fără „marchează ca citit”: n-ai ce citi, ai ce rezolva.
-- `/facturi` (`lib/invoicing.ts`) — coada „de facturat”, emitere într-o apăsare, registru cu stare
-  și e-Factura, vechimea creanței pe patru cupe. Număr de factură per firmă, următorul din serie.
-- `/integrari` — cele șase cusături din `PLAN.md` §7. Ambele au ieșit din starea `stub` în navigație.
-- S-au scos cele 8 notificări inventate din `seed/operations.ts`. `next build`: 51 de rute curate.
+`lib/notifications.ts` + `NotificationBell` (opt familii de semnale calculate din date, fără
+„marchează ca citit"), `/facturi` cu `lib/invoicing.ts` (coadă, emitere într-o apăsare, vechimea
+creanței), `/integrari` (cele șase cusături din §7). Notificările inventate au ieșit din seed.
 
 ### 2026-08-20 — blocurile C2, B2, A2, C, fundația, A și B — GATA (comprimat)
 

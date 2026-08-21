@@ -190,6 +190,14 @@ export const pvStatus = pgEnum("pv_status", ["draft", "trimis", "semnat"]);
 export const invoiceStatus = pgEnum("invoice_status", ["draft", "emisa", "trimisa", "incasata"]);
 export const toolStatus = pgEnum("tool_status", ["activ", "la_reparatii", "casat", "pierdut"]);
 
+export const leaveType = pgEnum("leave_type", [
+  "odihna",
+  "medical",
+  "fara_plata",
+  "eveniment_familial",
+]);
+export const leaveStatus = pgEnum("leave_status", ["ceruta", "aprobata", "respinsa", "anulata"]);
+
 /* ══════════════════════════ 1. ORGANIZARE ══════════════════════════ */
 
 export const firms = pgTable("firms", {
@@ -215,6 +223,8 @@ export const users = pgTable("users", {
   role: userRole("role").notNull(),
   firmId: uuid("firm_id").references(() => firms.id),
   qualification: text("qualification"),
+  /** zilele de odihnă pe an, din contractul de muncă */
+  annualLeaveDays: integer("annual_leave_days").notNull().default(21),
   active: boolean("active").notNull().default(true),
   createdAt: createdAt(),
 });
@@ -729,6 +739,35 @@ export const siteJournalEntries = pgTable("site_journal_entries", {
   /** ce a blocat lucrul azi; gol = nimic */
   blocker: text("blocker"),
   createdBy: uuid("created_by").references(() => users.id),
+  createdAt: createdAt(),
+});
+
+/**
+ * Concediile (§teren — „Eu"). O cerere = un interval, nu o zi: altfel un concediu de
+ * două săptămâni ar fi zece rânduri care se pot aproba pe jumătate.
+ *
+ * `workingDays` se îngheață la depunere. Sărbătorile legale se schimbă de la an la an,
+ * iar o cerere aprobată în 2026 nu are voie să-și schimbe numărul de zile fiindcă
+ * cineva a corectat lista de sărbători în 2028.
+ */
+export const leaveRequests = pgTable("leave_requests", {
+  id: id(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
+  kind: leaveType("kind").notNull().default("odihna"),
+  fromDate: date("from_date").notNull(),
+  toDate: date("to_date").notNull(),
+  /** prima zi în care omul e înapoi la lucru — ce interesează pe cel care planifică */
+  returnDate: date("return_date"),
+  workingDays: integer("working_days").notNull().default(0),
+  reason: text("reason"),
+  /** cine ține șantierul cât timp lipsește */
+  replacementId: uuid("replacement_id").references(() => users.id),
+  status: leaveStatus("status").notNull().default("ceruta"),
+  decidedBy: uuid("decided_by").references(() => users.id),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  decisionNote: text("decision_note"),
   createdAt: createdAt(),
 });
 

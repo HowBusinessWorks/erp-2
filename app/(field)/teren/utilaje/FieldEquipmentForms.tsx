@@ -29,76 +29,61 @@ export function RequestEquipmentForm({
   const [days, setDays] = useState(2);
 
   return (
-    <form action={requestEquipment} className="space-y-5">
+    <form action={requestEquipment}>
       <input type="hidden" name="activity" value={activity} />
       <input type="hidden" name="days" value={days} />
 
-      <div>
-        <div className="eyebrow mb-2">Ce am de făcut</div>
-        <div className="grid grid-cols-2 gap-2">
-          {ACTIVITIES.map((a) => (
-            <button
-              key={a}
-              type="button"
-              onClick={() => setActivity(a)}
-              className={`h-12 rounded-[4px] border text-[0.9375rem] font-medium ${
-                activity === a
-                  ? "border-blueprint bg-blueprint text-white"
-                  : "border-rule-strong bg-sheet text-ink"
-              }`}
-            >
-              {a}
-            </button>
-          ))}
-        </div>
+      <h2 className="f-q">Ce ai de făcut?</h2>
+      <p className="f-qs">Ceri capacitatea. Biroul alege bucata care e liberă.</p>
+
+      <div className="f-chz">
+        {ACTIVITIES.map((option) => (
+          <label key={option}>
+            <input
+              type="radio"
+              name="activityPick"
+              checked={activity === option}
+              onChange={() => setActivity(option)}
+            />
+            <span>{option}</span>
+          </label>
+        ))}
       </div>
 
-      <div>
-        <div className="eyebrow mb-2">Câte zile</div>
-        <div className="grid grid-cols-4 gap-2">
-          {DAYS.map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setDays(d)}
-              className={`h-12 rounded-[4px] border text-[0.9375rem] font-medium tabular ${
-                days === d
-                  ? "border-blueprint bg-blueprint text-white"
-                  : "border-rule-strong bg-sheet text-ink"
-              }`}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
+      <div className="f-lbl">Câte zile</div>
+      <div className="f-chz">
+        {DAYS.map((option) => (
+          <label key={option}>
+            <input
+              type="radio"
+              name="daysPick"
+              checked={days === option}
+              onChange={() => setDays(option)}
+            />
+            <span>{option}</span>
+          </label>
+        ))}
       </div>
 
-      {objectives.length ? (
-        <label className="block">
-          <span className="eyebrow mb-1 block">Unde</span>
-          <select
-            name="objectiveId"
-            defaultValue={objectives[0]?.id ?? ""}
-            className="h-12 w-full rounded-[4px] border border-rule-strong bg-sheet px-3 text-[0.9375rem] text-ink"
-          >
-            {objectives.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-
-      <label className="block">
-        <span className="eyebrow mb-1 block">Observație</span>
-        <textarea
-          name="note"
-          rows={2}
-          placeholder="Opțional"
-          className="w-full rounded-[4px] border border-rule-strong bg-sheet px-3 py-2 text-[0.9375rem] leading-relaxed text-ink"
-        />
-      </label>
+      <div className="f-lbl">Detalii</div>
+      <div className="f-blk">
+        {objectives.length ? (
+          <div className="f-fld">
+            <label htmlFor="objectiveId">Unde</label>
+            <select id="objectiveId" name="objectiveId" defaultValue={objectives[0]?.id ?? ""}>
+              {objectives.map((objective) => (
+                <option key={objective.id} value={objective.id}>
+                  {objective.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+        <div className="f-fld">
+          <label htmlFor="note">Observație</label>
+          <textarea id="note" name="note" placeholder="Ex: nacelă articulată, minimum 12 m" />
+        </div>
+      </div>
 
       <SubmitBar
         label="Trimite solicitarea"
@@ -116,44 +101,54 @@ export function ReportIssueForm({
   const [equipmentId, setEquipmentId] = useState(equipment[0]?.id ?? "");
 
   return (
-    <form action={reportEquipmentIssue} className="space-y-5">
+    <form action={reportEquipmentIssue}>
       <input type="hidden" name="equipmentId" value={equipmentId} />
 
-      <div>
-        <div className="eyebrow mb-2">Care utilaj</div>
-        <div className="space-y-2">
-          {equipment.map((e) => (
-            <button
-              key={e.id}
-              type="button"
-              onClick={() => setEquipmentId(e.id)}
-              className={`flex w-full items-baseline justify-between gap-3 rounded-[4px] border px-4 py-3 text-left ${
-                equipmentId === e.id
-                  ? "border-blueprint bg-blueprint-soft"
-                  : "border-rule-strong bg-sheet"
-              }`}
-            >
-              <span className="text-[0.9375rem] font-medium text-ink">{e.name}</span>
-              <span className="shrink-0 text-tiny text-ink-2">{e.code}</span>
-            </button>
-          ))}
+      <h2 className="f-q">Ce ai observat?</h2>
+      <p className="f-qs">Rămâne legată de utilaj, nu se pierde într-un mesaj.</p>
+
+      <div className="f-lbl">Care utilaj</div>
+      <div className="f-blk">
+        {equipment.map((item) => (
+          <label key={item.id} className="f-li" style={{ cursor: "pointer" }}>
+            <input
+              type="radio"
+              name="equipmentPick"
+              checked={equipmentId === item.id}
+              onChange={() => setEquipmentId(item.id)}
+              style={{ position: "absolute", opacity: 0, width: 1, height: 1 }}
+            />
+            <span className="f-cir" style={equipmentId === item.id ? { borderColor: "#10151F" } : undefined}>
+              {equipmentId === item.id ? (
+                <i
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: "50%",
+                    background: "#10151F",
+                    display: "block",
+                  }}
+                />
+              ) : null}
+            </span>
+            <span className="f-tx">
+              <b>{item.name}</b>
+              <span>{item.code}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+
+      <div className="f-blk">
+        <div className="f-fld">
+          <label htmlFor="title">Ce ai observat</label>
+          <textarea id="title" name="title" required placeholder="Ex: pierde ulei pe brațul stâng" />
         </div>
       </div>
 
-      <label className="block">
-        <span className="eyebrow mb-1 block">Ce am observat</span>
-        <textarea
-          name="title"
-          rows={3}
-          required
-          placeholder="Pierde ulei pe brațul stâng"
-          className="w-full rounded-[4px] border border-rule-strong bg-sheet px-3 py-2 text-[0.9375rem] leading-relaxed text-ink"
-        />
-      </label>
-
       <SubmitBar
         label="Trimite observația"
-        hint="Rămâne legată de utilaj. Biroul o poate transforma în reparație fără să retasteze nimic."
+        hint="Biroul o poate transforma în reparație fără să retasteze nimic."
       />
     </form>
   );

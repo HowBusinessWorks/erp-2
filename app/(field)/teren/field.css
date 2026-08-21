@@ -1,0 +1,1182 @@
+/*
+ * Limbajul vizual al aplicației de teren.
+ *
+ * NU e designul „Registru" din birou și nu trebuie să fie: biroul se citește ca un
+ * registru cu multe cifre, terenul se apasă cu mănuși, în soare, ținând telefonul cu
+ * o mână. De aici tot ce e mai jos: ținte de minimum 44px, contrast mare, bara de sus
+ * închisă la culoare ca să nu ardă ecranul, o singură culoare de accent (chihlimbar)
+ * care înseamnă mereu „aici e treaba ta".
+ *
+ * Toate clasele au prefixul `f-`. Fișierul se încarcă doar sub /teren, dar CSS-ul e
+ * global odată intrat în pagină — prefixul garantează că nu atinge nimic din birou.
+ */
+
+.f-app {
+  --f-ink: #10151f;
+  --f-ink-2: #2b3444;
+  --f-mut: #6b7688;
+  --f-line: #e4e6eb;
+  --f-bg: #f5f6f8;
+  --f-card: #fff;
+  --f-am: #ffb020;
+  --f-am-d: #8a5a00;
+  --f-am-l: #fff4e0;
+  --f-rd: #e11d48;
+  --f-rd-l: #fff0f3;
+  --f-gr: #0e9f6e;
+  --f-gr-l: #e7faf3;
+  --f-bl: #2563eb;
+  --f-bl-l: #edf2ff;
+  --f-r: 20px;
+
+  min-height: 100dvh;
+  background: var(--f-bg);
+  color: var(--f-ink);
+  font-family: var(--font-archivo), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.f-app *,
+.f-app *::before,
+.f-app *::after {
+  box-sizing: border-box;
+}
+
+.f-main {
+  padding-bottom: calc(94px + env(safe-area-inset-bottom));
+  animation: f-in 0.18s ease;
+}
+
+@keyframes f-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-main {
+    animation: none;
+  }
+}
+
+/* ───────────────── bara de sus, închisă la culoare ───────────────── */
+
+.f-bar {
+  background: var(--f-ink);
+  color: #fff;
+  padding: max(6px, env(safe-area-inset-top)) 14px 18px;
+}
+.f-line1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.f-bar h1 {
+  font-size: 22px;
+  margin: 0;
+  font-weight: 800;
+  flex: 1;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+}
+.f-bar h1.f-sm-title {
+  font-size: 20px;
+}
+.f-sub {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #9aa5b6;
+  margin-top: 3px;
+}
+.f-ib {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #fff;
+  position: relative;
+}
+.f-ib svg {
+  width: 22px;
+  height: 22px;
+}
+.f-ib:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+.f-dot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 9px;
+  height: 9px;
+  background: var(--f-rd);
+  border-radius: 50%;
+  border: 2px solid #10151f;
+}
+
+/* chip-ul de loc curent, în bară */
+.f-place {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  margin-top: 12px;
+  text-decoration: none;
+}
+.f-place .f-pin {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 11px;
+  background: var(--f-am);
+  color: #10151f;
+  display: grid;
+  place-items: center;
+}
+.f-place .f-pin svg {
+  width: 19px;
+  height: 19px;
+}
+.f-place .f-t {
+  flex: 1;
+  min-width: 0;
+}
+.f-place .f-t small {
+  display: block;
+  color: #9aa5b6;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.f-place .f-t b {
+  display: block;
+  color: #fff;
+  font-size: 15.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.f-place .f-sw {
+  color: var(--f-am);
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* ───────────────── blocuri și text ───────────────── */
+
+.f-pad {
+  padding: 16px;
+}
+.f-lbl {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--f-mut);
+  margin: 22px 18px 10px;
+}
+.f-blk {
+  background: var(--f-card);
+  border-radius: var(--f-r);
+  margin: 0 16px 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(16, 21, 31, 0.05);
+}
+.f-blk.f-p {
+  padding: 18px;
+}
+.f-mut {
+  color: var(--f-mut);
+}
+.f-sm {
+  font-size: 13.5px;
+}
+.f-xs {
+  font-size: 12.5px;
+}
+.f-ctr {
+  text-align: center;
+}
+.f-spacer {
+  height: 16px;
+}
+
+/* rândul mare, apăsabil */
+.f-brow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  border: 0;
+  background: var(--f-card);
+  padding: 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  border-bottom: 1px solid var(--f-line);
+}
+.f-brow:last-child {
+  border-bottom: 0;
+}
+.f-brow:active {
+  background: #fafafb;
+}
+.f-sq {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--f-bl-l);
+  color: var(--f-bl);
+}
+.f-sq svg {
+  width: 25px;
+  height: 25px;
+}
+.f-sq.f-a {
+  background: var(--f-am-l);
+  color: var(--f-am-d);
+}
+.f-sq.f-g {
+  background: var(--f-gr-l);
+  color: var(--f-gr);
+}
+.f-sq.f-r {
+  background: var(--f-rd-l);
+  color: var(--f-rd);
+}
+.f-sq.f-n {
+  background: #eef0f3;
+  color: #4b5566;
+}
+.f-tx {
+  flex: 1;
+  min-width: 0;
+}
+.f-tx b {
+  display: block;
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.f-tx span {
+  display: block;
+  color: var(--f-mut);
+  font-size: 13.5px;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+.f-go {
+  color: #b3bac6;
+  flex: 0 0 auto;
+}
+.f-go svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+/* pastile de stare */
+.f-pil {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 800;
+  padding: 6px 11px;
+  border-radius: 9px;
+  background: #eef0f3;
+  color: #4b5566;
+  white-space: nowrap;
+}
+.f-pil.f-a {
+  background: var(--f-am-l);
+  color: var(--f-am-d);
+}
+.f-pil.f-g {
+  background: var(--f-gr-l);
+  color: var(--f-gr);
+}
+.f-pil.f-r {
+  background: var(--f-rd-l);
+  color: var(--f-rd);
+}
+.f-pil.f-b {
+  background: var(--f-bl-l);
+  color: var(--f-bl);
+}
+.f-pil.f-d {
+  background: var(--f-ink);
+  color: #fff;
+}
+.f-pil.f-on-dark {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.f-pil.f-am-solid {
+  background: var(--f-am);
+  color: #10151f;
+}
+
+/* ───────────────── butoane ───────────────── */
+
+.f-bt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 58px;
+  border-radius: 17px;
+  border: 0;
+  font-size: 17px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0 18px;
+  text-decoration: none;
+  background: #eef0f3;
+  color: var(--f-ink-2);
+}
+.f-bt svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+.f-bt.f-pri {
+  background: var(--f-am);
+  color: #10151f;
+  box-shadow: 0 4px 14px rgba(255, 176, 32, 0.4);
+}
+.f-bt.f-pri:active {
+  background: #eda210;
+}
+.f-bt.f-dark {
+  background: var(--f-ink);
+  color: #fff;
+}
+.f-bt.f-out {
+  background: var(--f-card);
+  color: var(--f-ink);
+  border: 2px solid var(--f-ink);
+}
+.f-bt.f-grn {
+  background: var(--f-gr);
+  color: #fff;
+}
+.f-bt.f-red {
+  background: var(--f-rd);
+  color: #fff;
+}
+.f-bt.f-s {
+  min-height: 46px;
+  font-size: 15px;
+  border-radius: 13px;
+}
+.f-bt:disabled {
+  opacity: 0.4;
+}
+.f-bts {
+  padding: 14px 16px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ───────────────── ziua ta ───────────────── */
+
+.f-segs {
+  display: flex;
+  gap: 5px;
+  margin-top: 14px;
+}
+.f-segs i {
+  flex: 1;
+  height: 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.f-segs i.f-on {
+  background: var(--f-am);
+}
+
+.f-hero {
+  margin: -14px 16px 0;
+  background: var(--f-card);
+  border-radius: var(--f-r);
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(16, 21, 31, 0.14);
+  position: relative;
+  z-index: 2;
+}
+.f-hero small {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--f-am-d);
+}
+.f-hero b {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 6px 0 3px;
+  line-height: 1.2;
+}
+.f-hero p {
+  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--f-mut);
+  line-height: 1.4;
+}
+
+/* punctul de checklist al zilei */
+.f-chk {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid var(--f-line);
+  background: var(--f-card);
+  width: 100%;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.f-chk:last-child {
+  border-bottom: 0;
+}
+.f-cir {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 50%;
+  border: 2.5px solid #cdd3dc;
+  display: grid;
+  place-items: center;
+  background: #fff;
+}
+.f-cir svg {
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  opacity: 0;
+}
+.f-chk.f-ok .f-cir {
+  background: var(--f-gr);
+  border-color: var(--f-gr);
+}
+.f-chk.f-ok .f-cir svg {
+  opacity: 1;
+}
+.f-chk .f-tx b {
+  font-size: 16.5px;
+}
+.f-chk .f-tx span {
+  font-size: 13px;
+}
+.f-chk.f-ok .f-tx b {
+  color: var(--f-mut);
+  text-decoration: line-through;
+}
+.f-now {
+  background: var(--f-am);
+  color: #10151f;
+  font-size: 11.5px;
+  font-weight: 900;
+  padding: 5px 9px;
+  border-radius: 8px;
+}
+
+/* fâșia de cifre */
+.f-strip {
+  display: flex;
+  gap: 12px;
+  padding: 0 16px;
+}
+.f-st {
+  flex: 1;
+  background: var(--f-card);
+  border-radius: var(--f-r);
+  padding: 14px;
+  text-align: left;
+  border: 0;
+  font-family: inherit;
+  text-decoration: none;
+  color: inherit;
+}
+.f-st .f-n {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+.f-st .f-l {
+  font-size: 12.5px;
+  color: var(--f-mut);
+  font-weight: 600;
+  margin-top: 5px;
+  line-height: 1.3;
+}
+.f-stat-dark {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 15px;
+  padding: 12px 14px;
+}
+.f-stat-dark .f-n {
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+}
+.f-stat-dark .f-l {
+  font-size: 12px;
+  color: #9aa5b6;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* alerte */
+.f-al {
+  margin: 0 16px 12px;
+  border-radius: var(--f-r);
+  padding: 16px;
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  background: #eef0f3;
+}
+.f-al.f-r {
+  background: var(--f-rd-l);
+}
+.f-al.f-g {
+  background: var(--f-gr-l);
+}
+.f-al.f-a {
+  background: var(--f-am-l);
+}
+.f-al.f-b {
+  background: var(--f-bl-l);
+}
+.f-al > svg {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  margin-top: 1px;
+}
+.f-al.f-r > svg {
+  color: var(--f-rd);
+}
+.f-al.f-g > svg {
+  color: var(--f-gr);
+}
+.f-al.f-a > svg {
+  color: var(--f-am-d);
+}
+.f-al.f-b > svg {
+  color: var(--f-bl);
+}
+.f-al b {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 3px;
+}
+.f-al p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--f-ink-2);
+  line-height: 1.45;
+  opacity: 0.85;
+}
+.f-al .f-bt {
+  margin-top: 13px;
+}
+
+/* ───────────────── wizard ───────────────── */
+
+.f-wtop {
+  background: var(--f-ink);
+  padding: max(6px, env(safe-area-inset-top)) 14px 16px;
+  color: #fff;
+}
+.f-wtop .f-r1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.f-wtop .f-step {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--f-am);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.f-wbar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+.f-wbar i {
+  display: block;
+  height: 100%;
+  background: var(--f-am);
+  border-radius: 3px;
+  transition: width 0.25s;
+}
+.f-q {
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.18;
+  margin: 22px 18px 6px;
+}
+.f-qs {
+  font-size: 14.5px;
+  color: var(--f-mut);
+  margin: 0 18px 16px;
+  line-height: 1.45;
+}
+.f-wfoot {
+  display: flex;
+  gap: 10px;
+  padding: 16px;
+}
+.f-wfoot .f-bt {
+  flex: 1;
+}
+.f-wfoot .f-bt.f-back {
+  flex: 0 0 108px;
+}
+
+/* carduri de alegere */
+.f-cc {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  background: var(--f-card);
+  border: 2.5px solid transparent;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+}
+.f-cc .f-sq {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 15px;
+  background: #eef0f3;
+  color: #4b5566;
+}
+.f-cc .f-sq svg {
+  width: 24px;
+  height: 24px;
+}
+.f-cc .f-tx b {
+  font-size: 17px;
+  font-weight: 700;
+}
+.f-cc .f-tx span {
+  font-size: 13px;
+}
+.f-tick {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2.5px solid #cdd3dc;
+  display: grid;
+  place-items: center;
+  flex: 0 0 26px;
+}
+.f-tick svg {
+  width: 15px;
+  height: 15px;
+  color: #fff;
+  opacity: 0;
+}
+/* alegerea se face cu radio nativ — merge fără JS și rămâne accesibilă */
+.f-cc-input:checked + .f-cc {
+  border-color: var(--f-ink);
+}
+.f-cc-input:checked + .f-cc .f-tick {
+  background: var(--f-ink);
+  border-color: var(--f-ink);
+}
+.f-cc-input:checked + .f-cc .f-tick svg {
+  opacity: 1;
+}
+.f-cc-input:checked + .f-cc .f-sq {
+  background: var(--f-am);
+  color: #10151f;
+}
+.f-cc-input:focus-visible + .f-cc {
+  outline: 3px solid var(--f-bl);
+  outline-offset: 2px;
+}
+
+/* ───────────────── câmpuri ───────────────── */
+
+.f-fld {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--f-line);
+  background: var(--f-card);
+}
+.f-fld:last-child {
+  border-bottom: 0;
+}
+.f-fld label,
+.f-fld .f-lab {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--f-mut);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 7px;
+}
+.f-fld input,
+.f-fld select,
+.f-fld textarea {
+  width: 100%;
+  border: 0;
+  font-size: 17.5px;
+  font-family: inherit;
+  color: var(--f-ink);
+  background: transparent;
+  padding: 2px 0;
+  outline: none;
+  font-weight: 650;
+}
+.f-fld textarea {
+  resize: none;
+  min-height: 110px;
+  font-weight: 500;
+  line-height: 1.5;
+  font-size: 16.5px;
+}
+.f-fld select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%236B7688' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M5 8l5 5 5-5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right center;
+  padding-right: 26px;
+}
+.f-req {
+  color: var(--f-rd);
+}
+
+/* chip-uri de alegere */
+.f-chz {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 0 16px;
+}
+.f-chz.f-flat {
+  padding: 0;
+}
+.f-chz label {
+  display: block;
+}
+.f-chz span {
+  display: block;
+  padding: 13px 17px;
+  border-radius: 14px;
+  border: 2px solid var(--f-line);
+  background: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--f-ink-2);
+}
+.f-chz input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.f-chz input:checked + span {
+  border-color: var(--f-ink);
+  background: var(--f-ink);
+  color: #fff;
+}
+.f-chz input:focus-visible + span {
+  outline: 3px solid var(--f-bl);
+  outline-offset: 2px;
+}
+
+/* filtre orizontale */
+.f-flt {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 14px 16px;
+  scrollbar-width: none;
+}
+.f-flt::-webkit-scrollbar {
+  display: none;
+}
+.f-flt a {
+  flex: 0 0 auto;
+  border: 1.5px solid var(--f-line);
+  background: #fff;
+  padding: 10px 15px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 750;
+  font-family: inherit;
+  color: var(--f-ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.f-flt a.f-on {
+  background: var(--f-ink);
+  color: #fff;
+  border-color: var(--f-ink);
+}
+
+/* linie de listă */
+.f-li {
+  display: flex;
+  gap: 13px;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--f-line);
+  align-items: center;
+  background: var(--f-card);
+}
+.f-li:last-child {
+  border-bottom: 0;
+}
+.f-li .f-tx b {
+  font-size: 16px;
+}
+.f-li .f-tx span {
+  font-size: 13px;
+}
+.f-li .f-qv {
+  font-size: 17px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* câmp numeric mare, de degete */
+.f-num {
+  width: 92px;
+  height: 50px;
+  flex: 0 0 92px;
+  border: 2px solid var(--f-line);
+  border-radius: 13px;
+  text-align: right;
+  padding: 0 12px;
+  font-size: 18px;
+  font-weight: 800;
+  font-family: inherit;
+  color: var(--f-ink);
+  background: #fff;
+  outline: none;
+}
+.f-num:focus {
+  border-color: var(--f-ink);
+}
+
+/* bifă pătrată */
+.f-ck {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid var(--f-line);
+  background: var(--f-card);
+}
+.f-ck:last-child {
+  border-bottom: 0;
+}
+.f-av {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: var(--f-am-l);
+  color: var(--f-am-d);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  flex: 0 0 40px;
+}
+
+/* ───────────────── bara de tab-uri ───────────────── */
+
+.f-tabs {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 30;
+  background: var(--f-ink);
+  display: flex;
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+}
+.f-tab {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  cursor: pointer;
+  color: #78829a;
+  font-family: inherit;
+  text-decoration: none;
+}
+.f-tab svg {
+  width: 26px;
+  height: 26px;
+}
+.f-tab span {
+  font-size: 11.5px;
+  font-weight: 800;
+}
+.f-tab.f-on {
+  color: var(--f-am);
+}
+
+/* ───────────────── diverse ───────────────── */
+
+.f-prg {
+  height: 9px;
+  background: #e7eaef;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.f-prg.f-on-dark {
+  background: rgba(255, 255, 255, 0.16);
+}
+.f-prg i {
+  display: block;
+  height: 100%;
+  background: var(--f-am);
+  border-radius: 5px;
+}
+.f-note {
+  background: var(--f-am-l);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--f-am-d);
+  margin: 0 16px 12px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+.f-emp {
+  text-align: center;
+  padding: 46px 30px;
+  color: var(--f-mut);
+}
+.f-emp svg {
+  width: 46px;
+  height: 46px;
+  color: #cdd3dc;
+  margin-bottom: 10px;
+}
+.f-emp b {
+  display: block;
+  color: var(--f-ink-2);
+  font-size: 17px;
+  margin-bottom: 5px;
+}
+.f-emp p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* jurnal / card de însemnare */
+.f-jc {
+  background: var(--f-card);
+  border-radius: var(--f-r);
+  margin: 0 16px 12px;
+  padding: 16px;
+}
+.f-jc .f-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+.f-jc p {
+  margin: 0 0 11px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--f-ink-2);
+}
+.f-jc .f-m {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12.5px;
+  color: var(--f-mut);
+  margin-top: 11px;
+  flex-wrap: wrap;
+}
+
+/* fir cronologic */
+.f-tl .f-s {
+  display: flex;
+  gap: 14px;
+}
+.f-tl .f-d {
+  width: 24px;
+  flex: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.f-tl .f-d i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #d3d8e0;
+  margin-top: 4px;
+}
+.f-tl .f-d u {
+  flex: 1;
+  width: 2.5px;
+  background: #e7eaef;
+}
+.f-tl .f-s.f-dn .f-d i {
+  background: var(--f-gr);
+}
+.f-tl .f-s.f-nw .f-d i {
+  background: var(--f-am);
+  box-shadow: 0 0 0 5px var(--f-am-l);
+}
+.f-tl .f-b {
+  padding-bottom: 20px;
+  flex: 1;
+}
+.f-tl .f-b b {
+  font-size: 16px;
+  display: block;
+}
+.f-tl .f-b span {
+  font-size: 13px;
+  color: var(--f-mut);
+}
+
+/* verdictul mare pe două butoane (situații, inspecții) */
+.f-yn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+}
+.f-yn label {
+  display: block;
+}
+.f-yn span.f-opt {
+  min-height: 78px;
+  border-radius: 18px;
+  border: 2.5px solid transparent;
+  background: var(--f-card);
+  font-size: 19px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 18px;
+  color: var(--f-ink);
+}
+.f-yn .f-ic {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #eef0f3;
+  color: #4b5566;
+  flex: 0 0 46px;
+}
+.f-yn .f-ic svg {
+  width: 26px;
+  height: 26px;
+}
+.f-yn input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.f-yn input:checked + span.f-good {
+  border-color: var(--f-gr);
+}
+.f-yn input:checked + span.f-good .f-ic {
+  background: var(--f-gr);
+  color: #fff;
+}
+.f-yn input:checked + span.f-bad {
+  border-color: var(--f-rd);
+}
+.f-yn input:checked + span.f-bad .f-ic {
+  background: var(--f-rd);
+  color: #fff;
+}
+
+/* bara de trimis — singura atingere permisă pe ecranul de dedesubt */
+.f-submit {
+  position: sticky;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 10;
+  padding: 12px 16px;
+  margin-top: 18px;
+  background: linear-gradient(to top, var(--f-bg) 62%, rgba(245, 246, 248, 0));
+}
+.f-submit .f-hint {
+  font-size: 12.5px;
+  color: var(--f-mut);
+  line-height: 1.45;
+  margin: 0 2px 10px;
+}

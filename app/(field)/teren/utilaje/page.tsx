@@ -1,7 +1,17 @@
 import Link from "next/link";
 import { and, asc, desc, eq, gte, inArray, lte, or } from "drizzle-orm";
 
-import { FieldHeader } from "@/components/domain/FieldKit";
+import { Icon } from "@/components/domain/FieldIcons";
+import {
+  Block,
+  ButtonLink,
+  Buttons,
+  Empty,
+  FieldBar,
+  Label,
+  Pill,
+  StaticRow,
+} from "@/components/domain/FieldUI";
 import { db } from "@/lib/db";
 import {
   equipment,
@@ -18,7 +28,7 @@ import { ReportIssueForm, RequestEquipmentForm } from "./FieldEquipmentForms";
 export const dynamic = "force-dynamic";
 
 /**
- * T7 — „Utilajele mele”.
+ * T7 — „Utilajele mele".
  *
  * Doar ce am pe șantier, nu toată flota. **Cantități, nu bani** — contorul, litrii,
  * zilele rămase. Rata internă și costul reparațiilor nu au ce căuta aici; regula 5
@@ -52,9 +62,7 @@ export default async function TerenUtilajePage({
       .selectDistinct({ id: objectives.id, name: objectives.name })
       .from(objectives)
       .innerJoin(workUnits, eq(workUnits.objectiveId, objectives.id))
-      .where(
-        or(eq(workUnits.responsibleId, session.id), eq(workUnits.executant, "propriu")),
-      )
+      .where(or(eq(workUnits.responsibleId, session.id), eq(workUnits.executant, "propriu")))
       .orderBy(asc(objectives.name))
       .limit(30),
     db
@@ -86,152 +94,140 @@ export default async function TerenUtilajePage({
 
   const view = sp.ce === "cere" ? "cere" : sp.ce === "problema" ? "problema" : "lista";
 
+  /* ─────────── cer un utilaj ─────────── */
+  if (view === "cere") {
+    return (
+      <>
+        <FieldBar title="Cer un utilaj" sub="Solicitarea merge la birou" back="/teren/utilaje" />
+        <RequestEquipmentForm objectives={myObjectives} />
+      </>
+    );
+  }
+
+  /* ─────────── raportez o problemă ─────────── */
+  if (view === "problema") {
+    return (
+      <>
+        <FieldBar title="Am o problemă" sub="Observație pe utilaj" back="/teren/utilaje" />
+        {mine.length === 0 ? (
+          <Empty icon="crane" title="Nu ai niciun utilaj la tine">
+            Deci nu ai ce raporta. Cere unul dacă îți trebuie.
+          </Empty>
+        ) : (
+          <ReportIssueForm
+            equipment={mine.map(({ eq: item }) => ({ id: item.id, code: item.code, name: item.name }))}
+          />
+        )}
+      </>
+    );
+  }
+
+  /* ─────────── lista ─────────── */
   return (
-    <div className="px-4 py-4">
-      <FieldHeader
-        eyebrow="Utilajele mele"
-        title={
-          view === "cere"
-            ? "Cer un utilaj"
-            : view === "problema"
-              ? "Raportez o problemă"
-              : "Ce am pe șantier"
-        }
-        meta={
-          view === "lista"
-            ? `${mine.length} ${mine.length === 1 ? "utilaj" : "utilaje"} · ${formatDay(today)}`
-            : undefined
-        }
-      />
+    <>
+      <FieldBar title="Utilajele mele" sub={`Ce ai pe șantier · ${formatDay(today)}`} back="/teren">
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          <Pill tone={mine.length > 0 ? "am-solid" : "on-dark"}>
+            {mine.length} {mine.length === 1 ? "utilaj" : "utilaje"}
+          </Pill>
+          {protocols.length > 0 ? <Pill tone="on-dark">{protocols.length} PV deschise</Pill> : null}
+        </div>
+      </FieldBar>
 
-      {/* ─────────── lista ─────────── */}
-      {view === "lista" ? (
-        <div className="mt-4 space-y-4">
-          {mine.length === 0 ? (
-            <p className="border border-dashed border-rule-strong px-4 py-6 text-tiny text-ink-2">
-              Niciun utilaj la tine azi. Dacă îți trebuie unul, cere-l de mai jos — biroul alege
-              care e liber.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {mine.map(({ planning, eq: e, objective }) => {
-                const open = protocols.find((p) => p.planningId === planning.id);
-                const left = Math.max(
-                  0,
-                  Math.round(
-                    (Date.parse(planning.toDate + "T00:00:00Z") -
-                      Date.parse(today + "T00:00:00Z")) /
-                      86_400_000,
-                  ),
-                );
-                return (
-                  <div key={planning.id} className="border border-rule-strong bg-sheet px-4 py-3">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="font-narrow text-[1rem] font-semibold text-ink">
-                        {e.name}
-                      </span>
-                      <span className="shrink-0 tabular text-tiny text-ink-2">{e.code}</span>
-                    </div>
-                    <div className="mt-1 text-tiny text-ink-2">{objective?.name ?? "—"}</div>
+      <div style={{ height: 16 }} />
 
-                    {/* Cantități — contor, zile. Niciun leu. */}
-                    <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-tiny">
-                      <span className="text-ink-2">
-                        Contor <span className="tabular text-ink">{formatQty(e.hourMeter, "h")}</span>
-                      </span>
-                      <span className="text-ink-2">
-                        Până la{" "}
-                        <span className="text-ink">{formatDay(planning.toDate)}</span>
-                        {left === 0 ? (
-                          <span className="text-warn"> · azi e ultima zi</span>
-                        ) : (
-                          <span className="text-ink-3"> · {left} zile</span>
-                        )}
-                      </span>
-                      {planning.withOperator ? (
-                        <span className="text-ink-2">cu operator</span>
-                      ) : null}
-                    </div>
+      {mine.length === 0 ? (
+        <Empty icon="crane" title="Niciun utilaj la tine azi">
+          Dacă îți trebuie unul, cere-l de mai jos — biroul alege care e liber.
+        </Empty>
+      ) : (
+        <Block>
+          {mine.map(({ planning, eq: item, objective }) => {
+            const open = protocols.find((p) => p.planningId === planning.id);
+            const left = Math.max(
+              0,
+              Math.round(
+                (Date.parse(`${planning.toDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) /
+                  86_400_000,
+              ),
+            );
+            return (
+              <div key={planning.id} className="f-li" style={{ display: "block" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+                  <span className="f-sq f-a">
+                    <Icon name="crane" />
+                  </span>
+                  <span className="f-tx">
+                    <b>{item.name}</b>
+                    <span>
+                      {objective?.name ?? "—"} · {item.code}
+                    </span>
+                  </span>
+                  <Pill tone={left === 0 ? "r" : "n"}>
+                    {left === 0 ? "ultima zi" : `${left} zile`}
+                  </Pill>
+                </div>
 
-                    {open ? (
-                      <Link
-                        href={`/pv/${open.id}`}
-                        className="mt-2 block text-tiny font-medium text-blueprint"
-                      >
-                        PV {open.code} — deschis, de semnat la retur →
-                      </Link>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                {/* Cantități — contor, zile. Niciun leu. */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "4px 18px",
+                    marginTop: 12,
+                    fontSize: 13,
+                    color: "var(--f-mut)",
+                  }}
+                >
+                  <span>
+                    Contor <b style={{ color: "var(--f-ink)" }}>{formatQty(item.hourMeter, "h")}</b>
+                  </span>
+                  <span>
+                    Până la <b style={{ color: "var(--f-ink)" }}>{formatDay(planning.toDate)}</b>
+                  </span>
+                  {planning.withOperator ? <span>cu operator</span> : null}
+                </div>
 
-          {/* Cele două acțiuni: a doua atingere din cele trei. */}
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            <Link
-              href="/teren/utilaje?ce=cere"
-              className="flex h-14 items-center justify-center rounded-[4px] bg-blueprint text-[0.9375rem] font-semibold text-white active:brightness-95"
-            >
-              Cer un utilaj
-            </Link>
-            <Link
-              href="/teren/utilaje?ce=problema"
-              className={`flex h-14 items-center justify-center rounded-[4px] border border-rule-strong bg-sheet text-[0.9375rem] font-semibold text-ink active:bg-sunk ${
-                mine.length === 0 ? "pointer-events-none opacity-40" : ""
-              }`}
-            >
-              Am o problemă
-            </Link>
-          </div>
-
-          {openRequests.length ? (
-            <div className="border-t border-rule pt-3">
-              <div className="eyebrow mb-2">Trimise, în așteptare</div>
-              <div className="space-y-1.5">
-                {openRequests.map((r) => (
-                  <div key={r.id} className="flex items-baseline justify-between gap-3 text-tiny">
-                    <span className="truncate text-ink-2">{r.title}</span>
-                    <span className="shrink-0 tabular text-ink-3">{r.code}</span>
-                  </div>
-                ))}
+                {open ? (
+                  <Link href={`/pv/${open.id}`} className="f-bt f-out f-s" style={{ marginTop: 12 }}>
+                    <Icon name="pen" />
+                    PV {open.code} — de semnat la retur
+                  </Link>
+                ) : null}
               </div>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+            );
+          })}
+        </Block>
+      )}
 
-      {/* ─────────── cer un utilaj ─────────── */}
-      {view === "cere" ? (
-        <div className="mt-4">
-          <RequestEquipmentForm objectives={myObjectives} />
-          <BackLink />
-        </div>
-      ) : null}
+      <Buttons>
+        <ButtonLink href="/teren/utilaje?ce=cere" icon="plus" variant="pri">
+          Cer un utilaj
+        </ButtonLink>
+        {mine.length > 0 ? (
+          <ButtonLink href="/teren/utilaje?ce=problema" icon="alert" variant="out">
+            Am o problemă
+          </ButtonLink>
+        ) : null}
+      </Buttons>
 
-      {/* ─────────── raportez o problemă ─────────── */}
-      {view === "problema" ? (
-        <div className="mt-4">
-          {mine.length === 0 ? (
-            <p className="border border-dashed border-rule-strong px-4 py-6 text-tiny text-ink-2">
-              Nu ai niciun utilaj la tine, deci nu ai ce raporta.
-            </p>
-          ) : (
-            <ReportIssueForm
-              equipment={mine.map(({ eq: e }) => ({ id: e.id, code: e.code, name: e.name }))}
-            />
-          )}
-          <BackLink />
-        </div>
+      {openRequests.length > 0 ? (
+        <>
+          <Label>Trimise, în așteptare</Label>
+          <Block>
+            {openRequests.map((request) => (
+              <StaticRow
+                key={request.id}
+                icon="clock"
+                tone="a"
+                title={request.title}
+                meta={request.code}
+                right={<Pill tone="a">Așteaptă</Pill>}
+              />
+            ))}
+          </Block>
+        </>
       ) : null}
-    </div>
-  );
-}
-
-function BackLink() {
-  return (
-    <Link href="/teren/utilaje" className="mt-4 block text-center text-tiny text-ink-2">
-      ← Înapoi la utilajele mele
-    </Link>
+    </>
   );
 }

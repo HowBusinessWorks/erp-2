@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { desc, eq, inArray } from "drizzle-orm";
 
-import { FieldHeader } from "@/components/domain/FieldKit";
+import { Icon } from "@/components/domain/FieldIcons";
+import { Block, Empty, FieldBar, Note, Pill } from "@/components/domain/FieldUI";
 import { db } from "@/lib/db";
 import { objectives, packages, partners, situatiiLucrari, slLines, workUnits } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
@@ -26,7 +27,6 @@ export default async function TerenSituatiiPage() {
   const rows = await db
     .select({
       sl: situatiiLucrari,
-      pkg: packages,
       subcontractor: partners,
       objective: objectives,
     })
@@ -48,55 +48,55 @@ export default async function TerenSituatiiPage() {
     : [];
 
   const left = new Map<string, number>();
-  for (const l of lines) {
-    if (l.verdict === "neverificat") left.set(l.situatieId, (left.get(l.situatieId) ?? 0) + 1);
+  for (const line of lines) {
+    if (line.verdict === "neverificat") {
+      left.set(line.situatieId, (left.get(line.situatieId) ?? 0) + 1);
+    }
   }
+  const todoTotal = [...left.values()].reduce((a, b) => a + b, 0);
 
   return (
-    <div className="px-4 py-4">
-      <FieldHeader
-        eyebrow="Verificare"
-        title="Situații de verificat"
-        meta={`${rows.length} ${rows.length === 1 ? "situație declarată" : "situații declarate"}`}
-      />
+    <>
+      <FieldBar title="Situații de verificat" sub="Ce au raportat subcontractanții" back="/teren">
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          <Pill tone={todoTotal > 0 ? "am-solid" : "on-dark"}>
+            {todoTotal} {todoTotal === 1 ? "poziție de verificat" : "poziții de verificat"}
+          </Pill>
+        </div>
+      </FieldBar>
 
-      <div className="mt-4 space-y-2">
-        {rows.length === 0 ? (
-          <p className="border border-dashed border-rule-strong px-4 py-6 text-tiny text-ink-2">
-            Nimic de verificat acum. Situațiile apar aici după ce subcontractantul le declară.
-          </p>
-        ) : (
-          rows.map(({ sl, subcontractor, objective }) => {
+      <div style={{ height: 16 }} />
+
+      {rows.length === 0 ? (
+        <Empty icon="clip" title="Nimic de verificat acum">
+          Situațiile apar aici după ce subcontractantul le declară din portalul lui.
+        </Empty>
+      ) : (
+        <Block>
+          {rows.map(({ sl, subcontractor, objective }) => {
             const todo = left.get(sl.id) ?? 0;
             return (
-              <Link
-                key={sl.id}
-                href={`/teren/situatii/${sl.id}`}
-                className="block border border-rule-strong bg-sheet px-4 py-3 active:bg-sunk"
-              >
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="font-narrow text-[1rem] font-semibold text-ink">
-                    {subcontractor?.name ?? "—"}
+              <Link key={sl.id} href={`/teren/situatii/${sl.id}`} className="f-brow">
+                <span className={`f-sq f-${todo > 0 ? "r" : "g"}`}>
+                  <Icon name={todo > 0 ? "clip" : "check"} />
+                </span>
+                <span className="f-tx">
+                  <b>{subcontractor?.name ?? "Subcontractant"}</b>
+                  <span>
+                    {objective?.name ?? "—"} · {MONTHS[sl.month - 1]} {sl.year}
                   </span>
-                  <span className="shrink-0 tabular text-tiny text-ink-2">{sl.code ?? ""}</span>
-                </div>
-                <div className="mt-1 text-tiny text-ink-2">
-                  {objective?.name ?? "—"} · {MONTHS[sl.month - 1]} {sl.year}
-                </div>
-                <div className="mt-1.5 text-tiny">
-                  {todo === 0 ? (
-                    <span className="text-fill">tot verificat</span>
-                  ) : (
-                    <span className="font-medium text-warn">
-                      {todo} {todo === 1 ? "poziție" : "poziții"} de verificat
-                    </span>
-                  )}
-                </div>
+                </span>
+                <Pill tone={todo > 0 ? "r" : "g"}>{todo > 0 ? `${todo} de văzut` : "Verificat"}</Pill>
               </Link>
             );
-          })
-        )}
-      </div>
-    </div>
+          })}
+        </Block>
+      )}
+
+      <Note>
+        Confirmi cantități, nu bani. Dacă cifra declarată nu se potrivește cu ce s-a
+        lucrat, apeși „Nu e așa" și scrii cât a fost de fapt.
+      </Note>
+    </>
   );
 }

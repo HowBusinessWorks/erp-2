@@ -60,6 +60,7 @@ export const NAVIGATION: NavGroup[] = [
       { href: "/utilaje/solicitari", label: "Solicitări de utilaj" },
       { href: "/unelte", label: "Unelte" },
       { href: "/transporturi", label: "Transporturi" },
+      { href: "/concedii", label: "Concedii" },
     ],
   },
   {
@@ -82,16 +83,10 @@ export function navigationFor(role: Role): NavGroup[] {
   })).filter((group) => group.items.length > 0);
 }
 
-/** Ecranele de teren — interfață separată, nu aceleași pagini cu mai puține butoane (§18.1.1). */
 /**
- * Patru intrări, nu șase: bara de jos stă sub degetul mare, iar tot ce se poate
- * ajunge din „Azi" nu merită un buton propriu. Restul se deschide din ＋.
+ * Terenul NU mai are o listă de intrări aici.
+ *
+ * Bara lui de jos are trei tab-uri — Azi · Locuri · Eu — și trăiește în
+ * `components/domain/FieldTabs.tsx`, împreună cu regula după care un ecran aparține
+ * unui tab. O a doua listă, aici, ar fi însemnat două adevăruri despre aceeași bară.
  */
-export const FIELD_NAVIGATION: NavItem[] = [
-  { href: "/teren", label: "Azi" },
-  { href: "/teren/pontaj", label: "Pontaj" },
-  { href: "/teren/jurnal", label: "Jurnal" },
-  { href: "/teren/necesar", label: "Necesar" },
-  { href: "/teren/utilaje", label: "Utilaje" },
-  { href: "/teren/situatii", label: "Verific" },
-];

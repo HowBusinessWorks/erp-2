@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Șantier — versiunea 2 (Azi · Locuri · Eu)</title>
+<style>
+:root{
+  --ink:#10151F; --ink2:#2B3444; --mut:#6B7688; --line:#E4E6EB; --bg:#F5F6F8; --card:#fff;
+  --am:#FFB020; --am-d:#8A5A00; --am-l:#FFF4E0;
+  --rd:#E11D48; --rd-l:#FFF0F3;
+  --gr:#0E9F6E; --gr-l:#E7FAF3;
+  --bl:#2563EB; --bl-l:#EDF2FF;
+  --r:20px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
+  background:#0A0E15;color:var(--ink);display:flex;justify-content:center;align-items:flex-start;gap:28px;
+  padding:28px 20px 60px;min-height:100vh}
+/* side map */
+.map{width:246px;flex:0 0 246px;color:#AEB6C4;font-size:13px;position:sticky;top:28px;max-height:calc(100vh - 60px);overflow:auto}
+.map h2{color:#fff;font-size:15px;margin:0 0 4px}
+.map p{color:#7C8798;font-size:12px;line-height:1.55;margin:0 0 14px}
+.map h3{color:var(--am);font-size:11px;letter-spacing:.09em;text-transform:uppercase;margin:16px 0 6px}
+.map button{display:block;width:100%;text-align:left;background:transparent;border:0;color:#AEB6C4;padding:7px 10px;
+  border-radius:9px;cursor:pointer;font-size:12.5px;font-family:inherit}
+.map button:hover{background:#1A2130;color:#fff}
+.map button.on{background:var(--am);color:#10151F;font-weight:700}
+.map::-webkit-scrollbar{width:6px}.map::-webkit-scrollbar-thumb{background:#2A3242;border-radius:3px}
+/* phone */
+.stage{display:flex;flex-direction:column;align-items:center;gap:14px}
+.phone{width:392px;height:844px;background:#000;border-radius:52px;padding:11px;
+  box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 2px #232B3A;flex:0 0 auto}
+.hint{color:#5D6779;font-size:12.5px;text-align:center;max-width:392px;line-height:1.5}
+.app{width:100%;height:100%;background:var(--bg);border-radius:42px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.sbar{height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;
+  font-size:14px;font-weight:700;background:var(--ink);color:#fff}
+main{flex:1;overflow-y:auto;overflow-x:hidden}
+main::-webkit-scrollbar{display:none}
+.scr{display:none;padding-bottom:26px;animation:in .18s ease}
+.scr.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* dark app bar */
+.bar{background:var(--ink);color:#fff;padding:6px 14px 18px}
+.bar .line1{display:flex;align-items:center;gap:8px;min-height:44px}
+.bar h1{font-size:22px;margin:0;font-weight:800;flex:1;letter-spacing:-.3px;line-height:1.15}
+.bar .sub{display:block;font-size:13px;font-weight:500;color:#9AA5B6;margin-top:3px}
+.bar .ib{width:42px;height:42px;flex:0 0 42px;border:0;background:rgba(255,255,255,.09);border-radius:13px;
+  display:grid;place-items:center;cursor:pointer;color:#fff}
+.bar .ib svg{width:22px;height:22px}
+.bar .ib:active{background:rgba(255,255,255,.2)}
+/* place chip in bar */
+.place{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:0;width:100%;
+  padding:11px 14px;border-radius:15px;cursor:pointer;font-family:inherit;text-align:left;margin-top:12px}
+.place .pin{width:34px;height:34px;flex:0 0 34px;border-radius:11px;background:var(--am);color:#10151F;display:grid;place-items:center}
+.place .pin svg{width:19px;height:19px}
+.place .t{flex:1;min-width:0}
+.place .t small{display:block;color:#9AA5B6;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.place .t b{display:block;color:#fff;font-size:15.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.place .sw{color:var(--am);font-size:12.5px;font-weight:800;white-space:nowrap}
+/* generic */
+.pad{padding:16px}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:22px 18px 10px}
+.blk{background:var(--card);border-radius:var(--r);margin:0 16px 12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,21,31,.05)}
+.blk.p{padding:18px}
+.mut{color:var(--mut)} .sm{font-size:13.5px} .xs{font-size:12.5px} .ctr{text-align:center}
+/* big row */
+.brow{display:flex;align-items:center;gap:14px;width:100%;border:0;background:var(--card);padding:16px;
+  cursor:pointer;font-family:inherit;text-align:left;border-bottom:1px solid var(--line)}
+.brow:last-child{border-bottom:0}
+.brow:active{background:#FAFAFB}
+.brow .sq{width:50px;height:50px;flex:0 0 50px;border-radius:16px;display:grid;place-items:center;background:var(--bl-l);color:var(--bl)}
+.brow .sq svg{width:25px;height:25px}
+.brow .sq.a{background:var(--am-l);color:var(--am-d)}
+.brow .sq.g{background:var(--gr-l);color:var(--gr)}
+.brow .sq.r{background:var(--rd-l);color:var(--rd)}
+.brow .sq.n{background:#EEF0F3;color:#4B5566}
+.brow .tx{flex:1;min-width:0}
+.brow .tx b{display:block;font-size:16.5px;font-weight:700;line-height:1.25}
+.brow .tx span{display:block;color:var(--mut);font-size:13.5px;margin-top:3px;line-height:1.35}
+.brow .go{color:#B3BAC6;flex:0 0 auto}.brow .go svg{width:22px;height:22px;display:block}
+/* pills */
+.pil{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:800;padding:6px 11px;border-radius:9px;
+  background:#EEF0F3;color:#4B5566;white-space:nowrap}
+.pil.a{background:var(--am-l);color:var(--am-d)}
+.pil.g{background:var(--gr-l);color:var(--gr)}
+.pil.r{background:var(--rd-l);color:var(--rd)}
+.pil.b{background:var(--bl-l);color:var(--bl)}
+.pil.d{background:var(--ink);color:#fff}
+/* buttons */
+.bt{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:58px;border-radius:17px;
+  border:0;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;padding:0 18px}
+.bt svg{width:22px;height:22px}
+.bt.pri{background:var(--am);color:#10151F;box-shadow:0 4px 14px rgba(255,176,32,.4)}
+.bt.pri:active{background:#EDA210}
+.bt.dark{background:var(--ink);color:#fff}
+.bt.out{background:var(--card);color:var(--ink);border:2px solid var(--ink)}
+.bt.gho{background:#EEF0F3;color:var(--ink2)}
+.bt.grn{background:var(--gr);color:#fff}
+.bt.red{background:var(--rd);color:#fff}
+.bt.s{min-height:46px;font-size:15px;border-radius:13px}
+.bt:disabled{opacity:.4}
+.bts{padding:14px 16px 4px;display:flex;flex-direction:column;gap:10px}
+/* checklist */
+.chk{display:flex;align-items:center;gap:14px;padding:16px;border-bottom:1px solid var(--line);background:var(--card);
+  width:100%;border:0;font-family:inherit;text-align:left;cursor:pointer}
+.chk:last-child{border-bottom:0}
+.chk .cir{width:32px;height:32px;flex:0 0 32px;border-radius:50%;border:2.5px solid #CDD3DC;display:grid;place-items:center;background:#fff}
+.chk .cir svg{width:18px;height:18px;color:#fff;opacity:0}
+.chk.ok .cir{background:var(--gr);border-color:var(--gr)}
+.chk.ok .cir svg{opacity:1}
+.chk .tx{flex:1}
+.chk .tx b{display:block;font-size:16.5px;font-weight:700}
+.chk .tx span{display:block;font-size:13px;color:var(--mut);margin-top:2px}
+.chk.ok .tx b{color:var(--mut);text-decoration:line-through}
+.chk .now{background:var(--am);color:#10151F;font-size:11.5px;font-weight:900;padding:5px 9px;border-radius:8px}
+/* progress segments */
+.segs{display:flex;gap:5px;margin-top:14px}
+.segs i{flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,.18)}
+.segs i.on{background:var(--am)}
+/* next action hero */
+.hero{margin:-14px 16px 0;background:var(--card);border-radius:var(--r);padding:18px;box-shadow:0 8px 24px rgba(16,21,31,.14);position:relative;z-index:2}
+.hero small{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--am-d)}
+.hero b{display:block;font-size:20px;font-weight:800;margin:6px 0 3px;line-height:1.2}
+.hero p{margin:0 0 14px;font-size:14px;color:var(--mut);line-height:1.4}
+/* stat strip */
+.strip{display:flex;gap:12px;padding:0 16px}
+.st{flex:1;background:var(--card);border-radius:var(--r);padding:14px;text-align:left;border:0;font-family:inherit;cursor:pointer}
+.st .n{font-size:32px;font-weight:800;line-height:1}
+.st .l{font-size:12.5px;color:var(--mut);font-weight:600;margin-top:5px;line-height:1.3}
+/* alert */
+.al{margin:0 16px 12px;border-radius:var(--r);padding:16px;display:flex;gap:13px;align-items:flex-start}
+.al.r{background:var(--rd-l)} .al.g{background:var(--gr-l)} .al.a{background:var(--am-l)} .al.b{background:var(--bl-l)}
+.al svg{width:24px;height:24px;flex:0 0 24px;margin-top:1px}
+.al.r svg{color:var(--rd)} .al.g svg{color:var(--gr)} .al.a svg{color:var(--am-d)} .al.b svg{color:var(--bl)}
+.al .bt svg{color:inherit}
+.al b{display:block;font-size:16px;margin-bottom:3px}
+.al p{margin:0;font-size:13.5px;color:var(--ink2);line-height:1.45;opacity:.85}
+.al .bt{margin-top:13px}
+/* wizard */
+.wtop{background:var(--ink);padding:6px 14px 16px;color:#fff}
+.wtop .r1{display:flex;align-items:center;gap:8px;min-height:44px}
+.wtop .step{flex:1;font-size:13px;font-weight:800;color:var(--am);text-align:center;letter-spacing:.04em}
+.wtop .ib{width:42px;height:42px;flex:0 0 42px;border:0;background:rgba(255,255,255,.09);border-radius:13px;
+  display:grid;place-items:center;cursor:pointer;color:#fff}
+.wtop .ib svg{width:22px;height:22px}
+.wtop .ib:active{background:rgba(255,255,255,.2)}
+.wstep{display:none}
+.wstep.on{display:block;animation:in .18s ease}
+.wbar{height:6px;background:rgba(255,255,255,.15);border-radius:3px;margin-top:10px;overflow:hidden}
+.wbar i{display:block;height:100%;background:var(--am);border-radius:3px;transition:width .25s}
+.q{font-size:25px;font-weight:800;letter-spacing:-.5px;line-height:1.18;margin:22px 18px 6px}
+.qs{font-size:14.5px;color:var(--mut);margin:0 18px 16px;line-height:1.45}
+.wfoot{display:flex;gap:10px;padding:16px}
+.wfoot .bt{flex:1}
+.wfoot .bt.gho{flex:0 0 108px}
+/* choice cards (wizard) */
+.cc{display:flex;align-items:center;gap:14px;width:100%;background:var(--card);border:2.5px solid transparent;border-radius:18px;
+  padding:16px;margin-bottom:10px;cursor:pointer;font-family:inherit;text-align:left}
+.cc .sq{width:48px;height:48px;flex:0 0 48px;border-radius:15px;display:grid;place-items:center;background:#EEF0F3;color:#4B5566}
+.cc .sq svg{width:24px;height:24px}
+.cc .tx{flex:1}.cc .tx b{display:block;font-size:17px;font-weight:750}
+.cc .tx span{display:block;font-size:13px;color:var(--mut);margin-top:2px;line-height:1.35}
+.cc .tick{width:26px;height:26px;border-radius:50%;border:2.5px solid #CDD3DC;display:grid;place-items:center;flex:0 0 26px}
+.cc .tick svg{width:15px;height:15px;color:#fff;opacity:0}
+.cc.on{border-color:var(--ink)}
+.cc.on .tick{background:var(--ink);border-color:var(--ink)}
+.cc.on .tick svg{opacity:1}
+.cc.on .sq{background:var(--am);color:#10151F}
+/* big yes/no */
+.yn{display:flex;flex-direction:column;gap:12px;padding:0 16px}
+.yn button{min-height:78px;border-radius:18px;border:2.5px solid transparent;background:var(--card);
+  font-size:19px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:14px;padding:0 18px;color:var(--ink)}
+.yn button svg{width:26px;height:26px}
+.yn button .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:#EEF0F3;color:#4B5566;flex:0 0 46px}
+.yn button.on.no{border-color:var(--gr)} .yn button.on.no .ic{background:var(--gr);color:#fff}
+.yn button.on.yes{border-color:var(--rd)} .yn button.on.yes .ic{background:var(--rd);color:#fff}
+/* fields */
+.fld{padding:14px 18px;border-bottom:1px solid var(--line);background:var(--card)}
+.fld:last-child{border-bottom:0}
+.fld label{display:block;font-size:12.5px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.fld input,.fld select,.fld textarea{width:100%;border:0;font-size:17.5px;font-family:inherit;color:var(--ink);background:transparent;
+  padding:2px 0;outline:none;font-weight:650}
+.fld textarea{resize:none;min-height:110px;font-weight:500;line-height:1.5;font-size:16.5px}
+.fld select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%236B7688' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M5 8l5 5 5-5'/></svg>");
+  background-repeat:no-repeat;background-position:right center;padding-right:26px}
+.req{color:var(--rd)}
+/* chips choice */
+.chz{display:flex;flex-wrap:wrap;gap:9px;padding:0 16px}
+.chz button{padding:13px 17px;border-radius:14px;border:2px solid var(--line);background:#fff;font-size:16px;font-weight:700;
+  font-family:inherit;cursor:pointer;color:var(--ink2)}
+.chz button.on{border-color:var(--ink);background:var(--ink);color:#fff}
+/* filters */
+.flt{display:flex;gap:8px;overflow-x:auto;padding:14px 16px;scrollbar-width:none}
+.flt::-webkit-scrollbar{display:none}
+.flt button{flex:0 0 auto;border:1.5px solid var(--line);background:#fff;padding:10px 15px;border-radius:12px;font-size:14px;
+  font-weight:750;font-family:inherit;cursor:pointer;color:var(--ink2)}
+.flt button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* line item */
+.li{display:flex;gap:13px;padding:15px 16px;border-bottom:1px solid var(--line);align-items:center;background:var(--card)}
+.li:last-child{border-bottom:0}
+.li .tx{flex:1;min-width:0}.li .tx b{display:block;font-size:16px;font-weight:700}
+.li .tx span{font-size:13px;color:var(--mut)}
+.li .q{font-size:17px;font-weight:800;white-space:nowrap}
+/* stepper */
+.stp{display:flex;align-items:center;border:2px solid var(--line);border-radius:13px;overflow:hidden}
+.stp button{width:42px;height:44px;border:0;background:#F7F8FA;font-size:22px;font-weight:700;cursor:pointer;color:var(--ink);font-family:inherit}
+.stp input{width:56px;text-align:center;border:0;font-size:17px;font-weight:800;font-family:inherit;outline:none}
+/* photos */
+.phs{display:flex;gap:10px;flex-wrap:wrap}
+.ph{width:82px;height:82px;border-radius:16px;background:#E9ECF0;display:grid;place-items:center;color:#6B7688;position:relative;font-size:11px;font-weight:800}
+.ph svg{width:26px;height:26px}
+.ph .tg{position:absolute;bottom:4px;right:5px;font-size:9px;background:rgba(16,21,31,.72);color:#fff;padding:1px 5px;border-radius:5px}
+.ph.add{border:2.5px dashed #C3CAD5;background:#fff;cursor:pointer;color:var(--am-d);border-color:#F0C67A}
+/* timeline */
+.tl .s{display:flex;gap:14px;padding:0 18px}
+.tl .d{width:24px;flex:0 0 24px;display:flex;flex-direction:column;align-items:center}
+.tl .d i{width:14px;height:14px;border-radius:50%;background:#D3D8E0;margin-top:4px}
+.tl .d u{flex:1;width:2.5px;background:#E7EAEF}
+.tl .s.dn .d i{background:var(--gr)}
+.tl .s.nw .d i{background:var(--am);box-shadow:0 0 0 5px var(--am-l)}
+.tl .b{padding-bottom:20px;flex:1}
+.tl .b b{font-size:16px;display:block}.tl .b span{font-size:13px;color:var(--mut)}
+/* journal card */
+.jc{background:var(--card);border-radius:var(--r);margin:0 16px 12px;padding:16px}
+.jc .h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
+.jc p{margin:0 0 11px;font-size:15px;line-height:1.5;color:var(--ink2)}
+.jc .m{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);margin-top:11px;flex-wrap:wrap}
+/* checkbox row */
+.ck{display:flex;align-items:center;gap:14px;padding:16px;border-bottom:1px solid var(--line);cursor:pointer;background:var(--card)}
+.ck .bx{width:28px;height:28px;flex:0 0 28px;border-radius:9px;border:2.5px solid #CDD3DC;display:grid;place-items:center;background:#fff}
+.ck .bx svg{width:17px;height:17px;color:#fff;opacity:0}
+.ck.on .bx{background:var(--ink);border-color:var(--ink)}
+.ck.on .bx svg{opacity:1}
+.ck .tx{flex:1}.ck .tx b{display:block;font-size:16px;font-weight:700}
+.ck .tx span{font-size:13px;color:var(--mut)}
+.av{width:40px;height:40px;border-radius:14px;background:var(--am-l);color:var(--am-d);display:grid;place-items:center;font-weight:800;font-size:14px;flex:0 0 40px}
+/* tabbar */
+.tabs{flex:0 0 auto;background:var(--ink);display:flex;padding:10px 10px 24px}
+.tab{flex:1;background:transparent;border:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;
+  cursor:pointer;color:#78829A;font-family:inherit}
+.tab svg{width:26px;height:26px}
+.tab span{font-size:11.5px;font-weight:800}
+.tab.on{color:var(--am)}
+/* sheet */
+.mask{position:absolute;inset:0;background:rgba(10,14,21,.55);z-index:60;display:none}
+.mask.on{display:block}
+.sh{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 0 0;z-index:61;transform:translateY(110%);
+  transition:transform .25s cubic-bezier(.3,.9,.4,1);max-height:88%;overflow-y:auto;padding-bottom:26px}
+.sh.on{transform:none}
+.sh .g{width:44px;height:5px;background:#D3D8E0;border-radius:3px;margin:12px auto 0}
+.sh .hd{display:flex;align-items:center;padding:14px 18px 4px;gap:8px}
+.sh .hd h2{margin:0;font-size:20px;flex:1;font-weight:800}
+.ibx{width:40px;height:40px;border:0;background:#EEF0F3;border-radius:13px;display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+.ibx svg{width:21px;height:21px}
+/* toast */
+.tst{position:absolute;left:16px;right:16px;bottom:104px;background:var(--ink);color:#fff;padding:16px;border-radius:17px;
+  font-size:15px;font-weight:700;z-index:80;opacity:0;transform:translateY(12px);transition:.22s;pointer-events:none;display:flex;gap:11px;align-items:center}
+.tst svg{width:21px;height:21px;color:#4ADE80;flex:0 0 21px}
+.tst.on{opacity:1;transform:none}
+/* misc */
+.emp{text-align:center;padding:46px 30px;color:var(--mut)}
+.emp svg{width:46px;height:46px;color:#CDD3DC;margin-bottom:10px}
+.emp b{display:block;color:var(--ink2);font-size:17px;margin-bottom:5px}
+.emp p{margin:0;font-size:14px;line-height:1.5}
+.prg{height:9px;background:#E7EAEF;border-radius:5px;overflow:hidden}
+.prg i{display:block;height:100%;background:var(--am);border-radius:5px}
+.sig{width:100%;height:160px;border:2.5px dashed #CDD3DC;border-radius:18px;background:#FAFBFC;touch-action:none;display:block}
+.note{background:var(--am-l);border-radius:16px;padding:14px 16px;font-size:13.5px;color:var(--am-d);margin:0 16px 12px;line-height:1.5;font-weight:600}
+@media(max-width:920px){.map{display:none}}
+</style>
+</head>
+<body>
+<svg style="display:none">
+<symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5l9-7 9 7V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V13h6v9"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-tool" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+<symbol id="i-build" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13"/><path d="M9 12h1M9 16h1M14 12h1M14 16h1"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19l7-7-7-7"/></symbol>
+<symbol id="i-cam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.6-2.4h6.8L17 7h3a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4.5M12 17.2h.01"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+<symbol id="i-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5h14v11H1zM15 9h4l3.5 3.5V16H15z"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+<symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1.4"/><path d="M9 13l2 2 4-4"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="M21 21l-4.3-4.3"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.2.6-.6.5-1.1z"/></symbol>
+<symbol id="i-img" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="M21 15l-5-5L5 21"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2.5"/><path d="M16 10.5l6-3.5v10l-6-3.5z"/></symbol>
+<symbol id="i-crane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V6M6 6h13M6 6L2.5 10M19 6v4M19 10h-3M16 10v3"/><rect x="14" y="13" width="4" height="3.5" rx="1"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+<symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h14l-3.5-3.5M21 16H7l3.5 3.5"/></symbol>
+<symbol id="i-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a3 3 0 0 0 0 6v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a3 3 0 0 0 0-6z"/><path d="M13 5v2M13 11v2M13 17v2"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+</svg>
+<nav class="map">
+  <h2>Șantier · versiunea 2</h2>
+  <p>Navigație pe <b style="color:#fff">3 tab-uri</b>: Azi · Locuri · Eu. Formularele lungi sunt <b style="color:#fff">wizard</b> — o întrebare pe ecran.</p>
+  <h3>Azi</h3>
+  <button data-j="v-azi">Ziua ta (checklist)</button>
+  <button data-j="v-notif">Notificări</button>
+  <h3>Locuri</h3>
+  <button data-j="v-locuri">Toate locurile</button>
+  <button data-j="v-loc">Șantier — meniu</button>
+  <button data-j="v-locm">Obiectiv mentenanță — meniu</button>
+  <h3>Pe șantier</h3>
+  <button data-j="v-firme">Pontaj firme (subcontractanți)</button>
+  <button data-j="v-jurnal">Jurnal de șantier</button>
+  <button data-j="v-jurnal-w">Wizard: înregistrare în jurnal</button>
+  <button data-j="v-ba">Înainte / După</button>
+  <button data-j="v-inventar">Inventar șantier</button>
+  <button data-j="v-bon">Bon de consum</button>
+  <button data-j="v-situatii">Situații de lucrări</button>
+  <button data-j="v-pv-list">Procese verbale</button>
+  <button data-j="v-pv-nou">PV nou + semnătură</button>
+  <h3>Cereri</h3>
+  <button data-j="v-cereri">Cererile mele (toate)</button>
+  <button data-j="v-cerere-w">Wizard: cerere nouă</button>
+  <button data-j="v-cerere-det">Status cerere</button>
+  <button data-j="v-pv-un">PV recepție / predare unelte</button>
+  <h3>Mentenanță</h3>
+  <button data-j="v-insp">Inspecții</button>
+  <button data-j="v-insp-w">Wizard: fișă de inspecție</button>
+  <button data-j="v-insp-det">Fișă inspecție (detaliu)</button>
+  <button data-j="v-interv">Intervenții</button>
+  <button data-j="v-interv-nou">Intervenție nouă</button>
+  <button data-j="v-interv-det">Fișă intervenție</button>
+  <h3>Eu</h3>
+  <button data-j="v-eu">Contul meu</button>
+  <button data-j="v-pontaj">Pontajul meu</button>
+  <button data-j="v-pontaj-nou">Pontaj nou</button>
+  <button data-j="v-pers">Alege persoane</button>
+  <button data-j="v-concediu">Concediu</button>
+  <button data-j="v-concediu-w">Wizard: cerere concediu</button>
+</nav>
+
+<div class="stage">
+<div class="phone"><div class="app">
+  <div class="sbar"><span id="clk">07:42</span><span>▪▪▪ ⌁ 82%</span></div>
+  <main id="main">
+
+  <!-- ================= AZI ================= -->
+  <section class="scr on" id="v-azi" data-tab="azi" data-name="Ziua ta">
+    <div class="bar">
+      <div class="line1">
+        <div><h1>Ziua ta<span class="sub">Miercuri, 19 august · Ion Popescu</span></h1></div>
+        <button class="ib" onclick="go('v-notif')" style="position:relative"><svg><use href="#i-bell"/></svg>
+          <i style="position:absolute;top:8px;right:9px;width:9px;height:9px;background:var(--rd);border-radius:50%;border:2px solid #10151F"></i></button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px">
+        <span style="font-size:13px;font-weight:700;color:#9AA5B6" id="az-cnt">0 din 6 făcute</span>
+        <span style="font-size:13px;font-weight:800;color:var(--am)" id="az-left">6 rămase</span>
+      </div>
+      <div class="segs" id="az-segs"></div>
+      <div style="height:16px"></div>
+    </div>
+
+    <div class="hero" id="az-hero"></div>
+
+    <div class="lbl">Ce ai de făcut azi</div>
+    <div class="blk" id="az-list"></div>
+
+    <div class="lbl">Ce se întâmplă azi</div>
+    <div class="blk">
+      <button class="brow" onclick="openCerere(142)"><div class="sq g"><svg><use href="#i-truck"/></svg></div>
+        <div class="tx"><b>Vine cimentul la Bloc A2</b><span>Comanda #142 · estimat 10:30 · șofer Vasile D.</span></div>
+        <span class="pil g">Pe drum</span></button>
+      <button class="brow" onclick="openCerere(141)"><div class="sq a"><svg><use href="#i-crane"/></svg></div>
+        <div class="tx"><b>Nacela așteaptă aprobarea PM</b><span>Cererea #141 · Hala Logistic</span></div>
+        <span class="pil a">În aprobare</span></button>
+    </div>
+    <div class="bts" style="padding-bottom:10px">
+      <button class="bt gho" onclick="go('v-cereri')"><svg><use href="#i-list"/></svg>Vezi toate cererile mele</button>
+    </div>
+  </section>
+
+  <!-- ================= NOTIFICĂRI ================= -->
+  <section class="scr" id="v-notif" data-tab="azi" data-name="Notificări">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Notificări</h1></div></div>
+    <div class="blk" style="margin-top:16px">
+      <div class="brow" style="cursor:default"><div class="sq r"><svg><use href="#i-alert"/></svg></div>
+        <div class="tx"><b>Nu ai pontat azi</b><span>Acum 20 de minute</span></div></div>
+      <div class="brow" style="cursor:default"><div class="sq g"><svg><use href="#i-check"/></svg></div>
+        <div class="tx"><b>Concediul 3–7 septembrie a fost aprobat</b><span>Ieri, 16:40</span></div></div>
+      <div class="brow" style="cursor:default"><div class="sq"><svg><use href="#i-truck"/></svg></div>
+        <div class="tx"><b>Comanda #142 a fost acceptată de depozit</b><span>Ieri, 09:12</span></div></div>
+      <div class="brow" style="cursor:default"><div class="sq a"><svg><use href="#i-ticket"/></svg></div>
+        <div class="tx"><b>Tichet nou: infiltrație subsol — Kaufland Militari</b><span>Luni, 14:02</span></div></div>
+    </div>
+  </section>
+
+  <!-- ================= LOCURI ================= -->
+  <section class="scr" id="v-locuri" data-tab="loc" data-name="Locurile mele">
+    <div class="bar">
+      <div class="line1"><div><h1>Unde lucrezi<span class="sub">5 locuri active</span></h1></div>
+        <button class="ib" onclick="toast('Căutare (demo)')"><svg><use href="#i-search"/></svg></button></div>
+      <button class="place" onclick="toast('Ăsta e locul selectat acum')">
+        <span class="pin"><svg><use href="#i-pin"/></svg></span>
+        <span class="t"><small>Ești aici acum</small><b id="lk-cur">Bloc A2 — Reabilitare fațadă</b></span>
+      </button>
+    </div>
+    <div class="lbl">Șantiere de construcții</div>
+    <div class="blk" id="lk-santiere"></div>
+    <div class="lbl">Obiective de mentenanță</div>
+    <div class="blk" id="lk-obiective"></div>
+    <div class="note" style="margin-top:14px">Alege un loc și tot ce ține de el — pontaj, jurnal, cereri, acte — apare într-un singur meniu.</div>
+  </section>
+
+  <!-- ================= ȘANTIER — MENIU ================= -->
+  <section class="scr" id="v-loc" data-tab="loc" data-name="Șantier — meniu">
+    <div class="bar">
+      <div class="line1"><button class="ib" onclick="tab('loc')"><svg><use href="#i-left"/></svg></button>
+        <div style="flex:1;min-width:0"><h1 style="font-size:20px" id="lc-nume">Bloc A2 — Reabilitare fațadă<span class="sub" id="lc-sub">Str. Aviatorilor 12 · PM: Andrei Marin</span></h1></div></div>
+      <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:14px;font-weight:700" id="lc-etapa">Etapa 3 din 6 — Termosistem</span>
+        <span class="pil d" style="background:var(--am);color:#10151F" id="lc-proc">48%</span></div>
+      <div class="prg" style="margin-top:9px;background:rgba(255,255,255,.16)"><i id="lc-bar" style="width:48%"></i></div>
+    </div>
+
+    <div style="height:16px"></div>
+    <div id="lc-alerte"></div>
+
+    <div class="lbl" style="margin-top:6px">Azi</div>
+    <div class="blk" id="lc-azi"></div>
+
+    <div class="lbl">Materiale și scule</div>
+    <div class="blk">
+      <button class="brow" onclick="startCerere()"><div class="sq a"><svg><use href="#i-plus"/></svg></div>
+        <div class="tx"><b>Cere ceva pentru șantier</b><span>Materiale, unelte, utilaj, transport</span></div>
+        <span class="go"><svg><use href="#i-right"/></svg></span></button>
+      <button class="brow" onclick="cereriLoc()"><div class="sq n"><svg><use href="#i-list"/></svg></div>
+        <div class="tx"><b>Cererile de aici</b><span>Vezi unde au ajuns</span></div>
+        <span class="pil a" id="lc-cer">4 active</span></button>
+      <button class="brow" onclick="go('v-inventar')"><div class="sq n"><svg><use href="#i-box"/></svg></div>
+        <div class="tx"><b>Inventar șantier</b><span>Ce ai pe stoc aici</span></div>
+        <span class="pil r">1 stoc mic</span></button>
+      <button class="brow" onclick="go('v-bon')"><div class="sq n"><svg><use href="#i-clip"/></svg></div>
+        <div class="tx"><b>Bon de consum</b><span>Scade ce ai folosit</span></div>
+        <span class="go"><svg><use href="#i-right"/></svg></span></button>
+    </div>
+
+    <div class="lbl">Acte</div>
+    <div class="blk">
+      <button class="brow" onclick="go('v-situatii')"><div class="sq n"><svg><use href="#i-list"/></svg></div>
+        <div class="tx"><b>Situații de lucrări</b><span>Ce a raportat subcontractantul în august</span></div>
+        <span class="pil r" id="lc-sit">7 de verificat</span></button>
+      <button class="brow" onclick="go('v-pv-list')"><div class="sq n"><svg><use href="#i-pen"/></svg></div>
+        <div class="tx"><b>Procese verbale</b><span>Creezi și semnezi pe telefon</span></div>
+        <span class="pil r">1 de semnat</span></button>
+    </div>
+
+    <div class="bts"><button class="bt gho" onclick="tab('loc')"><svg><use href="#i-swap"/></svg>Schimbă locul</button></div>
+  </section>
+
+  <!-- ================= OBIECTIV MENTENANȚĂ — MENIU ================= -->
+  <section class="scr" id="v-locm" data-tab="loc" data-name="Obiectiv mentenanță">
+    <div class="bar">
+      <div class="line1"><button class="ib" onclick="tab('loc')"><svg><use href="#i-left"/></svg></button>
+        <div style="flex:1;min-width:0"><h1 style="font-size:20px" id="lm-nume">Kaufland Militari<span class="sub" id="lm-sub">Contract C-2024/118 · mentenanță</span></h1></div></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <span class="pil" style="background:rgba(255,255,255,.12);color:#fff">HVAC</span>
+        <span class="pil" style="background:rgba(255,255,255,.12);color:#fff">Electrice</span>
+        <span class="pil" style="background:rgba(255,255,255,.12);color:#fff">PSI</span>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+    <div class="al r"><svg><use href="#i-alert"/></svg><div><b>2 lucruri neîncepute aici</b>
+      <p>Un tichet de infiltrație și o intervenție planificată pe mâine.</p>
+      <button class="bt pri s" onclick="go('v-interv')"><svg><use href="#i-arrow"/></svg>Vezi ce e de făcut</button></div></div>
+
+    <div class="lbl">Ce faci aici</div>
+    <div class="blk">
+      <button class="brow" onclick="startInsp()"><div class="sq a"><svg><use href="#i-clip"/></svg></div>
+        <div class="tx"><b>Fac o inspecție</b><span>Fișă nouă, în 5 pași</span></div>
+        <span class="go"><svg><use href="#i-right"/></svg></span></button>
+      <button class="brow" onclick="go('v-interv-nou')"><div class="sq a"><svg><use href="#i-tool"/></svg></div>
+        <div class="tx"><b>Fac o intervenție</b><span>Fișă nouă sau o planific</span></div>
+        <span class="go"><svg><use href="#i-right"/></svg></span></button>
+      <button class="brow" onclick="startCerere()"><div class="sq a"><svg><use href="#i-box"/></svg></div>
+        <div class="tx"><b>Cer piese sau scule</b><span>Ajunge în aceeași listă de cereri</span></div>
+        <span class="go"><svg><use href="#i-right"/></svg></span></button>
+    </div>
+
+    <div class="lbl">Ce e deschis aici</div>
+    <div class="blk">
+      <button class="brow" onclick="go('v-interv')"><div class="sq r"><svg><use href="#i-ticket"/></svg></div>
+        <div class="tx"><b>Intervenții</b><span>2 neîncepute · 1 în lucru</span></div>
+        <span class="pil r">3</span></button>
+      <button class="brow" onclick="go('v-insp')"><div class="sq n"><svg><use href="#i-clip"/></svg></div>
+        <div class="tx"><b>Inspecții</b><span>Ultima: 12 august, cu probleme</span></div>
+        <span class="pil">14</span></button>
+      <button class="brow" onclick="cereriLoc()"><div class="sq n"><svg><use href="#i-list"/></svg></div>
+        <div class="tx"><b>Cererile de aici</b><span>Piese HVAC pe drum</span></div>
+        <span class="pil g">1 pe drum</span></button>
+      <button class="brow" onclick="go('v-pv-list')"><div class="sq n"><svg><use href="#i-pen"/></svg></div>
+        <div class="tx"><b>Procese verbale</b><span>Recepții și constatări</span></div>
+        <span class="go"><svg><use href="#i-right"/></svg></span></button>
+    </div>
+    <div class="bts"><button class="bt gho" onclick="tab('loc')"><svg><use href="#i-swap"/></svg>Schimbă locul</button></div>
+  </section>
+  <!-- ================= PONTAJ FIRME ================= -->
+  <section class="scr" id="v-firme" data-tab="loc" data-name="Pontaj firme">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <div style="flex:1;min-width:0"><h1 style="font-size:20px">Pontaj firme<span class="sub" id="fr-loc">Bloc A2 · miercuri, 19 august</span></h1></div></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="pil" id="fr-t1" style="background:var(--am);color:#10151F;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer" onclick="segFr('azi')">Azi</button>
+        <button class="pil" id="fr-t2" style="background:rgba(255,255,255,.12);color:#fff;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer" onclick="segFr('ist')">Zilele trecute</button>
+      </div>
+    </div>
+
+    <div id="fr-azi">
+      <div style="height:16px"></div>
+      <div id="fr-banner"></div>
+      <div class="lbl" style="margin-top:6px">Bifează firmele care au fost azi</div>
+      <div id="fr-lista"></div>
+      <div class="bts" style="padding-top:2px">
+        <button class="bt out s" onclick="openSheet('sh-firma')"><svg><use href="#i-plus"/></svg>Adaugă altă firmă</button></div>
+      <div class="blk p" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <div><b style="font-size:19px" id="fr-oameni">0 oameni</b><div class="mut sm" id="fr-firme">0 firme prezente</div></div>
+        <span class="pil d" id="fr-ore">0 ore-om</span></div>
+      <div class="bts"><button class="bt pri" onclick="salvFirme()"><svg><use href="#i-check"/></svg>Trimite pontajul de azi</button></div>
+    </div>
+
+    <div id="fr-ist" style="display:none">
+      <div style="height:16px"></div>
+      <div class="blk" id="fr-istoric"></div>
+      <div class="blk p" style="display:flex;justify-content:space-between;align-items:center">
+        <div><b>Total august</b><div class="mut sm">14 zile lucrate pe lucrarea asta</div></div>
+        <span class="pil d">742 ore-om</span></div>
+      <div class="note">Din pontajul ăsta iese raportul lunar către PM și se verifică situațiile de lucrări.</div>
+    </div>
+  </section>
+
+  <!-- ================= JURNAL ================= -->
+  <section class="scr" id="v-jurnal" data-tab="loc" data-name="Jurnal de șantier">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <div style="flex:1;min-width:0"><h1 style="font-size:20px">Jurnal de șantier<span class="sub" id="jr-loc">Bloc A2 — Reabilitare fațadă</span></h1></div></div></div>
+
+    <div class="bts" style="padding-top:16px"><button class="bt pri" onclick="startJurnal()"><svg><use href="#i-pen"/></svg>Scrie ce s-a lucrat azi</button></div>
+
+    <div class="lbl">Etapele lucrării — create de PM</div>
+    <div class="blk">
+      <button class="brow" onclick="go('v-ba')"><div class="sq n"><svg><use href="#i-img"/></svg></div>
+        <div class="tx"><b>ÎNAINTE — poze de start</b><span>6 fișiere · 4 iulie</span></div><span class="pil g">Complet</span></button>
+      <button class="brow" onclick="toast('Etapa 1 — 12 înregistrări')"><div class="sq n"><svg><use href="#i-file"/></svg></div>
+        <div class="tx"><b>1. Montaj schelă</b><span>12 înregistrări</span></div><span class="pil g">Gata</span></button>
+      <button class="brow" onclick="toast('Etapa 2 — 9 înregistrări')"><div class="sq n"><svg><use href="#i-file"/></svg></div>
+        <div class="tx"><b>2. Pregătire suport</b><span>9 înregistrări</span></div><span class="pil g">Gata</span></button>
+      <button class="brow" onclick="toast('Ești pe etapa 3')"><div class="sq a"><svg><use href="#i-file"/></svg></div>
+        <div class="tx"><b>3. Termosistem</b><span>7 înregistrări · etapa curentă</span></div><span class="pil a">În lucru</span></button>
+      <button class="brow" onclick="toast('Etapa 4 nu a început')"><div class="sq n"><svg><use href="#i-file"/></svg></div>
+        <div class="tx"><b>4. Tinci și amorsă</b><span>0 înregistrări</span></div><span class="pil">Neînceput</span></button>
+      <button class="brow" onclick="toast('Etapa 5 nu a început')"><div class="sq n"><svg><use href="#i-file"/></svg></div>
+        <div class="tx"><b>5. Finisaj decorativ</b><span>0 înregistrări</span></div><span class="pil">Neînceput</span></button>
+      <button class="brow" onclick="go('v-ba')"><div class="sq n"><svg><use href="#i-img"/></svg></div>
+        <div class="tx"><b>DUPĂ — poze finale</b><span>0 fișiere</span></div><span class="pil">Neînceput</span></button>
+    </div>
+
+    <div class="lbl">Ultimele înregistrări</div>
+    <div id="jr-lista"></div>
+  </section>
+
+  <!-- ================= WIZARD JURNAL ================= -->
+  <section class="scr" id="v-jurnal-w" data-tab="loc" data-name="Wizard jurnal">
+    <div class="wtop"><div class="r1">
+      <button class="ib" onclick="wizPrev('v-jurnal-w')"><svg><use href="#i-left"/></svg></button>
+      <span class="step">Pasul <b class="wn">1</b> din 3</span>
+      <button class="ib" onclick="back()"><svg><use href="#i-x"/></svg></button></div>
+      <div class="wbar"><i style="width:33%"></i></div></div>
+
+    <div class="wstep on">
+      <h2 class="q">La ce etapă ai lucrat azi?</h2>
+      <p class="qs">Etapele sunt puse de Project Manager. Alege una.</p>
+      <div class="pad" style="padding-top:0" id="jw-etape">
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-img"/></svg></span>
+          <span class="tx"><b>ÎNAINTE</b><span>Poze de la începutul lucrării</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-file"/></svg></span>
+          <span class="tx"><b>1. Montaj schelă</b><span>Etapă închisă</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-file"/></svg></span>
+          <span class="tx"><b>2. Pregătire suport</b><span>Etapă închisă</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc on" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-file"/></svg></span>
+          <span class="tx"><b>3. Termosistem</b><span>Etapa curentă — recomandat</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-file"/></svg></span>
+          <span class="tx"><b>4. Tinci și amorsă</b><span>Nu a început încă</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-img"/></svg></span>
+          <span class="tx"><b>DUPĂ</b><span>Poze de la finalul lucrării</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+      </div>
+      <div class="wfoot"><button class="bt pri" onclick="wizNext('v-jurnal-w')">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <div class="wstep">
+      <h2 class="q">Ce s-a lucrat azi?</h2>
+      <p class="qs">Scrie pe scurt, cum i-ai spune unui coleg la telefon.</p>
+      <div class="blk"><div class="fld"><textarea id="jw-text" placeholder="Ex: S-a montat polistiren pe fațada de nord, tronsonul 2, cam 180 mp. S-au pus dibluri pe tronsonul 1."></textarea></div></div>
+      <div class="lbl">Poze și filmări</div>
+      <div class="blk p"><div class="phs" id="jw-ph">
+        <button class="ph add" onclick="addPh('jw-ph')"><svg><use href="#i-cam"/></svg></button>
+        <button class="ph add" onclick="addPh('jw-ph',1)"><svg><use href="#i-video"/></svg></button></div>
+        <div class="xs mut" style="margin-top:11px">Pozele se salvează cu ora și locul.</div></div>
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-jurnal-w')">Înapoi</button>
+        <button class="bt pri" onclick="wizNext('v-jurnal-w')">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <div class="wstep">
+      <h2 class="q">Cine a fost azi pe șantier?</h2>
+      <p class="qs">Se ia direct din pontajul firmelor — nu trebuie scris de două ori.</p>
+      <div id="jw-firme"></div>
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-jurnal-w')">Înapoi</button>
+        <button class="bt pri" onclick="salvJurnal()"><svg><use href="#i-check"/></svg>Salvează</button></div>
+    </div>
+  </section>
+
+  <!-- ================= ÎNAINTE / DUPĂ ================= -->
+  <section class="scr" id="v-ba" data-tab="loc" data-name="Înainte / După">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Înainte &amp; După<span class="sub">Bloc A2 — Reabilitare fațadă</span></h1></div></div>
+    <div style="height:16px"></div>
+    <div class="note">Prima și ultima etapă sunt doar pentru poze: cum arăta la început și cum arată la final.</div>
+    <div class="lbl">Înainte — 4 iulie 2026</div>
+    <div class="blk p"><div class="phs" id="ba1">
+      <div class="ph"><svg><use href="#i-img"/></svg><span class="tg">N</span></div>
+      <div class="ph"><svg><use href="#i-img"/></svg><span class="tg">S</span></div>
+      <div class="ph"><svg><use href="#i-img"/></svg><span class="tg">E</span></div>
+      <div class="ph"><svg><use href="#i-img"/></svg><span class="tg">V</span></div>
+      <div class="ph"><svg><use href="#i-video"/></svg><span class="tg">film</span></div>
+      <button class="ph add" onclick="addPh('ba1')"><svg><use href="#i-cam"/></svg></button></div>
+      <div class="xs mut" style="margin-top:11px">6 fișiere · încărcate de Ion Popescu</div></div>
+    <div class="lbl">După — la finalul lucrării</div>
+    <div class="blk p"><div class="phs" id="ba2">
+      <button class="ph add" onclick="addPh('ba2')"><svg><use href="#i-cam"/></svg></button></div>
+      <div class="xs mut" style="margin-top:11px">Fă pozele din aceleași unghiuri ca la „Înainte”.</div></div>
+    <div class="bts"><button class="bt out" onclick="toast('Comparație înainte/după (demo)')"><svg><use href="#i-swap"/></svg>Vezi comparația</button></div>
+  </section>
+
+  <!-- ================= INVENTAR ================= -->
+  <section class="scr" id="v-inventar" data-tab="loc" data-name="Inventar șantier">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Inventar șantier<span class="sub">Bloc A2 · actualizat azi 07:05</span></h1></div></div>
+    <div class="flt"><button class="on">Toate</button><button>Stoc mic</button><button>Termosistem</button><button>Consumabile</button></div>
+    <div class="blk">
+      <div class="li"><div class="tx"><b>Polistiren EPS 80, 10 cm</b><span>intrat 4 aug · consumat 240</span></div><span class="q">160 <span class="mut sm">mp</span></span></div>
+      <div class="li"><div class="tx"><b>Adeziv termosistem</b><span>intrat 4 aug · consumat 52</span></div><span class="q">14 <span class="mut sm">saci</span></span></div>
+      <div class="li" style="background:var(--rd-l)"><div class="tx"><b>Dibluri cu cui metalic 140 mm</b><span style="color:var(--rd);font-weight:800">Stoc mic — ajunge ~1 zi</span></div><span class="q" style="color:var(--rd)">220 <span class="sm">buc</span></span></div>
+      <div class="li"><div class="tx"><b>Plasă fibră de sticlă 145 g</b><span>intrat 11 aug · consumat 0</span></div><span class="q">300 <span class="mut sm">mp</span></span></div>
+      <div class="li"><div class="tx"><b>Profil de colț cu plasă</b><span>intrat 11 aug · consumat 40</span></div><span class="q">110 <span class="mut sm">buc</span></span></div>
+    </div>
+    <div class="bts">
+      <button class="bt pri" onclick="startCerere('mat')"><svg><use href="#i-plus"/></svg>Cere materiale</button>
+      <button class="bt out" onclick="go('v-bon')"><svg><use href="#i-clip"/></svg>Fă bon de consum</button>
+    </div>
+  </section>
+
+  <!-- ================= BON DE CONSUM ================= -->
+  <section class="scr" id="v-bon" data-tab="loc" data-name="Bon de consum">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Bon de consum<span class="sub">Ce ai consumat din stocul șantierului</span></h1></div></div>
+    <div style="height:16px"></div>
+    <div class="blk">
+      <div class="fld"><label>Data</label><input type="date" value="2026-08-19"></div>
+      <div class="fld"><label>Pentru ce etapă</label><select><option>3. Termosistem</option><option>2. Pregătire suport</option></select></div>
+    </div>
+    <div class="lbl">Bifează ce ai consumat</div>
+    <div class="blk">
+      <div class="ck on" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+        <div class="tx"><b>Polistiren EPS 80</b><span>pe stoc: 160 mp</span></div>
+        <div class="stp" onclick="event.stopPropagation()"><button onclick="qty(this,-5)">−</button><input value="45"><button onclick="qty(this,5)">+</button></div></div>
+      <div class="ck on" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+        <div class="tx"><b>Adeziv termosistem</b><span>pe stoc: 14 saci</span></div>
+        <div class="stp" onclick="event.stopPropagation()"><button onclick="qty(this,-1)">−</button><input value="6"><button onclick="qty(this,1)">+</button></div></div>
+      <div class="ck" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+        <div class="tx"><b>Dibluri cu cui metalic</b><span>pe stoc: 220 buc</span></div>
+        <div class="stp" onclick="event.stopPropagation()"><button onclick="qty(this,-10)">−</button><input value="180"><button onclick="qty(this,10)">+</button></div></div>
+      <div class="ck" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+        <div class="tx"><b>Profil de colț cu plasă</b><span>pe stoc: 110 buc</span></div>
+        <div class="stp" onclick="event.stopPropagation()"><button onclick="qty(this,-1)">−</button><input value="12"><button onclick="qty(this,1)">+</button></div></div>
+    </div>
+    <div class="al b"><svg><use href="#i-info"/></svg><div><b>Se scade automat din inventar</b><p>Iar dacă un material scade sub prag, îți apare aici propunerea de comandă.</p></div></div>
+    <div class="bts"><button class="bt pri" onclick="toast('Bon trimis · stocul a fost actualizat');back()"><svg><use href="#i-check"/></svg>Trimite bonul</button></div>
+  </section>
+
+  <!-- ================= SITUAȚII DE LUCRĂRI ================= -->
+  <section class="scr" id="v-situatii" data-tab="loc" data-name="Situații de lucrări">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Situații de lucrări<span class="sub">Bloc A2 · august 2026</span></h1></div>
+      <div style="margin-top:14px;font-size:13.5px;color:#9AA5B6">Termo Fasade SRL a raportat <b style="color:#fff">7 poziții</b>. Verifică-le pe rând.</div>
+      <div class="prg" style="margin-top:10px;background:rgba(255,255,255,.16)"><i id="si-bar" style="width:0%"></i></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="blk">
+      <div class="fld"><label>Subcontractant</label><select><option>Termo Fasade SRL</option><option>Schele Rapid SRL</option></select></div>
+      <div class="fld"><label>Luna</label><select><option>August 2026</option><option>Iulie 2026</option></select></div>
+    </div>
+    <div class="lbl">Articole de deviz</div>
+    <div class="blk" id="si-lista"></div>
+    <div class="blk p" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;font-size:15px;margin-bottom:8px"><span class="mut">Confirmate</span><b id="si-ok">0</b></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;margin-bottom:8px"><span class="mut">Corectate / cu mențiuni</span><b id="si-mod">0</b></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px"><span class="mut">Neverificate</span><b id="si-rest">7</b></div>
+    </div>
+    <div class="bts"><button class="bt pri" onclick="trimiteSit()"><svg><use href="#i-check"/></svg>Trimite verificarea</button></div>
+  </section>
+
+  <!-- ================= PROCESE VERBALE ================= -->
+  <section class="scr" id="v-pv-list" data-tab="loc" data-name="Procese verbale">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Procese verbale<span class="sub">Bloc A2 — Reabilitare fațadă</span></h1></div></div>
+    <div class="flt"><button class="on">Toate</button><button>De semnat</button><button>Semnate</button></div>
+    <div class="blk">
+      <button class="brow" onclick="go('v-pv-nou')"><div class="sq r"><svg><use href="#i-pen"/></svg></div>
+        <div class="tx"><b>PV de trasare — tronson 2</b><span>Creat de PM · 18 august</span></div><span class="pil r">De semnat</span></button>
+      <button class="brow" onclick="toast('PV recepție calitativă — 3 semnături')"><div class="sq g"><svg><use href="#i-check"/></svg></div>
+        <div class="tx"><b>PV recepție calitativă — pregătire suport</b><span>12 august · 3 semnături</span></div><span class="pil g">Semnat</span></button>
+      <button class="brow" onclick="go('v-pv-un')"><div class="sq n"><svg><use href="#i-tool"/></svg></div>
+        <div class="tx"><b>PV recepție unelte — comanda #139</b><span>5 august · 2 semnături</span></div><span class="pil g">Semnat</span></button>
+      <button class="brow" onclick="toast('PV lucrări ascunse — semnat')"><div class="sq g"><svg><use href="#i-check"/></svg></div>
+        <div class="tx"><b>PV lucrări ascunse — hidroizolație soclu</b><span>29 iulie · 2 semnături</span></div><span class="pil g">Semnat</span></button>
+    </div>
+    <div class="bts"><button class="bt pri" onclick="go('v-pv-nou')"><svg><use href="#i-plus"/></svg>Proces verbal nou</button></div>
+  </section>
+
+  <!-- ================= PV NOU ================= -->
+  <section class="scr" id="v-pv-nou" data-tab="loc" data-name="PV nou">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Proces verbal nou<span class="sub">Bloc A2 — Reabilitare fațadă</span></h1></div></div>
+    <div class="lbl">Ce fel de proces verbal</div>
+    <div class="chz">
+      <button class="on" onclick="pickChz(this)">Trasare</button>
+      <button onclick="pickChz(this)">Lucrări ascunse</button>
+      <button onclick="pickChz(this)">Recepție calitativă</button>
+      <button onclick="pickChz(this)">Predare front</button>
+      <button onclick="pickChz(this)">Constatare</button>
+    </div>
+    <div class="lbl">Detalii</div>
+    <div class="blk">
+      <div class="fld"><label>Data</label><input type="date" value="2026-08-19"></div>
+      <div class="fld"><label>Etapa</label><select><option>3. Termosistem</option><option>2. Pregătire suport</option></select></div>
+      <div class="fld"><label>Obiectul procesului verbal</label><textarea placeholder="Ex: se predă frontul de lucru pentru tronsonul 2, fațada nord, etajele 1–5"></textarea></div>
+    </div>
+    <div class="lbl">Poze</div>
+    <div class="blk p"><div class="phs" id="pv-ph"><button class="ph add" onclick="addPh('pv-ph')"><svg><use href="#i-cam"/></svg></button></div></div>
+    <div class="lbl">Cine semnează</div>
+    <div class="blk">
+      <div class="ck on" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+        <div class="av">IP</div><div class="tx" style="margin-left:4px"><b>Ion Popescu</b><span>Șef de șantier — eu</span></div></div>
+      <div class="ck on" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+        <div class="av">AM</div><div class="tx" style="margin-left:4px"><b>Andrei Marin</b><span>Project Manager</span></div></div>
+      <div class="ck" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+        <div class="av" style="background:#EEF0F3;color:#4B5566">TF</div><div class="tx" style="margin-left:4px"><b>Termo Fasade SRL</b><span>Subcontractant</span></div></div>
+    </div>
+    <div class="lbl">Semnătura mea</div>
+    <div class="blk p">
+      <canvas class="sig" data-sig></canvas>
+      <div class="xs mut ctr" style="margin-top:9px">Semnează cu degetul în chenar</div>
+      <button class="bt gho s" style="margin-top:11px" onclick="clearSig(this)">Șterge semnătura</button>
+    </div>
+    <div class="bts">
+      <button class="bt pri" onclick="toast('PV trimis · Andrei Marin a primit notificare să semneze');back()"><svg><use href="#i-check"/></svg>Semnează și trimite</button>
+      <button class="bt gho" onclick="toast('Salvat ca ciornă')">Salvează ciornă</button>
+    </div>
+  </section>
+  <!-- ================= CERERILE MELE ================= -->
+  <section class="scr" id="v-cereri" data-tab="azi" data-name="Cererile mele">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <div style="flex:1;min-width:0"><h1 style="font-size:20px">Cererile mele<span class="sub" id="ce-sub">De pe toate locurile</span></h1></div>
+      <button class="ib" onclick="startCerere()"><svg><use href="#i-plus"/></svg></button></div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <div style="flex:1;background:rgba(255,255,255,.09);border-radius:15px;padding:12px 14px">
+          <div style="font-size:26px;font-weight:800;color:var(--am)" id="ce-a">2</div>
+          <div style="font-size:12px;color:#9AA5B6;font-weight:600;margin-top:2px">așteaptă răspuns</div></div>
+        <div style="flex:1;background:rgba(255,255,255,.09);border-radius:15px;padding:12px 14px">
+          <div style="font-size:26px;font-weight:800;color:#4ADE80" id="ce-d">5</div>
+          <div style="font-size:12px;color:#9AA5B6;font-weight:600;margin-top:2px">acceptate / pe drum</div></div>
+      </div>
+    </div>
+    <div class="flt" id="f-tip">
+      <button class="on" onclick="fCer('tip','toate',this)">Toate</button>
+      <button onclick="fCer('tip','mat',this)">Materiale</button>
+      <button onclick="fCer('tip','unelte',this)">Unelte</button>
+      <button onclick="fCer('tip','utilaj',this)">Utilaje</button>
+      <button onclick="fCer('tip','transp',this)">Transport</button>
+    </div>
+    <div class="flt" id="f-loc" style="padding-top:0">
+      <button class="on" onclick="fCer('loc','toate',this)">Toate locurile</button>
+      <button onclick="fCer('loc','Bloc A2',this)">Bloc A2</button>
+      <button onclick="fCer('loc','Hala Logistic',this)">Hala Logistic</button>
+      <button onclick="fCer('loc','Sediu Damina',this)">Sediu Damina</button>
+      <button onclick="fCer('loc','Kaufland Militari',this)">Kaufland Militari</button>
+    </div>
+    <div id="ce-lista"></div>
+    <div class="bts"><button class="bt pri" onclick="startCerere()"><svg><use href="#i-plus"/></svg>Cerere nouă</button></div>
+  </section>
+
+  <!-- ================= WIZARD CERERE ================= -->
+  <section class="scr" id="v-cerere-w" data-tab="loc" data-name="Wizard cerere">
+    <div class="wtop"><div class="r1">
+      <button class="ib" onclick="wizPrev('v-cerere-w')"><svg><use href="#i-left"/></svg></button>
+      <span class="step">Pasul <b class="wn">1</b> din 4</span>
+      <button class="ib" onclick="back()"><svg><use href="#i-x"/></svg></button></div>
+      <div class="wbar"><i style="width:25%"></i></div></div>
+
+    <!-- pas 1 -->
+    <div class="wstep on">
+      <h2 class="q">De ce ai nevoie?</h2>
+      <p class="qs" id="cw-loc">Pentru Bloc A2 — Reabilitare fațadă</p>
+      <div class="pad" style="padding-top:0">
+        <button class="cc on" onclick="pickTip(this,'mat')"><span class="sq"><svg><use href="#i-box"/></svg></span>
+          <span class="tx"><b>Materiale</b><span>Produse și cantități pentru șantier</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickTip(this,'unelte')"><span class="sq"><svg><use href="#i-tool"/></svg></span>
+          <span class="tx"><b>Unelte</b><span>Cu proces verbal la primire și predare</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickTip(this,'utilaj')"><span class="sq"><svg><use href="#i-crane"/></svg></span>
+          <span class="tx"><b>Utilaj</b><span>Nacelă, miniexcavator, generator…</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickTip(this,'transp')"><span class="sq"><svg><use href="#i-truck"/></svg></span>
+          <span class="tx"><b>Transport</b><span>Schelă, moloz, materiale, retur</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+      </div>
+      <div class="wfoot"><button class="bt pri" onclick="wizNext('v-cerere-w')">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <!-- pas 2 -->
+    <div class="wstep">
+      <h2 class="q" id="cw-q2">Ce materiale îți trebuie?</h2>
+      <p class="qs" id="cw-s2">Pune cantitatea de care ai nevoie. Vezi și cât e pe stoc la depozit.</p>
+
+      <div id="cw-mat">
+        <div class="blk" id="cw-mat-lista">
+          <div class="li"><div class="tx"><b>Polistiren EPS 80, 10 cm</b><span>mp · depozit: 420</span></div>
+            <div class="stp"><button onclick="qty(this,-10)">−</button><input value="180"><button onclick="qty(this,10)">+</button></div></div>
+          <div class="li"><div class="tx"><b>Adeziv termosistem</b><span>saci 25 kg · depozit: 96</span></div>
+            <div class="stp"><button onclick="qty(this,-1)">−</button><input value="24"><button onclick="qty(this,1)">+</button></div></div>
+          <div class="li"><div class="tx"><b>Dibluri cu cui metalic 140</b><span>buc · depozit: 3.500</span></div>
+            <div class="stp"><button onclick="qty(this,-50)">−</button><input value="900"><button onclick="qty(this,50)">+</button></div></div>
+        </div>
+        <div class="bts" style="padding-top:2px"><button class="bt out s" onclick="openSheet('sh-prod')"><svg><use href="#i-plus"/></svg>Adaugă alt produs</button></div>
+        <div class="al b" style="margin-top:10px"><svg><use href="#i-info"/></svg><div><b>Diblurile sunt pe roșu în inventar</b>
+          <p>Ți le-am pus deja în listă, fiindcă mai ai stoc de o zi.</p></div></div>
+      </div>
+
+      <div id="cw-unelte" style="display:none">
+        <div class="blk">
+          <div class="ck on" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+            <div class="tx"><b>Rotopercutantă Bosch GBH 2-28</b><span>disponibile: 3</span></div>
+            <div class="stp" onclick="event.stopPropagation()"><button onclick="qty(this,-1)">−</button><input value="2"><button onclick="qty(this,1)">+</button></div></div>
+          <div class="ck on" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+            <div class="tx"><b>Fierăstrău pentru polistiren</b><span>disponibile: 5</span></div>
+            <div class="stp" onclick="event.stopPropagation()"><button onclick="qty(this,-1)">−</button><input value="1"><button onclick="qty(this,1)">+</button></div></div>
+          <div class="ck" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+            <div class="tx"><b>Nivelă laser</b><span>disponibile: 1</span></div>
+            <div class="stp" onclick="event.stopPropagation()"><button onclick="qty(this,-1)">−</button><input value="1"><button onclick="qty(this,1)">+</button></div></div>
+          <div class="ck" onclick="ck(this)"><span class="bx"><svg><use href="#i-check"/></svg></span>
+            <div class="tx"><b>Malaxor mortar</b><span>disponibile: 2</span></div>
+            <div class="stp" onclick="event.stopPropagation()"><button onclick="qty(this,-1)">−</button><input value="1"><button onclick="qty(this,1)">+</button></div></div>
+        </div>
+        <div class="note" style="margin-top:10px">La primire și la predare aplicația îți cere automat un proces verbal cu starea uneltelor.</div>
+      </div>
+
+      <div id="cw-utilaj" style="display:none">
+        <div class="chz">
+          <button class="on" onclick="pickChz(this)">Nacelă</button><button onclick="pickChz(this)">Miniexcavator</button>
+          <button onclick="pickChz(this)">Mai compactor</button><button onclick="pickChz(this)">Stivuitor telescopic</button>
+          <button onclick="pickChz(this)">Generator</button><button onclick="pickChz(this)">Altele</button>
+        </div>
+        <div class="blk" style="margin-top:14px">
+          <div class="fld"><label>Detalii (opțional)</label><input placeholder="Ex: nacelă articulată min. 12 m"></div>
+          <div class="fld"><label>La ce îl folosești</label><input placeholder="Ex: montaj profile la cornișă, etajele 8–10"></div>
+        </div>
+        <div class="al a" style="margin-top:10px"><svg><use href="#i-info"/></svg><div><b>Utilajul are nevoie de aprobare</b><p>Cererea merge la Project Manager. Vezi răspunsul în „Cererile mele”.</p></div></div>
+      </div>
+
+      <div id="cw-transp" style="display:none">
+        <div class="chz">
+          <button class="on" onclick="pickChz(this)">Adus schelă</button><button onclick="pickChz(this)">Luat schelă</button>
+          <button onclick="pickChz(this)">Cărat moloz</button><button onclick="pickChz(this)">Între șantiere</button>
+          <button onclick="pickChz(this)">Retur la depozit</button>
+        </div>
+        <div class="blk" style="margin-top:14px">
+          <div class="fld"><label>Se ia de la</label><select><option>Depozit central — Chiajna</option><option>Bloc A2 — Str. Aviatorilor 12</option><option>Hala Logistic Park</option></select></div>
+          <div class="fld"><label>Se duce la</label><select><option>Bloc A2 — Str. Aviatorilor 12</option><option>Depozit central — Chiajna</option><option>Rampa ecologică Glina</option></select></div>
+          <div class="fld"><label>Ce se transportă</label><textarea placeholder="Ex: 3 travee schelă + podine, cam 1,2 tone"></textarea></div>
+        </div>
+      </div>
+
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-cerere-w')">Înapoi</button>
+        <button class="bt pri" onclick="wizNext('v-cerere-w')">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <!-- pas 3 -->
+    <div class="wstep">
+      <h2 class="q">Când îți trebuie?</h2>
+      <p class="qs">Dacă e urgent, spune-o aici — depozitul vede asta primul.</p>
+      <div class="blk">
+        <div class="fld"><label>Data</label><input type="date" value="2026-08-21"></div>
+        <div class="fld"><label>Ora aproximativă</label><input type="time" value="08:00"></div>
+        <div class="fld"><label>Unde se descarcă</label><input value="Poarta 2, Str. Aviatorilor 12"></div>
+        <div class="fld"><label>Mențiuni</label><textarea placeholder="Ex: să vină cu macara pe camion, nu avem stivuitor"></textarea></div>
+      </div>
+      <div class="pad" style="padding-top:4px"><div class="chz" style="padding:0">
+        <button onclick="pickChz(this)">Normal</button><button class="on" onclick="pickChz(this)">Urgent</button><button onclick="pickChz(this)">Poate aștepta</button>
+      </div></div>
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-cerere-w')">Înapoi</button>
+        <button class="bt pri" onclick="wizNext('v-cerere-w')">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <!-- pas 4 -->
+    <div class="wstep">
+      <h2 class="q">Verifică și trimite</h2>
+      <p class="qs">Ultima privire înainte să plece la depozit.</p>
+      <div class="blk" id="cw-rezumat"></div>
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-cerere-w')">Înapoi</button>
+        <button class="bt pri" onclick="trimiteCerere()"><svg><use href="#i-check"/></svg>Trimite</button></div>
+    </div>
+  </section>
+
+  <!-- ================= STATUS CERERE ================= -->
+  <section class="scr" id="v-cerere-det" data-tab="azi" data-name="Status cerere">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <div style="flex:1;min-width:0"><h1 style="font-size:20px" id="cd-t">Cererea #142<span class="sub" id="cd-s">Materiale · Bloc A2 · trimisă 18 august</span></h1></div></div>
+      <div style="margin-top:12px"><span class="pil" id="cd-p" style="background:var(--am);color:#10151F">Pe drum</span></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="blk p"><div class="tl" id="cd-tl"></div></div>
+    <div class="lbl">Ce ai cerut</div>
+    <div class="blk" id="cd-items"></div>
+    <div class="bts" id="cd-act"></div>
+  </section>
+
+  <!-- ================= PV UNELTE ================= -->
+  <section class="scr" id="v-pv-un" data-tab="azi" data-name="PV unelte">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Proces verbal unelte<span class="sub">Comanda #139 · Bloc A2</span></h1></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="pil" id="pu-t1" style="background:var(--am);color:#10151F;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer" onclick="segPu('r')">La primire</button>
+        <button class="pil" id="pu-t2" style="background:rgba(255,255,255,.12);color:#fff;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer" onclick="segPu('p')">La predare</button>
+      </div>
+    </div>
+
+    <div id="pu-r">
+      <div class="lbl">Ce stare are fiecare unealtă</div>
+      <div class="blk">
+        <div style="padding:16px;border-bottom:1px solid var(--line)">
+          <b style="font-size:16px">Rotopercutantă Bosch GBH 2-28</b><div class="mut sm" style="margin-top:2px">serie 4821-A · 2 buc</div>
+          <div class="chz" style="padding:0;margin-top:12px"><button class="on" onclick="pickChz(this)">Bună</button><button onclick="pickChz(this)">Uzată</button><button onclick="pickChz(this)">Defectă</button></div></div>
+        <div style="padding:16px">
+          <b style="font-size:16px">Fierăstrău pentru polistiren</b><div class="mut sm" style="margin-top:2px">serie 1140-C · 1 buc</div>
+          <div class="chz" style="padding:0;margin-top:12px"><button onclick="pickChz(this)">Bună</button><button class="on" onclick="pickChz(this)">Uzată</button><button onclick="pickChz(this)">Defectă</button></div></div>
+      </div>
+      <div class="blk"><div class="fld"><label>Observații</label><textarea placeholder="Ex: fierăstrăul are cablul roase la mufă"></textarea></div></div>
+      <div class="lbl">Poze</div>
+      <div class="blk p"><div class="phs" id="pu-ph"><div class="ph"><svg><use href="#i-img"/></svg></div>
+        <button class="ph add" onclick="addPh('pu-ph')"><svg><use href="#i-cam"/></svg></button></div></div>
+      <div class="lbl">Semnături</div>
+      <div class="blk p">
+        <div class="xs mut" style="font-weight:800;margin-bottom:7px">SEMNĂTURA MEA (ION POPESCU)</div>
+        <canvas class="sig" data-sig></canvas>
+        <button class="bt gho s" style="margin-top:10px" onclick="clearSig(this)">Șterge</button>
+        <div class="xs mut" style="font-weight:800;margin:18px 0 7px">SEMNĂTURA CELUI CARE PREDĂ</div>
+        <canvas class="sig" data-sig></canvas>
+        <button class="bt gho s" style="margin-top:10px" onclick="clearSig(this)">Șterge</button>
+      </div>
+      <div class="bts"><button class="bt pri" onclick="toast('PV de recepție salvat și trimis')"><svg><use href="#i-check"/></svg>Salvează procesul verbal</button></div>
+    </div>
+
+    <div id="pu-p" style="display:none">
+      <div style="height:16px"></div>
+      <div class="note">La predare se compară starea cu cea de la primire. Ce e diferit se marchează aici.</div>
+      <div class="blk">
+        <div style="padding:16px;border-bottom:1px solid var(--line)">
+          <b style="font-size:16px">Rotopercutantă Bosch GBH 2-28</b><div class="mut sm" style="margin-top:2px">la primire: <b>Bună</b></div>
+          <div class="chz" style="padding:0;margin-top:12px"><button class="on" onclick="pickChz(this)">La fel</button><button onclick="pickChz(this)">Uzată în plus</button><button onclick="pickChz(this)">Defectă</button><button onclick="pickChz(this)">Lipsă</button></div></div>
+        <div style="padding:16px">
+          <b style="font-size:16px">Fierăstrău pentru polistiren</b><div class="mut sm" style="margin-top:2px">la primire: <b>Uzată</b></div>
+          <div class="chz" style="padding:0;margin-top:12px"><button class="on" onclick="pickChz(this)">La fel</button><button onclick="pickChz(this)">Uzată în plus</button><button onclick="pickChz(this)">Defectă</button><button onclick="pickChz(this)">Lipsă</button></div></div>
+      </div>
+      <div class="blk"><div class="fld"><label>Observații la predare</label><textarea placeholder="Ex: fierăstrăul s-a defectat pe 2 septembrie, a fost reparat pe șantier"></textarea></div></div>
+      <div class="lbl">Poze</div>
+      <div class="blk p"><div class="phs" id="pu-ph2"><button class="ph add" onclick="addPh('pu-ph2')"><svg><use href="#i-cam"/></svg></button></div></div>
+      <div class="lbl">Semnături</div>
+      <div class="blk p">
+        <div class="xs mut" style="font-weight:800;margin-bottom:7px">SEMNĂTURA MEA</div>
+        <canvas class="sig" data-sig></canvas>
+        <button class="bt gho s" style="margin-top:10px" onclick="clearSig(this)">Șterge</button>
+        <div class="xs mut" style="font-weight:800;margin:18px 0 7px">SEMNĂTURA CELUI CARE PRIMEȘTE</div>
+        <canvas class="sig" data-sig></canvas>
+        <button class="bt gho s" style="margin-top:10px" onclick="clearSig(this)">Șterge</button>
+      </div>
+      <div class="bts"><button class="bt pri" onclick="toast('PV de predare salvat')"><svg><use href="#i-check"/></svg>Salvează procesul verbal</button></div>
+    </div>
+  </section>
+  <!-- ================= INSPECȚII ================= -->
+  <section class="scr" id="v-insp" data-tab="loc" data-name="Inspecții">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <div style="flex:1;min-width:0"><h1 style="font-size:20px">Inspecții<span class="sub" id="in-loc">Kaufland Militari</span></h1></div>
+      <button class="ib" onclick="startInsp()"><svg><use href="#i-plus"/></svg></button></div></div>
+    <div class="flt" id="f-insp">
+      <button class="on" onclick="fInsp('toate',this)">Toate</button>
+      <button onclick="fInsp('ok',this)">Fără probleme</button>
+      <button onclick="fInsp('prob',this)">Cu probleme</button>
+      <button onclick="fInsp('rez',this)">Rezolvate</button>
+    </div>
+    <div class="blk" id="in-lista"></div>
+    <div class="bts"><button class="bt pri" onclick="startInsp()"><svg><use href="#i-plus"/></svg>Fișă de inspecție nouă</button></div>
+  </section>
+
+  <!-- ================= WIZARD INSPECȚIE ================= -->
+  <section class="scr" id="v-insp-w" data-tab="loc" data-name="Wizard inspecție">
+    <div class="wtop"><div class="r1">
+      <button class="ib" onclick="wizPrev('v-insp-w')"><svg><use href="#i-left"/></svg></button>
+      <span class="step">Pasul <b class="wn">1</b> din 5</span>
+      <button class="ib" onclick="back()"><svg><use href="#i-x"/></svg></button></div>
+      <div class="wbar"><i style="width:20%"></i></div></div>
+
+    <!-- 1 -->
+    <div class="wstep on">
+      <h2 class="q">Ce verifici azi?</h2>
+      <p class="qs" id="iw-loc">La Kaufland Militari · contract C-2024/118</p>
+      <div class="pad" style="padding-top:0">
+        <button class="cc on" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-tool"/></svg></span>
+          <span class="tx"><b>HVAC</b><span>Ventilație, climatizare</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-tool"/></svg></span>
+          <span class="tx"><b>Electrice</b><span>Tablouri, iluminat, prize</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-tool"/></svg></span>
+          <span class="tx"><b>Sanitare</b><span>Apă, canalizare</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-alert"/></svg></span>
+          <span class="tx"><b>PSI</b><span>Hidranți, detecție, stingere</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-build"/></svg></span>
+          <span class="tx"><b>Construcții</b><span>Structură, finisaje, acoperiș</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+      </div>
+      <div class="lbl">Ce fel de inspecție</div>
+      <div class="chz"><button class="on" onclick="pickChz(this)">Lunară</button><button onclick="pickChz(this)">Trimestrială</button>
+        <button onclick="pickChz(this)">Anuală</button><button onclick="pickChz(this)">La cerere</button></div>
+      <div class="lbl">Cine e cu tine</div>
+      <div class="blk">
+        <div class="fld"><label>Persoana care face inspecția</label><input value="Ion Popescu"></div>
+        <div class="fld"><label>Subcontractant</label><select><option>— fără —</option><option>Klima Serv SRL</option><option>ElectroMont SRL</option><option>Instal Pro SRL</option></select></div>
+      </div>
+      <div class="wfoot"><button class="bt pri" onclick="wizNext('v-insp-w')">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <!-- 2 -->
+    <div class="wstep">
+      <h2 class="q">Fă poze la ce ai verificat</h2>
+      <p class="qs">Minim o poză. Se salvează cu ora și locul, ca dovadă.</p>
+      <div class="blk p"><div class="phs" id="iw-ph">
+        <button class="ph add" onclick="addPh('iw-ph')"><svg><use href="#i-cam"/></svg></button></div></div>
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-insp-w')">Înapoi</button>
+        <button class="bt pri" onclick="wizNext('v-insp-w')">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <!-- 3 -->
+    <div class="wstep">
+      <h2 class="q">Ai găsit probleme?</h2>
+      <p class="qs">Apasă pe varianta potrivită. Restul întrebărilor se schimbă în funcție de răspuns.</p>
+      <div class="yn">
+        <button id="iw-nu" class="no on" onclick="inspProb(false)"><span class="ic"><svg><use href="#i-check"/></svg></span>Nu, e totul în regulă</button>
+        <button id="iw-da" class="yes" onclick="inspProb(true)"><span class="ic"><svg><use href="#i-alert"/></svg></span>Da, am găsit probleme</button>
+      </div>
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-insp-w')">Înapoi</button>
+        <button class="bt pri" onclick="inspNext3()">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <!-- 4 -->
+    <div class="wstep">
+      <h2 class="q">Spune ce ai găsit</h2>
+      <p class="qs">Scrie simplu, ca într-un mesaj.</p>
+      <div class="blk"><div class="fld"><textarea id="iw-desc" placeholder="Ex: ventilator obturat pe circuitul 3, vibrații puternice la pornire"></textarea></div></div>
+      <div class="lbl">Ai rezolvat-o pe loc?</div>
+      <div class="yn">
+        <button id="iw-rda" class="no" onclick="inspRez(true)"><span class="ic"><svg><use href="#i-check"/></svg></span>Da, am rezolvat</button>
+        <button id="iw-rnu" class="yes" onclick="inspRez(false)"><span class="ic"><svg><use href="#i-clock"/></svg></span>Nu încă</button>
+      </div>
+
+      <div id="iw-rez" style="display:none">
+        <div class="lbl">Cât a durat</div>
+        <div class="blk"><div class="fld"><div style="display:flex;gap:12px;align-items:center">
+          <input type="number" value="2" style="width:74px"><span style="font-weight:800">ore</span>
+          <input type="number" value="30" style="width:74px"><span style="font-weight:800">minute</span></div></div></div>
+        <div class="lbl">Ce materiale ai folosit</div>
+        <div class="blk" id="iw-mat">
+          <div class="li"><div class="tx"><b>Filtru G4 592×592</b><span>buc</span></div><span class="q">2</span></div>
+          <div class="li"><div class="tx"><b>Curea trapezoidală A-1000</b><span>buc</span></div><span class="q">1</span></div>
+        </div>
+        <div class="bts" style="padding-top:2px"><button class="bt out s" onclick="openSheet('sh-mat')"><svg><use href="#i-plus"/></svg>Adaugă material</button></div>
+      </div>
+
+      <div id="iw-nerez" style="display:none">
+        <div class="al a" style="margin-top:14px"><svg><use href="#i-cal"/></svg><div><b>Atunci hai să planificăm o intervenție</b>
+          <p>Se creează automat o fișă legată de inspecția asta. O completezi când te apuci de treabă.</p></div></div>
+        <div class="blk">
+          <div class="fld"><label>Titlu intervenție</label><input id="iw-tit" value="Remediere ventilator circuit 3"></div>
+          <div class="fld"><label>Când o faci</label><input id="iw-data" type="date" value="2026-08-20"></div>
+          <div class="fld"><label>Cine o face</label><select><option>Ion Popescu</option><option>Marian Ilie</option><option>Klima Serv SRL</option></select></div>
+        </div>
+      </div>
+
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-insp-w')">Înapoi</button>
+        <button class="bt pri" onclick="wizGo('v-insp-w',4)">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <!-- 5 -->
+    <div class="wstep">
+      <h2 class="q">Gata. Verifică și salvează.</h2>
+      <p class="qs">Atât. Fișa pleacă automat către PM și către client.</p>
+      <div class="blk" id="iw-rezumat"></div>
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-insp-w')">Înapoi</button>
+        <button class="bt pri" onclick="salvInsp()"><svg><use href="#i-check"/></svg>Salvează fișa</button></div>
+    </div>
+  </section>
+
+  <!-- ================= INSPECȚIE DETALIU ================= -->
+  <section class="scr" id="v-insp-det" data-tab="loc" data-name="Fișă inspecție">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Inspecție INS-214<span class="sub">Kaufland Militari · 12 august 2026</span></h1></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <span class="pil" style="background:var(--rd);color:#fff">Cu probleme</span>
+        <span class="pil" style="background:rgba(255,255,255,.12);color:#fff">HVAC</span>
+        <span class="pil" style="background:rgba(255,255,255,.12);color:#fff">Lunară</span></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="blk">
+      <div class="li"><div class="tx"><b>Contract</b></div><span class="q sm">C-2024/118</span></div>
+      <div class="li"><div class="tx"><b>Obiectiv</b></div><span class="q sm">Instalații HVAC</span></div>
+      <div class="li"><div class="tx"><b>Persoana</b></div><span class="q sm">Ion Popescu</span></div>
+      <div class="li"><div class="tx"><b>Subcontractant</b></div><span class="q sm">Klima Serv SRL</span></div>
+    </div>
+    <div class="lbl">Problema constatată</div>
+    <div class="blk p"><p style="margin:0;font-size:16px;line-height:1.5">Ventilator obturat pe circuitul 3, vibrații puternice la pornire. Necesită demontare și curățare rotor.</p></div>
+    <div class="lbl">Poze</div>
+    <div class="blk p"><div class="phs">
+      <div class="ph"><svg><use href="#i-img"/></svg><span class="tg">1</span></div>
+      <div class="ph"><svg><use href="#i-img"/></svg><span class="tg">2</span></div>
+      <div class="ph"><svg><use href="#i-img"/></svg><span class="tg">3</span></div></div></div>
+    <div class="lbl">Ce s-a întâmplat mai departe</div>
+    <div class="blk">
+      <button class="brow" onclick="openInterv('INT-088')"><div class="sq a"><svg><use href="#i-tool"/></svg></div>
+        <div class="tx"><b>Intervenția INT-088</b><span>Planificată din inspecția asta · 20 august</span></div>
+        <span class="pil a">În lucru</span></button>
+    </div>
+  </section>
+
+  <!-- ================= INTERVENȚII ================= -->
+  <section class="scr" id="v-interv" data-tab="loc" data-name="Intervenții">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <div style="flex:1;min-width:0"><h1 style="font-size:20px">Intervenții<span class="sub">Kaufland Militari și Lidl Berceni</span></h1></div>
+      <button class="ib" onclick="go('v-interv-nou')"><svg><use href="#i-plus"/></svg></button></div></div>
+    <div class="flt" id="f-int">
+      <button class="on" onclick="fInt('toate',this)">Toate</button>
+      <button onclick="fInt('nou',this)">Neîncepute</button>
+      <button onclick="fInt('lucru',this)">În lucru</button>
+      <button onclick="fInt('gata',this)">Finalizate</button>
+    </div>
+    <div class="blk" id="it-lista"></div>
+    <div class="bts"><button class="bt pri" onclick="go('v-interv-nou')"><svg><use href="#i-plus"/></svg>Fișă de intervenție nouă</button></div>
+  </section>
+
+  <!-- ================= INTERVENȚIE NOUĂ ================= -->
+  <section class="scr" id="v-interv-nou" data-tab="loc" data-name="Intervenție nouă">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Intervenție nouă<span class="sub">Kaufland Militari</span></h1></div></div>
+    <div class="lbl">De la ce a pornit</div>
+    <div class="chz">
+      <button class="on" onclick="pickChz(this)">Tichet</button>
+      <button onclick="pickChz(this)">Solicitare</button>
+      <button onclick="pickChz(this)">În urma inspecției</button>
+    </div>
+    <div class="lbl">Detalii</div>
+    <div class="blk">
+      <div class="fld"><label>Titlu <span class="req">*</span></label><input placeholder="Ex: Înlocuire ventilator circuit 3"></div>
+      <div class="fld"><label>Obiectiv</label><select><option>Instalații HVAC</option><option>Instalații electrice</option><option>Subsol tehnic</option></select></div>
+      <div class="fld"><label>Data</label><input type="date" value="2026-08-19"></div>
+      <div class="fld"><label>Persoana</label><input value="Ion Popescu"></div>
+      <div class="fld"><label>Subcontractant</label><select><option>— fără —</option><option>Klima Serv SRL</option><option>ElectroMont SRL</option></select></div>
+    </div>
+    <div class="note">Fișa rămâne <b>deschisă</b> până apeși „Finalizează”. Până atunci poți adăuga oricând descrieri, ore, materiale și poze.</div>
+    <div class="bts">
+      <button class="bt pri" onclick="creazaInterv(true)"><svg><use href="#i-play"/></svg>Creează și mă apuc acum</button>
+      <button class="bt out" onclick="creazaInterv(false)"><svg><use href="#i-cal"/></svg>Doar o planific pentru mai târziu</button>
+    </div>
+  </section>
+
+  <!-- ================= INTERVENȚIE DETALIU ================= -->
+  <section class="scr" id="v-interv-det" data-tab="loc" data-name="Fișă intervenție">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <div style="flex:1;min-width:0"><h1 style="font-size:20px" id="it-tit">Înlocuire ventilator C3<span class="sub" id="it-sub">INT-088 · Kaufland Militari</span></h1></div></div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <span class="pil" id="it-st" style="background:var(--am);color:#10151F">În lucru</span>
+        <span class="pil" id="it-tag" style="background:rgba(255,255,255,.12);color:#fff">În urma inspecției</span>
+        <span class="pil" id="it-src" style="background:rgba(255,255,255,.12);color:#fff">INS-214</span></div>
+    </div>
+    <div style="height:16px"></div>
+    <div id="it-banner"></div>
+    <div class="blk">
+      <div class="li"><div class="tx"><b>Contract</b></div><span class="q sm" id="it-c">C-2024/118</span></div>
+      <div class="li"><div class="tx"><b>Obiectiv</b></div><span class="q sm" id="it-o">Instalații HVAC</span></div>
+      <div class="li"><div class="tx"><b>Subcontractant</b></div><span class="q sm" id="it-sc">Klima Serv SRL</span></div>
+    </div>
+
+    <div class="lbl" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Jurnal de lucru</span><span id="it-nj" style="text-transform:none;letter-spacing:0">2 înregistrări</span></div>
+    <div id="it-jurnal"></div>
+    <div class="bts" style="padding-top:0"><button class="bt out s" onclick="openSheet('sh-desc')"><svg><use href="#i-plus"/></svg>Adaugă în jurnal</button></div>
+
+    <div class="lbl" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Timp lucrat</span><span class="pil d" id="it-ore">3 h 30 m</span></div>
+    <div class="blk" id="it-timp"></div>
+    <div class="bts" style="padding-top:0"><button class="bt out s" onclick="openSheet('sh-timp')"><svg><use href="#i-plus"/></svg>Adaugă ore</button></div>
+
+    <div class="lbl">Materiale folosite</div>
+    <div class="blk" id="it-mat"></div>
+    <div class="bts" style="padding-top:0"><button class="bt out s" onclick="openSheet('sh-mat')"><svg><use href="#i-plus"/></svg>Adaugă material</button></div>
+
+    <div class="lbl">Poze</div>
+    <div class="blk p"><div class="phs" id="it-ph"></div></div>
+
+    <div class="bts" id="it-act"></div>
+  </section>
+  <!-- ================= EU ================= -->
+  <section class="scr" id="v-eu" data-tab="eu" data-name="Contul meu">
+    <div class="bar">
+      <div class="line1"><div class="av" style="width:46px;height:46px;background:var(--am);color:#10151F;font-size:16px">IP</div>
+        <div style="flex:1;margin-left:4px"><h1 style="font-size:21px">Ion Popescu<span class="sub">Șef de șantier · Damina Solutions</span></h1></div>
+        <button class="ib" onclick="toast('Setări (demo)')"><svg><use href="#i-user"/></svg></button></div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <div style="flex:1;background:rgba(255,255,255,.09);border-radius:15px;padding:12px 14px">
+          <div style="font-size:26px;font-weight:800;color:#fff" id="eu-zile">14</div>
+          <div style="font-size:12px;color:#9AA5B6;font-weight:600;margin-top:2px">zile de concediu</div></div>
+        <div style="flex:1;background:rgba(255,255,255,.09);border-radius:15px;padding:12px 14px">
+          <div style="font-size:26px;font-weight:800;color:#fff">112</div>
+          <div style="font-size:12px;color:#9AA5B6;font-weight:600;margin-top:2px">ore lucrate în august</div></div>
+      </div>
+    </div>
+    <div style="height:16px"></div>
+    <div id="eu-pontaj"></div>
+    <div class="lbl">Ale mele</div>
+    <div class="blk">
+      <button class="brow" onclick="go('v-pontaj')"><div class="sq"><svg><use href="#i-clock"/></svg></div>
+        <div class="tx"><b>Pontajul meu</b><span>Orele mele și ale echipei Damina</span></div><span class="go"><svg><use href="#i-right"/></svg></span></button>
+      <button class="brow" onclick="go('v-concediu')"><div class="sq g"><svg><use href="#i-plane"/></svg></div>
+        <div class="tx"><b>Concediu</b><span>14 zile rămase din 21</span></div><span class="go"><svg><use href="#i-right"/></svg></span></button>
+      <button class="brow" onclick="go('v-cereri')"><div class="sq n"><svg><use href="#i-list"/></svg></div>
+        <div class="tx"><b>Cererile mele</b><span>Materiale, unelte, utilaje, transport</span></div><span class="pil a" id="eu-cer">7 în curs</span></button>
+      <button class="brow" onclick="toast('Echipa ta: 8 muncitori')"><div class="sq n"><svg><use href="#i-users"/></svg></div>
+        <div class="tx"><b>Echipa mea</b><span>8 persoane</span></div><span class="go"><svg><use href="#i-right"/></svg></span></button>
+      <button class="brow" onclick="toast('Deconectat (demo)')"><div class="sq r"><svg><use href="#i-x"/></svg></div>
+        <div class="tx"><b>Ieșire din cont</b></div></button>
+    </div>
+  </section>
+
+  <!-- ================= PONTAJUL MEU ================= -->
+  <section class="scr" id="v-pontaj" data-tab="eu" data-name="Pontajul meu">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Pontajul meu<span class="sub">Echipa Damina — nu subcontractanții</span></h1></div></div>
+    <div style="height:16px"></div>
+    <div id="pt-banner"></div>
+    <div class="lbl">Cine e pontat azi</div>
+    <div class="blk" id="pt-azi"></div>
+    <div class="lbl">Zilele trecute</div>
+    <div class="blk">
+      <button class="brow" onclick="toast('18 august — 6 persoane')"><div class="sq n"><svg><use href="#i-clock"/></svg></div>
+        <div class="tx"><b>Marți, 18 august</b><span>07:30 – 17:00 · 6 persoane · Bloc A2</span></div><span class="pil g">Trimis</span></button>
+      <button class="brow" onclick="toast('17 august — 6 persoane')"><div class="sq n"><svg><use href="#i-clock"/></svg></div>
+        <div class="tx"><b>Luni, 17 august</b><span>07:30 – 16:00 · 6 persoane · Bloc A2</span></div><span class="pil g">Trimis</span></button>
+      <button class="brow" onclick="toast('14 august — 5 persoane')"><div class="sq n"><svg><use href="#i-clock"/></svg></div>
+        <div class="tx"><b>Vineri, 14 august</b><span>07:30 – 17:00 · 5 persoane · Hala Logistic</span></div><span class="pil g">Trimis</span></button>
+    </div>
+  </section>
+
+  <!-- ================= PONTAJ NOU ================= -->
+  <section class="scr" id="v-pontaj-nou" data-tab="eu" data-name="Pontaj nou">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Pontaj de azi<span class="sub">Miercuri, 19 august</span></h1></div></div>
+    <div style="height:16px"></div>
+    <div class="strip">
+      <div class="st" style="cursor:default"><div class="l" style="margin:0 0 6px">Intrare</div>
+        <input type="time" value="07:30" style="border:0;font-size:27px;font-weight:800;font-family:inherit;outline:none;width:100%"></div>
+      <div class="st" style="cursor:default"><div class="l" style="margin:0 0 6px">Plecare</div>
+        <input type="time" value="17:00" style="border:0;font-size:27px;font-weight:800;font-family:inherit;outline:none;width:100%"></div>
+    </div>
+    <div class="xs mut ctr" style="padding:12px 24px 0">Orele standard sunt puse automat. Le poți schimba.</div>
+    <div class="lbl">Unde ai lucrat</div>
+    <div class="blk"><div class="fld"><select><option>Bloc A2 — Reabilitare fațadă</option><option>Hala Logistic Park</option><option>Sediu Damina — Parter</option><option>Kaufland Militari (mentenanță)</option></select></div></div>
+    <div class="lbl">Cine a fost din echipa mea</div>
+    <div class="blk" id="pt-sel"></div>
+    <div class="bts">
+      <button class="bt out" onclick="go('v-pers')"><svg><use href="#i-plus"/></svg>Adaugă persoane</button>
+      <button class="bt pri" onclick="salvPontaj()"><svg><use href="#i-check"/></svg>Trimite pontajul</button>
+    </div>
+  </section>
+
+  <!-- ================= ALEGE PERSOANE ================= -->
+  <section class="scr" id="v-pers" data-tab="eu" data-name="Alege persoane">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Alege persoane<span class="sub" id="pe-cnt">0 selectate</span></h1></div></div>
+    <div class="pad" style="padding-bottom:0"><div class="blk p" style="margin:0;display:flex;gap:11px;align-items:center;padding:14px 16px">
+      <svg style="width:21px;height:21px;color:#98A1B0"><use href="#i-search"/></svg>
+      <input placeholder="Caută după nume…" style="border:0;outline:none;font-size:17px;font-family:inherit;flex:1"></div></div>
+    <div class="pad" style="padding-bottom:0;display:flex;gap:10px">
+      <button class="bt gho s" onclick="allPers(true)">Selectează tot</button>
+      <button class="bt gho s" onclick="allPers(false)">Șterge tot</button></div>
+    <div class="lbl">Echipa mea</div>
+    <div class="blk" id="pe-lista"></div>
+    <div class="bts"><button class="bt pri" onclick="back()"><svg><use href="#i-check"/></svg>Gata</button></div>
+  </section>
+
+  <!-- ================= CONCEDIU ================= -->
+  <section class="scr" id="v-concediu" data-tab="eu" data-name="Concediu">
+    <div class="bar"><div class="line1"><button class="ib" onclick="back()"><svg><use href="#i-left"/></svg></button>
+      <h1 style="font-size:20px">Concediu</h1></div>
+      <div style="margin-top:16px"><div style="font-size:13px;color:#9AA5B6;font-weight:700">ZILE RĂMASE ÎN 2026</div>
+        <div style="font-size:56px;font-weight:800;line-height:1.05;color:var(--am)" id="co-ram">14</div>
+        <div style="display:flex;gap:20px;font-size:13.5px;color:#9AA5B6;margin-top:6px">
+          <span>Total an: <b style="color:#fff">21</b></span><span>Luate: <b style="color:#fff">7</b></span>
+          <span>În aprobare: <b style="color:#fff" id="co-ast">0</b></span></div></div>
+    </div>
+    <div class="bts" style="padding-top:16px"><button class="bt pri" onclick="startConcediu()"><svg><use href="#i-plus"/></svg>Cerere de concediu</button></div>
+    <div class="lbl">Cererile mele</div>
+    <div class="blk" id="co-lista"></div>
+  </section>
+
+  <!-- ================= WIZARD CONCEDIU ================= -->
+  <section class="scr" id="v-concediu-w" data-tab="eu" data-name="Wizard concediu">
+    <div class="wtop"><div class="r1">
+      <button class="ib" onclick="wizPrev('v-concediu-w')"><svg><use href="#i-left"/></svg></button>
+      <span class="step">Pasul <b class="wn">1</b> din 3</span>
+      <button class="ib" onclick="back()"><svg><use href="#i-x"/></svg></button></div>
+      <div class="wbar"><i style="width:33%"></i></div></div>
+
+    <div class="wstep on">
+      <h2 class="q">Ce fel de concediu?</h2>
+      <p class="qs">Alege o variantă.</p>
+      <div class="pad" style="padding-top:0" id="cw-tip">
+        <button class="cc on" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-plane"/></svg></span>
+          <span class="tx"><b>Odihnă</b><span>Din cele 21 de zile pe an</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-alert"/></svg></span>
+          <span class="tx"><b>Medical</b><span>Cu certificat de la doctor</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-cal"/></svg></span>
+          <span class="tx"><b>Fără plată</b><span>Nu scade din cele 21 de zile</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+        <button class="cc" onclick="pickCC(this)"><span class="sq"><svg><use href="#i-users"/></svg></span>
+          <span class="tx"><b>Eveniment familial</b><span>Nuntă, deces, naștere</span></span><span class="tick"><svg><use href="#i-check"/></svg></span></button>
+      </div>
+      <div class="wfoot"><button class="bt pri" onclick="wizNext('v-concediu-w')">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <div class="wstep">
+      <h2 class="q">Când pleci și când te întorci?</h2>
+      <p class="qs">Zilele de weekend nu se scad din concediu.</p>
+      <div class="blk">
+        <div class="fld"><label>Prima zi de concediu</label><input id="co-de" type="date" value="2026-09-03" onchange="calcZ()"></div>
+        <div class="fld"><label>Ultima zi de concediu</label><input id="co-la" type="date" value="2026-09-07" onchange="calcZ()"></div>
+        <div class="fld"><label>Revin la lucru pe</label><input id="co-rev" type="date" value="2026-09-08"></div>
+      </div>
+      <div class="al a"><svg><use href="#i-cal"/></svg><div><b id="co-nz">3 zile lucrătoare</b><p id="co-dupa">Îți rămân 11 zile din cele 21 pe an.</p></div></div>
+      <div class="blk"><div class="fld"><label>Cine te înlocuiește (opțional)</label><input placeholder="Ex: Marian Ilie pe Bloc A2"></div></div>
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-concediu-w')">Înapoi</button>
+        <button class="bt pri" onclick="wizNext('v-concediu-w')">Continuă<svg><use href="#i-arrow"/></svg></button></div>
+    </div>
+
+    <div class="wstep">
+      <h2 class="q">Verifică și trimite</h2>
+      <p class="qs">Cererea ajunge la Project Manager și la resurse umane.</p>
+      <div class="blk" id="co-rez"></div>
+      <div class="wfoot"><button class="bt gho" onclick="wizPrev('v-concediu-w')">Înapoi</button>
+        <button class="bt pri" onclick="trimiteConcediu()"><svg><use href="#i-check"/></svg>Trimite cererea</button></div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- ================= TABBAR ================= -->
+  <nav class="tabs">
+    <button class="tab on" data-t="azi" onclick="tab('azi')"><svg><use href="#i-sun"/></svg><span>Azi</span></button>
+    <button class="tab" data-t="loc" onclick="tab('loc')"><svg><use href="#i-pin"/></svg><span>Locuri</span></button>
+    <button class="tab" data-t="eu" onclick="tab('eu')"><svg><use href="#i-user"/></svg><span>Eu</span></button>
+  </nav>
+
+  <!-- ================= SHEETS ================= -->
+  <div class="mask" id="mask" onclick="closeSheet()"></div>
+
+  <div class="sh" id="sh-next">
+    <div class="g"></div>
+    <div class="hd"><h2 id="nx-t">Bravo! Ce urmează?</h2><button class="ibx" onclick="closeSheet()"><svg><use href="#i-x"/></svg></button></div>
+    <div class="pad" style="padding-top:6px"><p class="mut" style="margin:0 0 14px;font-size:15px;line-height:1.5" id="nx-p">—</p></div>
+    <div id="nx-body"></div>
+  </div>
+
+  <div class="sh" id="sh-firma">
+    <div class="g"></div>
+    <div class="hd"><h2>Adaugă o firmă</h2><button class="ibx" onclick="closeSheet()"><svg><use href="#i-x"/></svg></button></div>
+    <div class="blk" style="margin:0 16px 12px">
+      <div class="fld"><label>Firma</label><select id="sf-n"><option>ElectroMont SRL</option><option>Instal Pro SRL</option><option>Tâmplărie Vest SRL</option><option>Hidro Izo SRL</option></select></div>
+      <div class="fld"><label>Ce lucrează</label><input id="sf-a" placeholder="Ex: trasee electrice fațadă"></div>
+      <div class="fld"><label>Câți oameni</label><div class="stp" style="width:160px"><button onclick="qty(this,-1)">−</button><input id="sf-nr" value="3"><button onclick="qty(this,1)">+</button></div></div>
+    </div>
+    <div class="pad" style="padding-top:0"><button class="bt pri" onclick="addFirma()"><svg><use href="#i-check"/></svg>Adaugă</button></div>
+  </div>
+
+  <div class="sh" id="sh-desc">
+    <div class="g"></div>
+    <div class="hd"><h2>Ce ai făcut?</h2><button class="ibx" onclick="closeSheet()"><svg><use href="#i-x"/></svg></button></div>
+    <div class="blk" style="margin:0 16px 12px"><div class="fld"><textarea id="sd-t" placeholder="Ex: am demontat carcasa și am scos rotorul"></textarea></div></div>
+    <div class="pad" style="padding-top:0"><button class="bt pri" onclick="addDesc()"><svg><use href="#i-check"/></svg>Adaugă în jurnal</button></div>
+  </div>
+
+  <div class="sh" id="sh-timp">
+    <div class="g"></div>
+    <div class="hd"><h2>Adaugă ore lucrate</h2><button class="ibx" onclick="closeSheet()"><svg><use href="#i-x"/></svg></button></div>
+    <div class="blk" style="margin:0 16px 12px">
+      <div class="fld"><label>Cine</label><select id="st-c"><option>Ion Popescu</option><option>Marian Ilie</option><option>Klima Serv SRL (2 oameni)</option></select></div>
+      <div class="fld"><label>Cât a durat</label><div style="display:flex;gap:12px;align-items:center">
+        <input id="st-h" type="number" value="2" style="width:74px"><span style="font-weight:800">ore</span>
+        <input id="st-m" type="number" value="0" style="width:74px"><span style="font-weight:800">minute</span></div></div>
+    </div>
+    <div class="pad" style="padding-top:0"><button class="bt pri" onclick="addTimp()"><svg><use href="#i-check"/></svg>Adaugă</button></div>
+  </div>
+
+  <div class="sh" id="sh-mat">
+    <div class="g"></div>
+    <div class="hd"><h2>Material folosit</h2><button class="ibx" onclick="closeSheet()"><svg><use href="#i-x"/></svg></button></div>
+    <div class="blk" style="margin:0 16px 12px">
+      <div class="fld"><label>Produs</label><select id="sm-p">
+        <option>Filtru G4 592×592 (buc)</option><option>Curea trapezoidală A-1000 (buc)</option>
+        <option>Rulment 6204-2RS (buc)</option><option>Ventilator axial 400 mm (buc)</option><option>Silicon neutru (tub)</option></select></div>
+      <div class="fld"><label>Cantitate</label><div class="stp" style="width:160px"><button onclick="qty(this,-1)">−</button><input id="sm-q" value="1"><button onclick="qty(this,1)">+</button></div></div>
+    </div>
+    <div class="pad" style="padding-top:0"><button class="bt pri" onclick="addMat()"><svg><use href="#i-check"/></svg>Adaugă</button></div>
+  </div>
+
+  <div class="sh" id="sh-prod">
+    <div class="g"></div>
+    <div class="hd"><h2>Adaugă produs</h2><button class="ibx" onclick="closeSheet()"><svg><use href="#i-x"/></svg></button></div>
+    <div class="blk" style="margin:0 16px 12px">
+      <div class="fld"><label>Produs</label><select id="sp-p">
+        <option>Plasă fibră de sticlă 145 g (mp)</option><option>Profil de colț cu plasă (buc)</option>
+        <option>Amorsă grund (bidon 20 l)</option><option>Tencuială decorativă 1,5 mm (găleată 25 kg)</option></select></div>
+      <div class="fld"><label>Cantitate</label><div class="stp" style="width:160px"><button onclick="qty(this,-5)">−</button><input id="sp-q" value="50"><button onclick="qty(this,5)">+</button></div></div>
+    </div>
+    <div class="pad" style="padding-top:0"><button class="bt pri" onclick="addProd()"><svg><use href="#i-check"/></svg>Adaugă în cerere</button></div>
+  </div>
+
+  <div class="sh" id="sh-poz">
+    <div class="g"></div>
+    <div class="hd"><h2 id="pz-cod">Poziție</h2><button class="ibx" onclick="closeSheet()"><svg><use href="#i-x"/></svg></button></div>
+    <div class="blk p" style="margin:0 16px 14px">
+      <div class="xs mut" style="font-weight:800">ARTICOL</div>
+      <div style="font-size:17px;font-weight:750;margin:5px 0 12px" id="pz-den">—</div>
+      <div style="display:flex;justify-content:space-between;font-size:16px"><span class="mut">Cantitate raportată</span><b id="pz-q">—</b></div>
+    </div>
+    <div class="pad" style="padding-top:0;padding-bottom:8px"><button class="bt grn" onclick="sitOk()"><svg><use href="#i-check"/></svg>Confirm, e corect</button></div>
+    <div class="lbl" style="margin-top:6px">Sau corectează / lasă o mențiune</div>
+    <div class="blk" style="margin-bottom:14px">
+      <div class="fld"><label>Cantitatea reală</label><div class="stp" style="width:180px"><button onclick="qty(this,-1)">−</button><input id="pz-nou" value="0"><button onclick="qty(this,1)">+</button></div></div>
+      <div class="fld"><label>Observație</label><textarea id="pz-obs" placeholder="Ex: la tronsonul 2 nu s-a executat, sunt doar 180 mp"></textarea></div>
+    </div>
+    <div class="pad" style="padding-top:0;display:flex;flex-direction:column;gap:10px">
+      <button class="bt red" onclick="sitFix()"><svg><use href="#i-pen"/></svg>Trimite corecția</button>
+      <button class="bt out" onclick="sitOk(true)"><svg><use href="#i-check"/></svg>Confirm cantitatea, dar am o mențiune</button>
+    </div>
+  </div>
+
+  <div class="tst" id="tst"><svg><use href="#i-check"/></svg><span id="tst-t"></span></div>
+
+</div></div>
+<div class="hint" id="hint">Ecran: <b>Ziua ta</b> — apasă pe orice. Trei tab-uri jos: Azi · Locuri · Eu.</div>
+</div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let stack=['v-azi'];
+
+/* ---------- router ---------- */
+function show(id){
+  $$('.scr').forEach(s=>s.classList.toggle('on', s.id===id));
+  const sc=document.getElementById(id); $('#main').scrollTop=0;
+  $$('.tab').forEach(b=>b.classList.toggle('on', b.dataset.t===sc.dataset.tab));
+  $('#hint').innerHTML='Ecran: <b>'+sc.dataset.name+'</b> — apasă pe orice. Trei tab-uri jos: Azi · Locuri · Eu.';
+  $$('.map button').forEach(b=>b.classList.toggle('on', b.dataset.j===id));
+  sc.querySelectorAll('canvas.sig').forEach(initSig);
+}
+function go(id){ if(stack[stack.length-1]!==id) stack.push(id); show(id); }
+function back(){ if(stack.length>1) stack.pop(); show(stack[stack.length-1]); }
+function tab(t){ const f={azi:'v-azi',loc:'v-locuri',eu:'v-eu'}[t]; stack=[f]; show(f); }
+$$('.map button').forEach(b=>b.onclick=()=>{stack=[b.dataset.j];show(b.dataset.j);});
+
+/* ---------- ui utils ---------- */
+function toast(m){ $('#tst-t').textContent=m; $('#tst').classList.add('on');
+  clearTimeout(window._t); window._t=setTimeout(()=>$('#tst').classList.remove('on'),2600); }
+function pickCC(b){ [...b.parentElement.children].forEach(x=>x.classList.remove('on')); b.classList.add('on'); }
+function pickChz(b){ [...b.parentElement.children].forEach(x=>x.classList.remove('on')); b.classList.add('on'); }
+function ck(e){ e.classList.toggle('on'); }
+function qty(b,d){ const i=b.parentElement.querySelector('input'); i.value=Math.max(0,(parseInt(i.value)||0)+d);
+  if(b.closest('#fr-lista')) frSync(); }
+function addPh(id,v){ const c=document.getElementById(id), n=c.querySelectorAll('.ph:not(.add)').length+1;
+  const d=document.createElement('div'); d.className='ph';
+  d.innerHTML='<svg><use href="#i-'+(v?'video':'img')+'"/></svg><span class="tg">'+n+'</span>';
+  c.insertBefore(d,c.querySelector('.ph.add'));
+  if(id==='it-ph') curI().p=c.querySelectorAll('.ph:not(.add)').length;
+  toast(v?'Filmare adăugată':'Poză adăugată'); }
+let sheetFrom='';
+function openSheet(id){ sheetFrom=stack[stack.length-1]; $('#mask').classList.add('on'); document.getElementById(id).classList.add('on'); }
+function closeSheet(){ $('#mask').classList.remove('on'); $$('.sh').forEach(s=>s.classList.remove('on')); }
+function initSig(c){ const r=c.getBoundingClientRect(); if(!r.width||c.dataset.i) return; c.dataset.i=1;
+  c.width=r.width*2; c.height=r.height*2; const x=c.getContext('2d'); x.scale(2,2);
+  x.lineWidth=2.6; x.lineCap='round'; x.strokeStyle='#10151F'; let dr=false;
+  const p=e=>{const b=c.getBoundingClientRect();return[e.clientX-b.left,e.clientY-b.top]};
+  c.addEventListener('pointerdown',e=>{dr=true;c.setPointerCapture(e.pointerId);const[a,b]=p(e);x.beginPath();x.moveTo(a,b)});
+  c.addEventListener('pointermove',e=>{if(!dr)return;const[a,b]=p(e);x.lineTo(a,b);x.stroke()});
+  c.addEventListener('pointerup',()=>dr=false); }
+function clearSig(b){ const c=b.closest('.blk').querySelector('canvas'); c.getContext('2d').clearRect(0,0,c.width,c.height); }
+
+/* ---------- wizard ---------- */
+const wizSt={};
+function wizGo(id,n){
+  const sc=document.getElementById(id), steps=[...sc.querySelectorAll('.wstep')];
+  steps.forEach((s,i)=>s.classList.toggle('on', i===n));
+  sc.querySelector('.wn').textContent=n+1;
+  sc.querySelector('.wbar i').style.width=Math.round((n+1)/steps.length*100)+'%';
+  wizSt[id]=wizSt[id]||[]; if(wizSt[id][wizSt[id].length-1]!==n) wizSt[id].push(n);
+  $('#main').scrollTop=0;
+  if(id==='v-cerere-w'&&n===3) rezCerere();
+  if(id==='v-insp-w'&&n===4) rezInsp();
+  if(id==='v-concediu-w'&&n===2) rezConcediu();
+  sc.querySelectorAll('canvas.sig').forEach(initSig);
+}
+function wizStart(id){ wizSt[id]=[]; wizGo(id,0); go(id); }
+function wizNext(id){ const c=wizSt[id][wizSt[id].length-1]||0; wizGo(id,c+1); }
+function wizPrev(id){ const a=wizSt[id]||[]; a.pop(); if(!a.length){ back(); return; } wizGo(id,a[a.length-1]); }
+
+/* ---------- LOCURI ---------- */
+const locuri=[
+ {n:'Bloc A2 — Reabilitare fațadă',k:'Bloc A2',tip:'c',sub:'Str. Aviatorilor 12 · PM: Andrei Marin',et:'Etapa 3 din 6 — Termosistem',pr:48},
+ {n:'Hala Logistic Park',k:'Hala Logistic',tip:'c',sub:'Dragomirești · PM: Andrei Marin',et:'Etapa 2 din 5 — Structură metalică',pr:30},
+ {n:'Sediu Damina — Parter',k:'Sediu Damina',tip:'c',sub:'Bd. Timișoara 26 · PM: Elena Radu',et:'Etapa 5 din 6 — Finisaje',pr:80},
+ {n:'Kaufland Militari',k:'Kaufland Militari',tip:'m',sub:'Contract C-2024/118 · mentenanță'},
+ {n:'Lidl Berceni',k:'Lidl Berceni',tip:'m',sub:'Contract C-2025/003 · mentenanță'}
+];
+let curLoc=locuri[0];
+function renderLocuri(){
+  $('#lk-cur').textContent=curLoc.n;
+  const de=(2-(frPontat?1:0)-(jurnalAzi?1:0));
+  $('#lk-santiere').innerHTML=locuri.filter(l=>l.tip==='c').map(l=>{
+    const aici=l.k===curLoc.k, n=aici?de:2;
+    return `<button class="brow" onclick="openLoc('${l.k}')"><div class="sq ${aici?'a':'n'}"><svg><use href="#i-build"/></svg></div>
+      <div class="tx"><b>${l.n}</b><span>${l.sub}</span>
+        <div class="prg" style="margin-top:9px"><i style="width:${l.pr}%"></i></div></div>
+      ${n?`<span class="pil r">${n} de făcut</span>`:'<span class="pil g">La zi</span>'}</button>`}).join('');
+  $('#lk-obiective').innerHTML=locuri.filter(l=>l.tip==='m').map(l=>{
+    const n=interventii.filter(i=>i.o===l.k&&i.st!=='gata').length;
+    return `<button class="brow" onclick="openLoc('${l.k}')"><div class="sq n"><svg><use href="#i-tool"/></svg></div>
+      <div class="tx"><b>${l.n}</b><span>${l.sub}</span></div>
+      ${n?`<span class="pil r">${n} deschise</span>`:'<span class="pil g">La zi</span>'}</button>`}).join('');
+}
+function openLoc(k){
+  curLoc=locuri.find(l=>l.k===k);
+  if(curLoc.tip==='c'){
+    $('#lc-nume').firstChild.textContent=curLoc.n+' ';
+    $('#lc-sub').textContent=curLoc.sub; $('#lc-etapa').textContent=curLoc.et;
+    $('#lc-proc').textContent=curLoc.pr+'%'; $('#lc-bar').style.width=curLoc.pr+'%';
+    $('#fr-loc').textContent=curLoc.k+' · miercuri, 19 august';
+    $('#jr-loc').textContent=curLoc.n; $('#cw-loc').textContent='Pentru '+curLoc.n;
+    renderLcAzi(); renderLcAlerte();
+    $('#lc-cer').textContent=cereri.filter(c=>c.l===curLoc.k&&c.g!=='gata').length+' active';
+    stack=['v-locuri']; go('v-loc');
+  } else {
+    $('#lm-nume').firstChild.textContent=curLoc.n+' ';
+    $('#lm-sub').textContent=curLoc.sub;
+    $('#in-loc').textContent=curLoc.n; $('#iw-loc').textContent='La '+curLoc.n+' · contract '+(curLoc.k==='Kaufland Militari'?'C-2024/118':'C-2025/003');
+    $('#cw-loc').textContent='Pentru '+curLoc.n;
+    stack=['v-locuri']; go('v-locm');
+  }
+  renderLocuri();
+}
+function renderLcAzi(){
+  $('#lc-azi').innerHTML=`
+  <button class="brow" onclick="go('v-firme')"><div class="sq ${frPontat?'g':'r'}"><svg><use href="#i-users"/></svg></div>
+    <div class="tx"><b>Pontaj firme</b><span>${frPontat?frFirme.filter(f=>f.on).length+' firme · '+frFirme.filter(f=>f.on).reduce((s,f)=>s+f.nr,0)+' oameni':'Nu ai pontat azi'}</span></div>
+    <span class="pil ${frPontat?'g':'r'}">${frPontat?'Trimis':'De făcut'}</span></button>
+  <button class="brow" onclick="startJurnal()"><div class="sq ${jurnalAzi?'g':'r'}"><svg><use href="#i-file"/></svg></div>
+    <div class="tx"><b>Jurnal de șantier</b><span>${jurnalAzi?'Scris azi':'Nu ai scris nimic azi'}</span></div>
+    <span class="pil ${jurnalAzi?'g':'r'}">${jurnalAzi?'Gata':'De făcut'}</span></button>`;
+}
+function renderLcAlerte(){
+  const n=(frPontat?0:1)+(jurnalAzi?0:1);
+  $('#lc-alerte').innerHTML = n
+    ? `<div class="al r"><svg><use href="#i-alert"/></svg><div><b>Mai ai ${n} ${n===1?'lucru':'lucruri'} de făcut azi aici</b>
+       <p>Le vezi mai jos, la „Azi”. Durează 2 minute.</p></div></div>`
+    : `<div class="al g"><svg><use href="#i-check"/></svg><div><b>Ziua de azi e completă aici</b><p>Pontaj trimis și jurnal scris.</p></div></div>`;
+}
+
+/* ---------- AZI ---------- */
+let tasks=[
+ {k:'pontaj',t:'Pontează-te pe tine și echipa',go:()=>go('v-pontaj-nou'),done:false},
+ {k:'firme',t:'Pontează firmele de pe șantier',go:()=>{openLoc(curLoc.tip==='c'?curLoc.k:'Bloc A2');go('v-firme')},done:false},
+ {k:'jurnal',t:'Scrie în jurnalul de șantier',go:()=>startJurnal(),done:false},
+ {k:'tichete',t:'Ia-ți tichetele neîncepute',go:()=>{fIntF='nou';go('v-interv');renderInt()},done:false},
+ {k:'situatii',t:'Verifică situația de lucrări',go:()=>go('v-situatii'),done:false},
+ {k:'pv',t:'Semnează PV-ul de trasare',go:()=>go('v-pv-nou'),done:false}
+];
+const subT={pontaj:()=>'Echipa Damina · 07:30 – 17:00',
+  firme:()=>'La '+(curLoc.tip==='c'?curLoc.k:'Bloc A2')+' · ieri au fost 3 firme',
+  jurnal:()=>'Ce s-a lucrat azi la '+(curLoc.tip==='c'?curLoc.k:'Bloc A2'),
+  tichete:()=>interventii.filter(i=>i.st==='nou').length+' neîncepute la mentenanță',
+  situatii:()=>devize.filter(d=>!d.st).length+' poziții nebifate de la Termo Fasade',
+  pv:()=>'Trimis de Andrei Marin ieri'};
+function renderAzi(){
+  const done=tasks.filter(t=>t.done).length;
+  $('#az-cnt').textContent=done+' din '+tasks.length+' făcute';
+  $('#az-left').textContent=(tasks.length-done)+' rămase';
+  $('#az-segs').innerHTML=tasks.map((t,i)=>`<i class="${t.done?'on':''}"></i>`).join('');
+  $('#az-list').innerHTML=tasks.map((t,i)=>`<button class="chk ${t.done?'ok':''}" onclick="tasks[${i}].go()">
+    <span class="cir"><svg><use href="#i-check"/></svg></span>
+    <span class="tx"><b>${t.t}</b><span>${subT[t.k]()}</span></span>
+    ${!t.done&&i===tasks.findIndex(x=>!x.done)?'<span class="now">ACUM</span>':t.done?'':'<span class="pil">—</span>'}</button>`).join('');
+  const nx=tasks.find(t=>!t.done);
+  $('#az-hero').innerHTML = nx
+    ? `<small>Următorul lucru</small><b>${nx.t}</b><p>${subT[nx.k]()}</p>
+       <button class="bt pri" onclick="tasks[${tasks.indexOf(nx)}].go()"><svg><use href="#i-arrow"/></svg>Hai să-l facem</button>`
+    : `<small>Felicitări</small><b>Ai terminat tot pe azi</b><p>Nu mai ai nimic obligatoriu. Poți închide telefonul.</p>
+       <button class="bt gho" onclick="tab('loc')">Vezi locurile</button>`;
+  $('#eu-cer').textContent=cereri.filter(c=>c.g!=='gata').length+' în curs';
+}
+function doneTask(k){
+  const t=tasks.find(x=>x.k===k); if(t) t.done=true;
+  renderAzi(); renderLocuri();
+  const nx=tasks.find(x=>!x.done);
+  $('#nx-t').textContent = nx?'Gata! Ce urmează?':'Gata de tot!';
+  $('#nx-p').textContent = nx?'Ai bifat „'+t.t.toLowerCase()+'”. Ți-au mai rămas '+tasks.filter(x=>!x.done).length+' lucruri pe ziua de azi.'
+    :'Ai terminat toate treburile pe ziua de azi. Bravo!';
+  $('#nx-body').innerHTML = nx
+    ? `<div class="blk"><button class="chk" onclick="closeSheet();tasks[${tasks.indexOf(nx)}].go()">
+        <span class="cir"></span><span class="tx"><b>${nx.t}</b><span>${subT[nx.k]()}</span></span><span class="now">URMEAZĂ</span></button></div>
+       <div class="pad" style="padding-top:6px"><button class="bt gho" onclick="closeSheet();tab('azi')">Mai târziu</button></div>`
+    : `<div class="pad"><button class="bt pri" onclick="closeSheet();tab('azi')"><svg><use href="#i-check"/></svg>Înapoi la ziua mea</button></div>`;
+  openSheet('sh-next');
+}
+
+/* ---------- PONTAJ FIRME ---------- */
+let frPontat=false, jurnalAzi=false;
+let frFirme=[
+ {n:'Termo Fasade SRL',a:'montaj termosistem',on:true,nr:6,i:'07:30',o:'17:00'},
+ {n:'Schele Rapid SRL',a:'întreținere schelă',on:true,nr:2,i:'07:30',o:'15:00'},
+ {n:'ElectroMont SRL',a:'trasee electrice fațadă',on:false,nr:3,i:'07:30',o:'17:00'}
+];
+const orz=(a,b)=>{const[h1,m1]=a.split(':').map(Number),[h2,m2]=b.split(':').map(Number);return Math.max(0,(h2*60+m2-h1*60-m1)/60)};
+function segFr(v){ const a=v==='azi';
+  $('#fr-t1').style.cssText=a?'background:var(--am);color:#10151F;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer':'background:rgba(255,255,255,.12);color:#fff;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer';
+  $('#fr-t2').style.cssText=!a?'background:var(--am);color:#10151F;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer':'background:rgba(255,255,255,.12);color:#fff;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer';
+  $('#fr-azi').style.display=a?'':'none'; $('#fr-ist').style.display=a?'none':''; }
+function renderFr(){
+  $('#fr-lista').innerHTML=frFirme.map((f,i)=>`<div class="blk" style="margin-bottom:10px">
+    <div class="ck ${f.on?'on':''}" onclick="togFirma(${i})"><span class="bx"><svg><use href="#i-check"/></svg></span>
+      <div class="tx"><b>${f.n}</b><span>${f.a}</span></div></div>
+    ${f.on?`<div class="li"><div class="tx"><b>Câți oameni</b></div>
+      <div class="stp"><button onclick="qty(this,-1)">−</button><input value="${f.nr}" oninput="frSync()"><button onclick="qty(this,1)">+</button></div></div>
+      <div class="li"><div class="tx"><b>Program</b></div><div style="display:flex;gap:6px;align-items:center">
+        <input type="time" value="${f.i}" onchange="frSync()" style="border:0;font-size:16px;font-weight:800;font-family:inherit;outline:none;width:106px">
+        <span class="mut">–</span>
+        <input type="time" value="${f.o}" onchange="frSync()" style="border:0;font-size:16px;font-weight:800;font-family:inherit;outline:none;width:106px"></div></div>`:''}
+  </div>`).join('');
+  frSync();
+  $('#fr-banner').innerHTML = frPontat
+    ? '<div class="al g"><svg><use href="#i-check"/></svg><div><b>Pontaj trimis pentru azi</b><p>Îl poți modifica până diseară la ora 20:00.</p></div></div>'
+    : '<div class="al r"><svg><use href="#i-alert"/></svg><div><b>Nu ai pontat azi</b><p>Miercuri, 19 august · '+curLoc.k+'</p></div></div>';
+  $('#fr-istoric').innerHTML=[['Marți, 18 august','3 firme · 11 oameni','88 ore-om'],['Luni, 17 august','2 firme · 8 oameni','64 ore-om'],
+    ['Vineri, 14 august','3 firme · 10 oameni','78 ore-om']].map(r=>`<button class="brow" onclick="toast('${r[0]} — ${r[1]}')">
+    <div class="sq g"><svg><use href="#i-users"/></svg></div><div class="tx"><b>${r[0]}</b><span>${r[1]}</span></div><span class="pil d">${r[2]}</span></button>`).join('');
+}
+function frSync(){
+  [...$('#fr-lista').children].forEach((c,i)=>{ const f=frFirme[i]; if(!f||!f.on) return;
+    const q=c.querySelector('.stp input'), t=c.querySelectorAll('input[type=time]');
+    if(q) f.nr=+q.value||0; if(t.length===2){f.i=t[0].value;f.o=t[1].value} });
+  const p=frFirme.filter(f=>f.on), o=p.reduce((s,f)=>s+f.nr,0), oo=p.reduce((s,f)=>s+f.nr*orz(f.i,f.o),0);
+  $('#fr-oameni').textContent=o+(o===1?' om':' oameni');
+  $('#fr-firme').textContent=p.length+(p.length===1?' firmă prezentă':' firme prezente');
+  $('#fr-ore').textContent=Math.round(oo)+' ore-om';
+}
+function togFirma(i){ frFirme[i].on=!frFirme[i].on; renderFr(); }
+function addFirma(){ frFirme.push({n:$('#sf-n').value,a:$('#sf-a').value||'lucrări diverse',on:true,nr:+$('#sf-nr').value||1,i:'07:30',o:'17:00'});
+  renderFr(); closeSheet(); toast('Firma a fost adăugată'); }
+function salvFirme(){
+  if(!frFirme.some(f=>f.on)){ toast('Bifează cel puțin o firmă'); return; }
+  frPontat=true; renderFr(); renderLcAzi(); renderLcAlerte(); renderJwFirme();
+  toast('Pontaj firme trimis'); stack=['v-loc']; show('v-loc'); doneTask('firme');
+}
+
+/* ---------- JURNAL ---------- */
+let jurnal=[
+ {e:'3. Termosistem',d:'Marți, 18 august',t:'Montat polistiren pe fațada nord, tronson 1, cam 210 mp. Verificat planeitatea, corectat 3 zone.',p:4,s:'Termo Fasade (6) · Schele Rapid (2)'},
+ {e:'3. Termosistem',d:'Luni, 17 august',t:'Început montajul polistirenului. Trasat nivelele, montat profil de soclu pe tot tronsonul 1.',p:3,s:'Termo Fasade (6)'},
+ {e:'2. Pregătire suport',d:'Vineri, 14 august',t:'Reparat tencuiala desprinsă pe fațada nord. Amorsat suprafața.',p:5,s:'Termo Fasade (4)'}
+];
+function renderJurnal(){
+  $('#jr-lista').innerHTML=jurnal.map(j=>`<div class="jc">
+    <div class="h"><b style="font-size:16px">${j.d}</b><span class="pil b">${j.e}</span></div><p>${j.t}</p>
+    <div class="phs">${Array.from({length:Math.min(j.p,4)},()=>'<div class="ph" style="width:62px;height:62px"><svg><use href="#i-img"/></svg></div>').join('')}
+      ${j.p>4?'<div class="ph" style="width:62px;height:62px">+'+(j.p-4)+'</div>':''}</div>
+    <div class="m"><svg style="width:15px;height:15px"><use href="#i-users"/></svg> ${j.s}</div></div>`).join('');
+}
+function startJurnal(){ renderJwFirme(); wizStart('v-jurnal-w'); }
+function renderJwFirme(){
+  const p=frFirme.filter(f=>f.on);
+  $('#jw-firme').innerHTML = frPontat
+    ? `<div class="blk">${p.map(f=>`<div class="li"><div class="sq g" style="width:44px;height:44px;flex:0 0 44px;border-radius:14px;display:grid;place-items:center;background:var(--gr-l);color:var(--gr)"><svg style="width:21px;height:21px"><use href="#i-users"/></svg></div>
+        <div class="tx" style="margin-left:12px"><b>${f.n}</b><span>${f.a} · ${f.i}–${f.o}</span></div><span class="q">${f.nr}</span></div>`).join('')}</div>
+      <div class="bts" style="padding-top:2px"><button class="bt gho s" onclick="go('v-firme')"><svg><use href="#i-pen"/></svg>Modifică pontajul</button></div>`
+    : `<div class="al a"><svg><use href="#i-alert"/></svg><div><b>Încă nu ai pontat firmele azi</b>
+       <p>Pontajul se face o dată pe zi și intră automat aici. Fă-l acum, durează un minut.</p>
+       <button class="bt pri s" onclick="go('v-firme')"><svg><use href="#i-users"/></svg>Pontează firmele</button></div></div>`;
+}
+function salvJurnal(){
+  const t=$('#jw-text').value.trim()||'Înregistrare fără text.';
+  const e=$('#jw-etape .cc.on b').textContent;
+  const s=frPontat? frFirme.filter(f=>f.on).map(f=>f.n.replace(' SRL','')+' ('+f.nr+')').join(' · ') : '— pontaj nefăcut —';
+  jurnal.unshift({e,d:'Miercuri, 19 august',t,p:$('#jw-ph').querySelectorAll('.ph:not(.add)').length,s});
+  jurnalAzi=true; renderJurnal(); renderLcAzi(); renderLcAlerte();
+  toast('Salvat în jurnal'); stack=['v-loc']; show('v-loc'); doneTask('jurnal');
+}
+
+/* ---------- CERERI ---------- */
+let cereri=[
+ {id:142,tip:'mat',l:'Bloc A2',t:'Necesar materiale — 3 produse',s:'Pe drum',g:'drum',d:'trimisă 18 aug · sosire ~10:30'},
+ {id:141,tip:'utilaj',l:'Hala Logistic',t:'Nacelă 12 m · 24–28 aug',s:'În aprobare',g:'astept',d:'trimisă 18 aug'},
+ {id:140,tip:'transp',l:'Bloc A2',t:'Cărat moloz → Rampa Glina',s:'Acceptată',g:'drum',d:'trimisă 17 aug · vine 21 aug'},
+ {id:139,tip:'unelte',l:'Bloc A2',t:'Unelte — 3 buc (rotopercutantă, fierăstrău)',s:'La șantier',g:'drum',d:'primite 5 aug · PV semnat'},
+ {id:138,tip:'mat',l:'Hala Logistic',t:'Profile gips-carton + vată',s:'Trimisă',g:'astept',d:'trimisă azi 06:50'},
+ {id:135,tip:'utilaj',l:'Hala Logistic',t:'Stivuitor telescopic · 20–22 aug',s:'Acceptată',g:'drum',d:'aprobat de PM · 18 aug'},
+ {id:133,tip:'mat',l:'Kaufland Militari',t:'Piese HVAC pentru INT-088',s:'Pe drum',g:'drum',d:'trimisă 18 aug'},
+ {id:137,tip:'mat',l:'Bloc A2',t:'Necesar materiale — 5 produse',s:'Finalizată',g:'gata',d:'livrată 11 aug'},
+ {id:134,tip:'transp',l:'Sediu Damina',t:'Retur schelă la depozit',s:'Finalizată',g:'gata',d:'12 aug'}
+];
+const cIco={mat:'i-box',unelte:'i-tool',utilaj:'i-crane',transp:'i-truck'};
+const cCls={mat:'',unelte:'g',utilaj:'a',transp:'r'};
+const cNum={mat:'Materiale',unelte:'Unelte',utilaj:'Utilaj',transp:'Transport'};
+const cPil={astept:'a',drum:'g',gata:''};
+let fC={tip:'toate',loc:'toate'};
+function fCer(k,v,b){ fC[k]=v; [...b.parentElement.children].forEach(x=>x.classList.remove('on')); b.classList.add('on'); renderCereri(); }
+function cereriLoc(){ fC.loc=curLoc.k; fC.tip='toate';
+  $$('#f-loc button').forEach(b=>b.classList.toggle('on', b.textContent===curLoc.k));
+  $$('#f-tip button').forEach((b,i)=>b.classList.toggle('on', i===0));
+  $('#ce-sub').textContent='Filtrat pe '+curLoc.k; renderCereri(); go('v-cereri'); }
+function renderCereri(){
+  const l=cereri.filter(c=>(fC.tip==='toate'||c.tip===fC.tip)&&(fC.loc==='toate'||c.l===fC.loc));
+  const gr=[['astept','Așteaptă răspuns'],['drum','Acceptate / pe drum'],['gata','Închise']];
+  let h='';
+  gr.forEach(([g,tit])=>{ const it=l.filter(c=>c.g===g); if(!it.length) return;
+    h+=`<div class="lbl">${tit} (${it.length})</div><div class="blk">`+it.map(c=>`<button class="brow" onclick="openCerere(${c.id})">
+      <div class="sq ${cCls[c.tip]}"><svg><use href="#${cIco[c.tip]}"/></svg></div>
+      <div class="tx"><b>${c.t}</b><span>#${c.id} · ${cNum[c.tip]} · ${c.d}</span>
+        <span style="display:inline-block;margin-top:6px"><span class="pil" style="font-size:11px">${c.l}</span></span></div>
+      <span class="pil ${cPil[c.g]}">${c.s}</span></button>`).join('')+'</div>'; });
+  $('#ce-lista').innerHTML = h || '<div class="emp"><svg><use href="#i-search"/></svg><b>Nicio cerere</b><p>Nu ai cereri care să se potrivească cu filtrele.</p></div>';
+  $('#ce-a').textContent=cereri.filter(c=>c.g==='astept').length;
+  $('#ce-d').textContent=cereri.filter(c=>c.g==='drum').length;
+  if($('#eu-cer')) $('#eu-cer').textContent=cereri.filter(c=>c.g!=='gata').length+' în curs';
+}
+let cerTip='mat';
+function pickTip(b,t){ pickCC(b); cerTip=t;
+  ['mat','unelte','utilaj','transp'].forEach(x=>$('#cw-'+x).style.display = x===t?'':'none');
+  $('#cw-q2').textContent={mat:'Ce materiale îți trebuie?',unelte:'Ce unelte îți trebuie?',utilaj:'Ce utilaj îți trebuie?',transp:'Ce fel de transport?'}[t];
+  $('#cw-s2').textContent={mat:'Pune cantitatea de care ai nevoie. Vezi și cât e pe stoc la depozit.',
+    unelte:'Bifează ce iei și câte bucăți.',utilaj:'Alege categoria și spune la ce îl folosești.',
+    transp:'Alege ce fel de cursă și de unde până unde.'}[t];
+}
+function startCerere(t){ wizSt['v-cerere-w']=[];
+  const b=$$('#v-cerere-w .wstep .cc')[{mat:0,unelte:1,utilaj:2,transp:3}[t||'mat']];
+  pickTip(b,t||'mat'); wizGo('v-cerere-w',0); go('v-cerere-w'); }
+function addProd(){ const raw=$('#sp-p').value, n=raw.replace(/\s*\(.*\)$/,''), u=(raw.match(/\((.*)\)$/)||[,'buc'])[1];
+  $('#cw-mat-lista').insertAdjacentHTML('beforeend',`<div class="li"><div class="tx"><b>${n}</b><span>${u}</span></div>
+    <div class="stp"><button onclick="qty(this,-5)">−</button><input value="${$('#sp-q').value}"><button onclick="qty(this,5)">+</button></div></div>`);
+  closeSheet(); toast('Produs adăugat'); }
+function rezCerere(){
+  const box=$('#cw-'+cerTip);
+  let items=[];
+  if(cerTip==='mat') items=[...box.querySelectorAll('.li')].map(l=>[l.querySelector('b').textContent,l.querySelector('input').value]);
+  if(cerTip==='unelte') items=[...box.querySelectorAll('.ck.on')].map(l=>[l.querySelector('b').textContent,l.querySelector('input').value]);
+  if(cerTip==='utilaj') items=[['Categorie',box.querySelector('.chz .on').textContent]];
+  if(cerTip==='transp') items=[['Cursă',box.querySelector('.chz .on').textContent]];
+  $('#cw-rezumat').innerHTML=`<div class="li"><div class="tx"><b>Tip cerere</b></div><span class="q sm">${cNum[cerTip]}</span></div>
+    <div class="li"><div class="tx"><b>Pentru</b></div><span class="q sm">${curLoc.k}</span></div>`+
+    items.map(i=>`<div class="li"><div class="tx"><b>${i[0]}</b></div><span class="q">${i[1]}</span></div>`).join('')+
+    `<div class="li"><div class="tx"><b>Când</b></div><span class="q sm">21 august, 08:00</span></div>`;
+}
+function trimiteCerere(){
+  const id=Math.max(...cereri.map(c=>c.id))+1;
+  cereri.unshift({id,tip:cerTip,l:curLoc.k,t:cNum[cerTip]+' — cerere nouă',
+    s:cerTip==='utilaj'?'În aprobare':'Trimisă',g:'astept',d:'trimisă acum'});
+  renderCereri(); renderAzi(); toast('Cererea #'+id+' a plecat la depozit');
+  stack=['v-cereri']; show('v-cereri');
+}
+function openCerere(id){
+  const c=cereri.find(x=>x.id===id);
+  $('#cd-t').firstChild.textContent='Cererea #'+c.id+' ';
+  $('#cd-s').textContent=cNum[c.tip]+' · '+c.l+' · '+c.d;
+  $('#cd-p').textContent=c.s;
+  $('#cd-p').style.cssText = c.g==='drum'?'background:#4ADE80;color:#10151F':c.g==='astept'?'background:var(--am);color:#10151F':'background:rgba(255,255,255,.15);color:#fff';
+  const pasi=['Trimisă de tine','Acceptată de depozit','Pe drum spre șantier','Ajunsă pe șantier'];
+  const cur={astept:1,drum:2,gata:4}[c.g];
+  const info=['18 aug, 16:20','19 aug, 07:05 · Marius (depozit)','19 aug, 07:10 · sosire ~10:30 · șofer Vasile D.','Confirmi tu la primire'];
+  $('#cd-tl').innerHTML=pasi.map((p,i)=>`<div class="s ${i<cur-1?'dn':i===cur-1?'nw':''}">
+    <div class="d"><i></i>${i<3?'<u></u>':''}</div><div class="b"><b>${p}</b><span>${info[i]}</span></div></div>`).join('');
+  const it={mat:[['Polistiren EPS 80, 10 cm','mp',180],['Adeziv termosistem','saci',24],['Dibluri cu cui metalic','buc',900]],
+    unelte:[['Rotopercutantă Bosch GBH 2-28','buc',2],['Fierăstrău polistiren','buc',1]],
+    utilaj:[['Nacelă articulată 12 m','zile',5]],transp:[['Cărat moloz','curse',2]]}[c.tip];
+  $('#cd-items').innerHTML=it.map(i=>`<div class="li"><div class="tx"><b>${i[0]}</b><span>${i[1]}</span></div><span class="q">${i[2]}</span></div>`).join('');
+  $('#cd-act').innerHTML=(c.tip==='unelte'?'<button class="bt out" onclick="go(\'v-pv-un\')"><svg><use href="#i-pen"/></svg>Proces verbal recepție / predare</button>':'')
+    +(c.g!=='gata'?'<button class="bt grn" onclick="toast(\'Recepție confirmată · stocul de șantier a fost actualizat\')"><svg><use href="#i-check"/></svg>Confirmă primirea</button>':'')
+    +'<button class="bt gho" onclick="toast(\'Am anunțat depozitul (demo)\')">Am o problemă cu comanda</button>';
+  go('v-cerere-det');
+}
+function segPu(v){ const r=v==='r';
+  $('#pu-t1').style.cssText=r?'background:var(--am);color:#10151F;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer':'background:rgba(255,255,255,.12);color:#fff;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer';
+  $('#pu-t2').style.cssText=!r?'background:var(--am);color:#10151F;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer':'background:rgba(255,255,255,.12);color:#fff;border:0;font-family:inherit;font-size:13px;padding:9px 14px;cursor:pointer';
+  $('#pu-r').style.display=r?'':'none'; $('#pu-p').style.display=r?'none':'';
+  $$('#v-pv-un canvas.sig').forEach(initSig); }
+
+/* ---------- INSPECȚII ---------- */
+let inspectii=[
+ {id:'INS-214',t:'HVAC — Kaufland Militari',d:'12 august',st:'prob',lab:'Cu probleme'},
+ {id:'INS-212',t:'PSI — hidranți Lidl Berceni',d:'10 august',st:'rez',lab:'Rezolvate'},
+ {id:'INS-209',t:'Electrice — Kaufland Militari',d:'5 august',st:'ok',lab:'Fără probleme'},
+ {id:'INS-205',t:'HVAC — Lidl Berceni',d:'2 august',st:'ok',lab:'Fără probleme'},
+ {id:'INS-201',t:'Sanitare — Kaufland Militari',d:'28 iulie',st:'rez',lab:'Rezolvate'}
+];
+let fInspF='toate';
+function fInsp(f,b){ fInspF=f; [...b.parentElement.children].forEach(x=>x.classList.remove('on')); b.classList.add('on'); renderInsp(); }
+function renderInsp(){
+  const l=inspectii.filter(i=>fInspF==='toate'||i.st===fInspF);
+  $('#in-lista').innerHTML = l.length? l.map(i=>`<button class="brow" onclick="go('v-insp-det')">
+    <div class="sq ${i.st==='prob'?'r':i.st==='rez'?'g':'n'}"><svg><use href="#i-clip"/></svg></div>
+    <div class="tx"><b>${i.t}</b><span>${i.id} · ${i.d}</span></div>
+    <span class="pil ${i.st==='prob'?'r':i.st==='rez'?'g':''}">${i.lab}</span></button>`).join('')
+    : '<div class="emp"><svg><use href="#i-clip"/></svg><b>Nicio fișă aici</b><p>Schimbă filtrul sau fă una nouă.</p></div>';
+}
+function startInsp(){ wizStart('v-insp-w'); }
+function inspProb(v){ $('#iw-da').classList.toggle('on',v); $('#iw-nu').classList.toggle('on',!v); }
+function inspNext3(){ $('#iw-da').classList.contains('on') ? wizGo('v-insp-w',3) : wizGo('v-insp-w',4); }
+function inspRez(v){ $('#iw-rda').classList.toggle('on',v); $('#iw-rnu').classList.toggle('on',!v);
+  $('#iw-rez').style.display=v?'':'none'; $('#iw-nerez').style.display=v?'none':''; }
+function addMat(){
+  const raw=$('#sm-p').value, n=raw.replace(/\s*\(.*\)$/,''), u=(raw.match(/\((.*)\)$/)||[,'buc'])[1], q=+$('#sm-q').value||1;
+  if(sheetFrom==='v-insp-w') $('#iw-mat').insertAdjacentHTML('beforeend',`<div class="li"><div class="tx"><b>${n}</b><span>${u}</span></div><span class="q">${q}</span></div>`);
+  else { curI().m.push({n,u,q}); renderInterv(); }
+  closeSheet(); toast('Material adăugat');
+}
+function rezInsp(){
+  const prob=$('#iw-da').classList.contains('on'), rez=$('#iw-rda').classList.contains('on');
+  const tip=$('#v-insp-w .cc.on b').textContent, fel=$('#v-insp-w .chz .on').textContent;
+  const stare = !prob?'Fără probleme':(rez?'Rezolvată pe loc':'Rămâne deschisă');
+  let h=`<div class="li"><div class="tx"><b>Loc</b></div><span class="q sm">${curLoc.k}</span></div>
+    <div class="li"><div class="tx"><b>Ce ai verificat</b></div><span class="q sm">${tip}</span></div>
+    <div class="li"><div class="tx"><b>Tip inspecție</b></div><span class="q sm">${fel}</span></div>
+    <div class="li"><div class="tx"><b>Poze</b></div><span class="q">${$('#iw-ph').querySelectorAll('.ph:not(.add)').length}</span></div>
+    <div class="li"><div class="tx"><b>Rezultat</b></div><span class="pil ${!prob?'g':rez?'g':'r'}">${stare}</span></div>`;
+  if(prob&&!rez) h+=`<div class="li"><div class="tx"><b>Se creează intervenția</b><span>tag „În urma inspecției”</span></div><span class="q sm">${$('#iw-data').value.split('-').reverse().join('.')}</span></div>`;
+  $('#iw-rezumat').innerHTML=h;
+}
+function salvInsp(){
+  const prob=$('#iw-da').classList.contains('on'), rez=$('#iw-rda').classList.contains('on');
+  const st=!prob?'ok':(rez?'rez':'prob'), lab={ok:'Fără probleme',rez:'Rezolvate',prob:'Cu probleme'}[st];
+  const tip=$('#v-insp-w .cc.on b').textContent;
+  inspectii.unshift({id:'INS-215',t:tip+' — '+curLoc.k,d:'19 august',st,lab});
+  if(prob&&!rez){
+    const t=$('#iw-tit').value||'Intervenție din inspecție';
+    interventii.unshift({id:'INT-091',t,o:curLoc.k,ob:'Instalații HVAC',sub:'Klima Serv SRL',st:'nou',lab:'Planificată 20 aug',tag:'În urma inspecției'});
+    renderInt();
+  }
+  renderInsp(); renderLocuri(); renderAzi();
+  toast(prob&&!rez?'Fișă salvată · intervenție planificată':'Fișă de inspecție salvată');
+  stack=['v-locm']; show('v-locm');
+}
+
+/* ---------- INTERVENȚII ---------- */
+let interventii=[
+ {id:'INT-088',t:'Înlocuire ventilator C3',o:'Kaufland Militari',ob:'Instalații HVAC',sub:'Klima Serv SRL',st:'lucru',lab:'În lucru',tag:'În urma inspecției'},
+ {id:'INT-087',t:'Reparație ușă acces marfă',o:'Lidl Berceni',ob:'Acces marfă',sub:'— fără —',st:'lucru',lab:'În lucru',tag:'Tichet'},
+ {id:'INT-090',t:'Infiltrație subsol',o:'Kaufland Militari',ob:'Subsol tehnic',sub:'Hidro Izo SRL',st:'nou',lab:'Neîncepută',tag:'Tichet'},
+ {id:'INT-089',t:'Verificare pompă incendiu',o:'Lidl Berceni',ob:'Instalații PSI',sub:'Instal Pro SRL',st:'nou',lab:'Planificată 20 aug',tag:'Solicitare'},
+ {id:'INT-086',t:'Schimbare corpuri iluminat',o:'Kaufland Militari',ob:'Instalații electrice',sub:'ElectroMont SRL',st:'nou',lab:'Neîncepută',tag:'Solicitare'},
+ {id:'INT-084',t:'Curățare canalizare pluvială',o:'Lidl Berceni',ob:'Rețele exterioare',sub:'Instal Pro SRL',st:'gata',lab:'Finalizată',tag:'Tichet'}
+];
+const contr={'Kaufland Militari':'C-2024/118','Lidl Berceni':'C-2025/003'};
+let fIntF='toate';
+function fInt(f,b){ fIntF=f; if(b){[...b.parentElement.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');} renderInt(); }
+function renderInt(){
+  $$('#f-int button').forEach((b,i)=>b.classList.toggle('on', ['toate','nou','lucru','gata'][i]===fIntF));
+  const l=interventii.filter(i=>fIntF==='toate'||i.st===fIntF);
+  $('#it-lista').innerHTML = l.length? l.map(i=>`<button class="brow" onclick="openInterv('${i.id}')">
+    <div class="sq ${i.st==='gata'?'g':i.st==='lucru'?'a':'r'}"><svg><use href="#i-tool"/></svg></div>
+    <div class="tx"><b>${i.t}</b><span>${i.id} · ${i.o} · ${i.tag}</span></div>
+    <span class="pil ${i.st==='gata'?'g':i.st==='lucru'?'a':'r'}">${i.lab}</span></button>`).join('')
+    : '<div class="emp"><svg><use href="#i-tool"/></svg><b>Nicio intervenție</b><p>Schimbă filtrul sau creează una nouă.</p></div>';
+}
+const dbI={'INT-088':{st:'lucru',p:2,
+  j:[{m:'19 aug, 09:15 · Ion Popescu',t:'Am demontat carcasa ventilatorului. Rotorul e blocat cu praf, lagărul are joc.'},
+     {m:'19 aug, 11:40 · Ion Popescu',t:'Curățat rotor, înlocuit cureaua. Aștept rulmentul de la depozit ca să pot închide.'}],
+  t:[{c:'Ion Popescu',d:'19 aug',h:2,m:0},{c:'Klima Serv SRL',d:'19 aug',h:1,m:30}],
+  m:[{n:'Curea trapezoidală A-1000',u:'buc',q:1},{n:'Silicon neutru',u:'tub',q:2}]}};
+let curIid='INT-088';
+function curI(){ return dbI[curIid]||(dbI[curIid]={st:'nou',p:0,j:[],t:[],m:[]}); }
+function openInterv(id){
+  curIid=id; const it=interventii.find(x=>x.id===id); const c=curI(); c.st=it.st;
+  $('#it-tit').firstChild.textContent=it.t+' '; $('#it-sub').textContent=it.id+' · '+it.o;
+  $('#it-tag').textContent=it.tag; $('#it-src').style.display= it.tag==='În urma inspecției'?'':'none';
+  $('#it-c').textContent=contr[it.o]||'—'; $('#it-o').textContent=it.ob; $('#it-sc').textContent=it.sub;
+  renderInterv(); go('v-interv-det');
+}
+function renderInterv(){
+  const c=curI(), gata=c.st==='gata', plan=c.st==='nou', it=interventii.find(x=>x.id===curIid)||{};
+  $('#it-st').textContent = gata?'Finalizată':plan?(it.lab||'Neîncepută'):'În lucru';
+  $('#it-st').style.cssText = gata?'background:#4ADE80;color:#10151F':plan?'background:var(--rd);color:#fff':'background:var(--am);color:#10151F';
+  const gol='<div class="blk p ctr mut sm">Nicio înregistrare încă.</div>';
+  $('#it-jurnal').innerHTML = c.j.length? c.j.map(j=>`<div class="jc"><div class="h"><span class="xs mut" style="font-weight:800">${j.m}</span></div><p>${j.t}</p></div>`).join('') : gol;
+  $('#it-nj').textContent=c.j.length+' înregistrări';
+  $('#it-timp').innerHTML = c.t.length? c.t.map(t=>`<div class="li"><div class="tx"><b>${t.c}</b><span>${t.d}</span></div><span class="q">${t.h} h ${t.m?t.m+' m':''}</span></div>`).join('')
+    : '<div class="li mut sm" style="justify-content:center">Nicio oră trecută încă.</div>';
+  const tot=c.t.reduce((s,t)=>s+t.h*60+t.m,0);
+  $('#it-ore').textContent=Math.floor(tot/60)+' h '+(tot%60)+' m';
+  $('#it-mat').innerHTML = c.m.length? c.m.map(m=>`<div class="li"><div class="tx"><b>${m.n}</b><span>${m.u}</span></div><span class="q">${m.q}</span></div>`).join('')
+    : '<div class="li mut sm" style="justify-content:center">Niciun material trecut încă.</div>';
+  $('#it-ph').innerHTML = Array.from({length:c.p},(_,i)=>`<div class="ph"><svg><use href="#i-img"/></svg><span class="tg">${i+1}</span></div>`).join('')
+    + (c.st==='lucru'?'<button class="ph add" onclick="addPh(\'it-ph\')"><svg><use href="#i-cam"/></svg></button>':'');
+  $$('#v-interv-det .bt.out').forEach(b=>b.disabled = c.st!=='lucru');
+  $('#it-banner').innerHTML = plan
+    ? '<div class="al a"><svg><use href="#i-cal"/></svg><div><b>Intervenție planificată</b><p>Fișa e goală. Când ajungi acolo, apasă „Începe” și scrii ce ai făcut.</p></div></div>' : '';
+  $('#it-act').innerHTML = gata
+    ? '<div class="al g" style="margin:0"><svg><use href="#i-check"/></svg><div><b>Intervenție finalizată</b><p>Fișa e închisă. Nu se mai pot adăuga înregistrări.</p></div></div>'
+    : plan ? '<button class="bt pri" onclick="startI()"><svg><use href="#i-play"/></svg>Începe intervenția</button>'
+    : '<button class="bt grn" onclick="finalI()"><svg><use href="#i-check"/></svg>Finalizează intervenția</button><div class="xs mut ctr" style="padding-top:4px">După finalizare nu se mai pot adăuga înregistrări.</div>';
+}
+function startI(){ curI().st='lucru'; const i=interventii.find(x=>x.id===curIid);
+  if(i){i.st='lucru';i.lab='În lucru';renderInt()} renderInterv(); renderLocuri(); toast('Acum poți completa fișa'); }
+function finalI(){ const c=curI(); if(c.st!=='lucru') return; c.st='gata'; renderInterv();
+  const i=interventii.find(x=>x.id===curIid); if(i){i.st='gata';i.lab='Finalizată';renderInt()}
+  renderLocuri(); renderAzi();
+  if(!interventii.some(x=>x.st==='nou')) doneTask('tichete'); else toast('Intervenția a fost finalizată'); }
+function creazaInterv(acum){
+  const id='INT-09'+(2+Object.keys(dbI).length);
+  interventii.unshift({id,t:'Intervenție nouă',o:curLoc.tip==='m'?curLoc.k:'Kaufland Militari',ob:'Instalații HVAC',sub:'Klima Serv SRL',
+    st:acum?'lucru':'nou',lab:acum?'În lucru':'Planificată 20 aug',tag:'Tichet'});
+  renderInt(); toast(acum?'Fișă creată — e deschisă':'Intervenție planificată'); openInterv(id);
+}
+function addDesc(){ const v=$('#sd-t').value.trim(); if(!v){toast('Scrie ceva mai întâi');return;}
+  curI().j.push({m:'19 aug, '+new Date().toTimeString().slice(0,5)+' · Ion Popescu',t:v});
+  $('#sd-t').value=''; renderInterv(); closeSheet(); toast('Adăugat în jurnal'); }
+function addTimp(){ curI().t.push({c:$('#st-c').value,d:'19 aug',h:+$('#st-h').value||0,m:+$('#st-m').value||0});
+  renderInterv(); closeSheet(); toast('Ore adăugate'); }
+
+/* ---------- SITUAȚII ---------- */
+let devize=[
+ {cod:'CE01A',den:'Montaj polistiren expandat pe fațadă, 10 cm',um:'mp',q:1240,st:null,nou:null,obs:''},
+ {cod:'CG12',den:'Montaj plasă fibră de sticlă cu masă de șpaclu',um:'mp',q:980,st:null,nou:null,obs:''},
+ {cod:'CE04B',den:'Bandă de etanșare la tâmplărie',um:'ml',q:310,st:null,nou:null,obs:''},
+ {cod:'IZF03',den:'Montaj profil de colț cu plasă',um:'ml',q:420,st:null,nou:null,obs:''},
+ {cod:'CN22A',den:'Amorsă grund pigmentat',um:'mp',q:980,st:null,nou:null,obs:''},
+ {cod:'CF17',den:'Tencuială decorativă structurată 1,5 mm',um:'mp',q:640,st:null,nou:null,obs:''},
+ {cod:'CK15',den:'Montaj glafuri exterioare din tablă',um:'ml',q:96,st:null,nou:null,obs:''}
+];
+let pz=0;
+function renderDev(){
+  $('#si-lista').innerHTML=devize.map((d,i)=>{
+    const p=d.st==='ok'?(d.obs?'<span class="pil a">Cu mențiune</span>':'<span class="pil g">Confirmat</span>')
+      :d.st==='fix'?'<span class="pil r">Corectat</span>':'<span class="pil">De verificat</span>';
+    const ex=d.st==='fix'?`<div style="font-size:13px;color:var(--rd);font-weight:800;margin-top:5px">Corectat la ${d.nou} ${d.um}${d.obs?' · '+d.obs:''}</div>`
+      :(d.st==='ok'&&d.obs)?`<div style="font-size:13px;color:var(--am-d);font-weight:800;margin-top:5px">Mențiune: ${d.obs}</div>`:'';
+    return `<button class="brow" onclick="openPz(${i})" style="align-items:flex-start">
+      <div class="sq ${d.st==='ok'?'g':d.st==='fix'?'r':'n'}" style="margin-top:2px"><svg><use href="#i-${d.st==='ok'?'check':d.st==='fix'?'pen':'list'}"/></svg></div>
+      <div class="tx"><b style="font-size:15.5px">${d.den}</b><span>${d.cod} · ${d.um}</span>${ex}</div>
+      <div style="text-align:right"><div style="font-size:19px;font-weight:800">${d.q}</div><div style="margin-top:5px">${p}</div></div></button>`;
+  }).join('');
+  const ok=devize.filter(d=>d.st==='ok'&&!d.obs).length, fx=devize.filter(d=>d.st==='fix'||(d.st==='ok'&&d.obs)).length;
+  $('#si-ok').textContent=ok; $('#si-mod').textContent=fx; $('#si-rest').textContent=devize.length-ok-fx;
+  $('#si-bar').style.width=Math.round((ok+fx)/devize.length*100)+'%';
+}
+function openPz(i){ pz=i; const d=devize[i];
+  $('#pz-cod').textContent=d.cod; $('#pz-den').textContent=d.den; $('#pz-q').textContent=d.q+' '+d.um;
+  $('#pz-nou').value=d.nou||d.q; $('#pz-obs').value=d.obs||''; openSheet('sh-poz'); }
+function sitOk(cu){ const d=devize[pz]; d.st='ok'; d.nou=null; d.obs=cu?$('#pz-obs').value.trim():'';
+  renderDev(); closeSheet(); nextPz(); }
+function sitFix(){ const d=devize[pz]; d.st='fix'; d.nou=+$('#pz-nou').value; d.obs=$('#pz-obs').value.trim();
+  renderDev(); closeSheet(); nextPz(); }
+function nextPz(){ const n=devize.findIndex(d=>!d.st);
+  if(n>=0){ toast('Gata. Mai ai '+devize.filter(d=>!d.st).length+' poziții'); setTimeout(()=>openPz(n),450); }
+  else toast('Ai verificat toate pozițiile'); }
+function trimiteSit(){ const r=devize.filter(d=>!d.st).length;
+  if(r){ toast('Mai ai '+r+' poziții neverificate'); return; }
+  toast('Verificarea a plecat la PM și la subcontractant'); stack=['v-loc']; show('v-loc'); doneTask('situatii'); }
+
+/* ---------- PONTAJ PROPRIU ---------- */
+const oameni=['Marian Ilie','Gheorghe Dinu','Vasile Popa','Costel Rusu','Nicolae Barbu','Adrian Stoica','Florin Neagu','Petre Lungu'];
+let sel=new Set([0,1,2,3,4]), ptPontat=false;
+const ini=n=>n.split(' ').map(w=>w[0]).join('');
+function renderPers(){
+  $('#pe-lista').innerHTML=oameni.map((n,i)=>`<div class="ck ${sel.has(i)?'on':''}" onclick="togP(${i},this)">
+    <span class="bx"><svg><use href="#i-check"/></svg></span><div class="av">${ini(n)}</div>
+    <div class="tx" style="margin-left:4px"><b>${n}</b><span>Muncitor · echipa Damina</span></div></div>`).join('');
+  $('#pe-cnt').textContent=sel.size+' selectate';
+  $('#pt-sel').innerHTML = sel.size? [...sel].map(i=>`<div class="li"><div class="av">${ini(oameni[i])}</div>
+    <div class="tx" style="margin-left:12px"><b>${oameni[i]}</b><span>07:30 – 17:00 · 8 h</span></div>
+    <button class="ibx" onclick="togP(${i},this)"><svg><use href="#i-x"/></svg></button></div>`).join('')
+    : '<div class="emp" style="padding:28px"><svg><use href="#i-users"/></svg><b>Nicio persoană</b><p>Adaugă oamenii care au lucrat azi.</p></div>';
+}
+function togP(i,el){ sel.has(i)?sel.delete(i):sel.add(i); renderPers(); }
+function allPers(v){ sel = v? new Set(oameni.map((_,i)=>i)) : new Set(); renderPers(); }
+function renderPt(){
+  $('#pt-banner').innerHTML = ptPontat
+    ? '<div class="al g"><svg><use href="#i-check"/></svg><div><b>Pontaj trimis pentru azi</b><p>'+sel.size+' persoane · 07:30 – 17:00</p></div></div>'
+    : '<div class="al r"><svg><use href="#i-alert"/></svg><div><b>Nu te-ai pontat azi</b><p>Trece prezența echipei până la ora 10:00.</p><button class="bt pri s" onclick="go(\'v-pontaj-nou\')"><svg><use href="#i-clock"/></svg>Pontează acum</button></div></div>';
+  $('#eu-pontaj').innerHTML = ptPontat
+    ? '<div class="al g"><svg><use href="#i-check"/></svg><div><b>Te-ai pontat azi</b><p>'+sel.size+' persoane · 07:30 – 17:00</p></div></div>'
+    : '<div class="al r"><svg><use href="#i-alert"/></svg><div><b>Nu te-ai pontat azi</b><p>Durează 10 secunde.</p><button class="bt pri s" onclick="go(\'v-pontaj-nou\')"><svg><use href="#i-clock"/></svg>Pontează acum</button></div></div>';
+  $('#pt-azi').innerHTML = ptPontat? [...sel].map(i=>`<div class="li"><div class="av">${ini(oameni[i])}</div>
+      <div class="tx" style="margin-left:12px"><b>${oameni[i]}</b><span>07:30 – 17:00</span></div><span class="pil g">8 h</span></div>`).join('')
+    : '<div class="emp" style="padding:28px"><svg><use href="#i-users"/></svg><b>Nimeni pontat încă</b><p>Apasă „Pontează acum”.</p></div>';
+}
+function salvPontaj(){ if(!sel.size){toast('Adaugă cel puțin o persoană');return;}
+  ptPontat=true; renderPt(); toast('Pontaj trimis pentru '+sel.size+' persoane'); stack=['v-eu']; show('v-eu'); doneTask('pontaj'); }
+
+/* ---------- CONCEDIU ---------- */
+let zileRam=14;
+let concedii=[
+ {t:'Odihnă',p:'3 – 7 septembrie 2026',z:5,s:'Aprobat',c:'g'},
+ {t:'Odihnă',p:'14 – 18 iulie 2026',z:5,s:'Efectuat',c:''},
+ {t:'Eveniment familial',p:'2 mai 2026',z:1,s:'Efectuat',c:''},
+ {t:'Medical',p:'9 – 10 martie 2026',z:2,s:'Efectuat',c:''}
+];
+function renderConc(){
+  $('#co-lista').innerHTML=concedii.map(c=>`<div class="brow" style="cursor:default">
+    <div class="sq ${c.c==='g'?'g':c.c==='a'?'a':'n'}"><svg><use href="#i-plane"/></svg></div>
+    <div class="tx"><b>${c.t}</b><span>${c.p} · ${c.z} zile</span></div><span class="pil ${c.c}">${c.s}</span></div>`).join('');
+  $('#co-ram').textContent=zileRam; $('#eu-zile').textContent=zileRam;
+  $('#co-ast').textContent=concedii.filter(c=>c.s==='În aprobare').length;
+}
+function calcZ(){
+  const a=new Date($('#co-de').value), b=new Date($('#co-la').value); let n=0;
+  for(let d=new Date(a); d<=b; d.setDate(d.getDate()+1)){ const w=d.getDay(); if(w&&w!==6) n++; }
+  if(!(n>=0)) n=0;
+  $('#co-nz').textContent=n+(n===1?' zi lucrătoare':' zile lucrătoare');
+  $('#co-dupa').textContent='Îți rămân '+Math.max(0,zileRam-n)+' zile din cele 21 pe an.';
+  return n;
+}
+function startConcediu(){ wizStart('v-concediu-w'); calcZ(); }
+function rezConcediu(){
+  const n=calcZ(), t=$('#cw-tip .cc.on b').textContent;
+  const f=$('#co-de').value.split('-').reverse().join('.'), g=$('#co-la').value.split('-').reverse().join('.');
+  $('#co-rez').innerHTML=`<div class="li"><div class="tx"><b>Tip</b></div><span class="q sm">${t}</span></div>
+    <div class="li"><div class="tx"><b>Perioada</b></div><span class="q sm">${f} – ${g}</span></div>
+    <div class="li"><div class="tx"><b>Revin la lucru</b></div><span class="q sm">${$('#co-rev').value.split('-').reverse().join('.')}</span></div>
+    <div class="li"><div class="tx"><b>Zile lucrătoare</b></div><span class="q">${n}</span></div>
+    <div class="li"><div class="tx"><b>Îți rămân după aprobare</b></div><span class="q">${Math.max(0,zileRam-n)}</span></div>`;
+}
+function trimiteConcediu(){
+  const n=calcZ(), t=$('#cw-tip .cc.on b').textContent;
+  const L=['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'];
+  const f=new Date($('#co-de').value), g=new Date($('#co-la').value);
+  concedii.unshift({t,p:`${f.getDate()} – ${g.getDate()} ${L[g.getMonth()]} ${g.getFullYear()}`,z:n,s:'În aprobare',c:'a'});
+  renderConc(); toast('Cererea a plecat spre aprobare'); stack=['v-eu']; show('v-concediu');
+}
+
+/* ---------- start ---------- */
+renderLocuri(); renderAzi(); renderFr(); renderJurnal(); renderCereri(); renderInsp(); renderInt();
+renderInterv(); renderDev(); renderPers(); renderPt(); renderConc(); renderJwFirme();
+renderLcAzi(); renderLcAlerte();
+setInterval(()=>{const d=new Date();$('#clk').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')},1000);
+show('v-azi');
+</script>
+</body>
+</html>

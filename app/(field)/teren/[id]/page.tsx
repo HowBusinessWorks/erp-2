@@ -1,9 +1,19 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, asc, desc, eq, sql as raw } from "drizzle-orm";
 
 import { submitIntervention, submitInspection } from "@/app/actions/field";
-import { ChecklistPoint, FieldHeader, SubmitBar } from "@/components/domain/FieldKit";
+import { ChecklistPoint, SubmitBar } from "@/components/domain/FieldKit";
+import {
+  Alert,
+  Block,
+  ButtonLink,
+  Buttons,
+  Empty,
+  FieldBar,
+  Label,
+  Note,
+  Pill,
+} from "@/components/domain/FieldUI";
 import { db } from "@/lib/db";
 import {
   checklistItems,
@@ -40,27 +50,37 @@ export default async function FieldUnitPage({ params }: { params: Promise<{ id: 
   if (!row) notFound();
   const { unit, objective } = row;
 
+  const back = unit.objectiveId ? `/teren/locuri/${unit.objectiveId}` : "/teren";
+
   return unit.kind === "inspectie" ? (
-    <InspectionForm unit={unit} objectiveName={objective?.name ?? "—"} objectiveKind={objective?.kind ?? null} />
+    <InspectionForm
+      unit={unit}
+      objectiveName={objective?.name ?? "—"}
+      objectiveKind={objective?.kind ?? null}
+      back={back}
+    />
   ) : (
     <InterventionForm
       unit={unit}
       objectiveName={objective?.name ?? "—"}
       userId={session.id}
+      back={back}
     />
   );
 }
 
-/* ─────────────────────────── T2 ─────────────────────────── */
+/* ─────────────────────────── T2 — inspecție ─────────────────────────── */
 
 async function InspectionForm({
   unit,
   objectiveName,
   objectiveKind,
+  back,
 }: {
   unit: typeof workUnits.$inferSelect;
   objectiveName: string;
   objectiveKind: string | null;
+  back: string;
 }) {
   /**
    * Profilul de inspecție stă pe LEGĂTURA contract–obiectiv, nu pe obiectiv și nu pe
@@ -98,45 +118,55 @@ async function InspectionForm({
     : [];
 
   return (
-    <form action={submitInspection} className="px-4 py-4">
+    <form action={submitInspection}>
       <input type="hidden" name="workUnitId" value={unit.id} />
-      <FieldHeader
-        eyebrow={KIND_LABEL.inspectie}
-        title={objectiveName}
-        meta={`${unit.code} · ${items.length} puncte`}
-      />
+
+      <FieldBar title={unit.title} sub={`${objectiveName} · ${unit.code}`} back={back}>
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          <Pill tone="am-solid">{KIND_LABEL.inspectie}</Pill>
+          <Pill tone="on-dark">
+            {items.length} {items.length === 1 ? "punct" : "puncte"}
+          </Pill>
+        </div>
+      </FieldBar>
 
       {items.length === 0 ? (
-        <p className="py-8 text-tiny text-ink-2">
-          Obiectivul nu are șablon de inspecție. Biroul îl atașează pe legătura
-          contract–obiectiv.
-        </p>
+        <Empty icon="clip" title="Obiectivul nu are șablon de inspecție">
+          Biroul îl atașează pe legătura contract–obiectiv. Până atunci nu ai ce bifa aici.
+        </Empty>
       ) : (
-        <ul className="mt-1">
-          {items.map((item) => (
-            <ChecklistPoint key={item.id} id={item.id} text={item.text} section={item.section} />
-          ))}
-        </ul>
-      )}
+        <>
+          <Label>Bifează fiecare punct</Label>
+          <Block>
+            {items.map((item) => (
+              <ChecklistPoint key={item.id} id={item.id} text={item.text} section={item.section} />
+            ))}
+          </Block>
 
-      <SubmitBar
-        label="Trimite fișa"
-        hint="Fiecare punct NOK cu ieșirea „intervenție” sau „propunere” deschide singur o cerere la birou."
-      />
+          <Note>
+            Fiecare punct NOK trebuie să spună ce se întâmplă mai departe. „Intervenție" și
+            „propunere" deschid singure o cerere la birou.
+          </Note>
+
+          <SubmitBar label="Trimite fișa" />
+        </>
+      )}
     </form>
   );
 }
 
-/* ─────────────────────────── T3 ─────────────────────────── */
+/* ─────────────────────────── T3 — intervenție ─────────────────────────── */
 
 async function InterventionForm({
   unit,
   objectiveName,
   userId,
+  back,
 }: {
   unit: typeof workUnits.$inferSelect;
   objectiveName: string;
   userId: string;
+  back: string;
 }) {
   // Materialele se iau din gestiunea ECHIPEI, nu din depozitul central: pe teren
   // omul are în dubă doar ce e în gestiunea lui.
@@ -170,109 +200,90 @@ async function InterventionForm({
     .limit(1);
 
   return (
-    <form action={submitIntervention} className="px-4 py-4">
+    <form action={submitIntervention}>
       <input type="hidden" name="workUnitId" value={unit.id} />
       <input type="hidden" name="warehouseId" value={teamWarehouse?.id ?? ""} />
 
-      <FieldHeader
-        eyebrow={KIND_LABEL[unit.kind as keyof typeof KIND_LABEL]}
-        title={objectiveName}
-        meta={`${unit.code}${allocation ? "" : " · fără finanțare atribuită"}`}
-      />
-
-      <div className="mt-4 space-y-4">
-        <label className="block">
-          <span className="eyebrow mb-1 block">Ce ai făcut</span>
-          <textarea
-            name="description"
-            rows={3}
-            autoFocus
-            placeholder="Descrie pe scurt"
-            className="w-full rounded-[3px] border border-rule-strong bg-sheet px-2.5 py-2 text-[0.9375rem] leading-relaxed text-ink"
-          />
-        </label>
-
-        <div className="grid grid-cols-3 gap-2">
-          <label className="block">
-            <span className="eyebrow mb-1 block">Ore</span>
-            <input
-              name="hours"
-              inputMode="decimal"
-              defaultValue="2"
-              className="h-11 w-full rounded-[3px] border border-rule-strong bg-sheet px-2.5 text-right text-[0.9375rem] tabular text-ink"
-            />
-          </label>
-          <label className="block">
-            <span className="eyebrow mb-1 block">Oameni</span>
-            <input
-              name="people"
-              inputMode="numeric"
-              defaultValue="1"
-              className="h-11 w-full rounded-[3px] border border-rule-strong bg-sheet px-2.5 text-right text-[0.9375rem] tabular text-ink"
-            />
-          </label>
-          <label className="block">
-            <span className="eyebrow mb-1 block">Calificare</span>
-            <select
-              name="qualification"
-              defaultValue="muncitor"
-              className="h-11 w-full rounded-[3px] border border-rule-strong bg-sheet px-2 text-[0.875rem] text-ink"
-            >
-              <option value="muncitor">Muncitor</option>
-              <option value="electrician">Electrician</option>
-              <option value="instalator">Instalator</option>
-            </select>
-          </label>
+      <FieldBar title={unit.title} sub={`${objectiveName} · ${unit.code}`} back={back}>
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          <Pill tone="am-solid">{KIND_LABEL[unit.kind as keyof typeof KIND_LABEL]}</Pill>
+          {allocation ? null : <Pill tone="on-dark">fără finanțare atribuită</Pill>}
         </div>
+      </FieldBar>
 
-        <div>
-          <div className="eyebrow mb-1">
-            Materiale din gestiunea {teamWarehouse ? teamWarehouse.name : "echipei"}
+      <h2 className="f-q">Ce ai făcut?</h2>
+      <p className="f-qs">Descrie pe scurt. Restul sunt cifre.</p>
+
+      <Block>
+        <div className="f-fld">
+          <textarea name="description" autoFocus placeholder="Ex: am demontat carcasa și am curățat rotorul" />
+        </div>
+      </Block>
+
+      <Label>Cât a durat</Label>
+      <Block>
+        <div className="f-li">
+          <div className="f-tx">
+            <b>Ore lucrate</b>
+            <span>pe om</span>
           </div>
-          {stockRows.length === 0 ? (
-            <p className="text-tiny text-ink-2">
-              Gestiunea echipei e goală. Cere material cu ＋ → Necesar material.
-            </p>
-          ) : (
-            <ul className="divide-y divide-rule border-y border-rule">
-              {stockRows.map(({ stock: line, product }) => (
-                <li key={line.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <input type="hidden" name="productId" value={product.id} />
-                  <span className="min-w-0">
-                    <span className="block text-[0.875rem] leading-snug text-ink">{product.name}</span>
-                    {/* Cantități, nu bani. */}
-                    <span className="block text-micro text-ink-3">
-                      în gestiune {Number(line.quantity)} {product.unit}
-                    </span>
-                  </span>
-                  <input
-                    name={`qty_${product.id}`}
-                    inputMode="decimal"
-                    placeholder="0"
-                    className="h-11 w-20 shrink-0 rounded-[3px] border border-rule-strong bg-sheet px-2 text-right text-[0.9375rem] tabular text-ink"
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
+          <input className="f-num" name="hours" inputMode="decimal" defaultValue="2" aria-label="Ore" />
         </div>
+        <div className="f-li">
+          <div className="f-tx">
+            <b>Câți oameni</b>
+            <span>inclusiv tu</span>
+          </div>
+          <input className="f-num" name="people" inputMode="numeric" defaultValue="1" aria-label="Oameni" />
+        </div>
+        <div className="f-fld">
+          <label htmlFor="qualification">Calificare</label>
+          <select id="qualification" name="qualification" defaultValue="muncitor">
+            <option value="muncitor">Muncitor</option>
+            <option value="electrician">Electrician</option>
+            <option value="instalator">Instalator</option>
+          </select>
+        </div>
+      </Block>
 
-        <p className="text-tiny text-ink-2">
-          Nu e destul ca să închizi?{" "}
-          <Link href={`/teren/necesar?ul=${unit.id}`} className="underline">
-            Cere material
-          </Link>{" "}
-          sau{" "}
-          <Link href={`/teren/jurnal?ul=${unit.id}`} className="underline">
-            scrie în jurnal
-          </Link>
-          .
-        </p>
-      </div>
+      <Label>Materiale din gestiunea {teamWarehouse ? teamWarehouse.name : "echipei"}</Label>
+      {stockRows.length === 0 ? (
+        <Alert tone="a" icon="box" title="Gestiunea echipei e goală">
+          Cere material din meniul locului, apoi revino și închide fișa.
+        </Alert>
+      ) : (
+        <Block>
+          {stockRows.map(({ stock: line, product }) => (
+            <div key={line.id} className="f-li">
+              <input type="hidden" name="productId" value={product.id} />
+              <div className="f-tx">
+                <b>{product.name}</b>
+                {/* cantități, nu bani */}
+                <span>
+                  în gestiune {Number(line.quantity)} {product.unit}
+                </span>
+              </div>
+              <input
+                className="f-num"
+                name={`qty_${product.id}`}
+                inputMode="decimal"
+                placeholder="0"
+                aria-label={`Cantitate din ${product.name}`}
+              />
+            </div>
+          ))}
+        </Block>
+      )}
+
+      <Buttons>
+        <ButtonLink href={`/teren/necesar?ul=${unit.id}`} icon="plus" small>
+          Nu e destul — cere material
+        </ButtonLink>
+      </Buttons>
 
       <SubmitBar
-        label="Trimite și închide"
-        hint="Orele intră în pontaj, materialele ies din gestiune. Amândouă produc linii în registrul de cost."
+        label="Trimite și închide fișa"
+        hint="Orele intră în pontaj, materialele ies din gestiune. Fișa se închide."
       />
     </form>
   );

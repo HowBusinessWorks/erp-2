@@ -66,7 +66,7 @@ async function wipe() {
     "package_lines", "packages",
     "deviz_templates", "normed_articles", "deviz_mapping", "deviz_lines", "devize",
     "labor_rates", "timesheets", "intervention_details", "inspection_answers",
-    "site_journal_entries",
+    "site_journal_entries", "leave_requests",
     "checklist_items", "checklist_templates",
     "operation_catalog_materials", "operation_catalog", "requests",
     "periods", "cost_entries", "reallocations", "funding_allocations",

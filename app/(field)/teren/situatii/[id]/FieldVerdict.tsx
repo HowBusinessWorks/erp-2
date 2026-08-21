@@ -3,14 +3,15 @@
 import { useState } from "react";
 
 import { verifySlLine } from "@/app/actions/deviz";
+import { Icon } from "@/components/domain/FieldIcons";
 
 /**
  * T8 — verdictul pe o linie, cu degetul.
  *
- * Două butoane mari, cât o falangă. „Suspect" deschide câmpul de comentariu în
+ * Două butoane mari, cât o falangă. „Nu e așa" deschide câmpul de comentariu în
  * aceeași apăsare — nu într-un ecran nou, pentru că omul e pe schelă și nu vrea să
- * navigheze. Fără comentariu nu se trimite: o linie marcată suspect fără explicație
- * nu ajută pe nimeni.
+ * navigheze. Fără comentariu nu se trimite: o linie contestată fără explicație nu
+ * ajută pe nimeni.
  */
 export function FieldVerdict({
   lineId,
@@ -25,20 +26,17 @@ export function FieldVerdict({
   const [text, setText] = useState(comment ?? "");
 
   return (
-    <div className="mt-2.5 space-y-2">
-      <div className="grid grid-cols-2 gap-2">
+    <div style={{ marginTop: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <form action={verifySlLine}>
           <input type="hidden" name="lineId" value={lineId} />
           <input type="hidden" name="verdict" value="ok" />
           <button
             type="submit"
             onClick={() => setOpen(false)}
-            className={`h-12 w-full rounded-[4px] border text-[0.9375rem] font-semibold ${
-              verdict === "ok"
-                ? "border-fill bg-fill text-white"
-                : "border-rule-strong bg-sheet text-ink active:bg-sunk"
-            }`}
+            className={verdict === "ok" ? "f-bt f-grn f-s" : "f-bt f-out f-s"}
           >
+            <Icon name="check" />
             Corect
           </button>
         </form>
@@ -46,40 +44,60 @@ export function FieldVerdict({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className={`h-12 w-full rounded-[4px] border text-[0.9375rem] font-semibold ${
-            verdict === "suspect"
-              ? "border-over bg-over text-white"
-              : "border-rule-strong bg-sheet text-ink active:bg-sunk"
-          }`}
+          className={verdict === "suspect" && !open ? "f-bt f-red f-s" : "f-bt f-out f-s"}
         >
+          <Icon name="pen" />
           Nu e așa
         </button>
       </div>
 
       {verdict === "suspect" && comment && !open ? (
-        <p className="border-l-2 border-over bg-over-soft px-3 py-1.5 text-tiny text-over">
+        <p
+          style={{
+            margin: "12px 0 0",
+            background: "var(--f-rd-l)",
+            color: "var(--f-rd)",
+            borderRadius: 12,
+            padding: "11px 13px",
+            fontSize: 13.5,
+            lineHeight: 1.45,
+            fontWeight: 600,
+          }}
+        >
           {comment}
         </p>
       ) : null}
 
       {open ? (
-        <form action={verifySlLine} className="space-y-2">
+        <form action={verifySlLine} style={{ marginTop: 12 }}>
           <input type="hidden" name="lineId" value={lineId} />
           <input type="hidden" name="verdict" value="suspect" />
           <textarea
             name="verdictComment"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            rows={2}
+            rows={3}
             autoFocus
             placeholder="Cât s-a făcut de fapt și ce e diferit"
-            className="w-full rounded-[4px] border border-rule-strong bg-sheet px-3 py-2 text-[0.9375rem] leading-relaxed text-ink"
+            style={{
+              width: "100%",
+              border: "2px solid var(--f-line)",
+              borderRadius: 14,
+              padding: "12px 14px",
+              fontSize: 16,
+              fontFamily: "inherit",
+              lineHeight: 1.5,
+              resize: "none",
+              outline: "none",
+            }}
           />
           <button
             type="submit"
             disabled={text.trim() === ""}
-            className="h-11 w-full rounded-[4px] bg-over text-[0.9375rem] font-semibold text-white disabled:opacity-40"
+            className="f-bt f-red f-s"
+            style={{ marginTop: 10 }}
           >
+            <Icon name="check" />
             Trimite observația
           </button>
         </form>

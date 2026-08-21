@@ -4,111 +4,181 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
+import { Icon } from "./FieldIcons";
+
 /**
- * Piesele comune ale interfeței de teren.
+ * Piesele de teren care au nevoie de stare.
  *
- * Toate sunt proiectate în jurul aceleiași reguli: ＋ costă o atingere, alegerea
- * acțiunii încă una, deci ecranul de dedesubt are voie la UNA singură — Trimite.
- * Nimic de aici nu afișează lei.
+ * Regula de atingeri (CLAUDE.md, 6): ＋ costă una, alegerea acțiunii încă una, deci
+ * ecranul de dedesubt are voie la UNA singură — Trimite. De asta bara de trimis e
+ * lipită de degetul mare și e singurul buton de pe ecran.
  */
 
-/** Butonul ＋ și cele patru acțiuni. A doua atingere din cele trei. */
-export function FieldAddButton({ workUnitId }: { workUnitId?: string }) {
-  const [open, setOpen] = useState(false);
-  const suffix = workUnitId ? `?ul=${workUnitId}` : "";
+/* ───────────────────────── bara de Trimite ───────────────────────── */
 
-  const actions = [
-    { href: `/teren/necesar${suffix}`, label: "Necesar material", hint: "trei atingeri cap-coadă" },
-    { href: "/teren/pontaj", label: "Pontaj", hint: "ziua împărțită pe lucrări" },
-    { href: `/teren/jurnal${suffix}`, label: "Jurnal de șantier", hint: "se deschide gata de scris" },
-    { href: `/teren/constatare${suffix}`, label: "Constatare", hint: "am văzut ceva, trebuie rezolvat" },
-  ];
-
-  return (
-    <>
-      {open ? (
-        <div className="fixed inset-0 z-40 flex flex-col justify-end bg-ink/40">
-          {/* Fundalul închide DOAR meniul de acțiuni, care nu conține date scrise.
-              Formularele cu date nu se închid așa — vezi regula modală. */}
-          <button
-            type="button"
-            aria-label="Închide"
-            className="absolute inset-0"
-            onClick={() => setOpen(false)}
-          />
-          <div className="relative z-10 mb-20 border-t border-rule bg-sheet">
-            {actions.map((action) => (
-              <Link
-                key={action.href}
-                href={action.href}
-                className="block border-b border-rule px-5 py-4 active:bg-sunk"
-                onClick={() => setOpen(false)}
-              >
-                <span className="block font-narrow text-[1rem] font-semibold text-ink">
-                  {action.label}
-                </span>
-                <span className="block text-tiny text-ink-2">{action.hint}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="fixed bottom-16 right-4 z-30">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-blueprint text-2xl font-light text-white shadow-[0_6px_20px_-6px_rgba(24,20,16,0.5)] active:brightness-95"
-          aria-label={open ? "Închide" : "Adaugă"}
-        >
-          {open ? "✕" : "＋"}
-        </button>
-      </div>
-    </>
-  );
-}
-
-/** Singura atingere permisă pe ecranul de dedesubt. Se blochează cât timp trimite. */
-export function SubmitBar({ label = "Trimite", hint }: { label?: string; hint?: ReactNode }) {
+export function SubmitBar({
+  label = "Trimite",
+  hint,
+  variant = "pri",
+  disabled,
+}: {
+  label?: string;
+  hint?: ReactNode;
+  variant?: "pri" | "grn" | "dark";
+  disabled?: boolean;
+}) {
   const { pending } = useFormStatus();
   return (
-    <div className="sticky bottom-16 z-10 -mx-4 mt-6 border-t border-rule bg-sheet/95 px-4 py-3 backdrop-blur">
-      {hint ? <p className="mb-2 text-tiny text-ink-2">{hint}</p> : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="h-12 w-full rounded-[4px] bg-blueprint text-[0.9375rem] font-semibold text-white disabled:opacity-50"
-      >
-        {pending ? "Se trimite…" : label}
+    <div className="f-submit">
+      {hint ? <p className="f-hint">{hint}</p> : null}
+      <button type="submit" disabled={pending || disabled} className={`f-bt f-${variant}`}>
+        {pending ? (
+          "Se trimite…"
+        ) : (
+          <>
+            <Icon name="check" />
+            {label}
+          </>
+        )}
       </button>
     </div>
   );
 }
 
-/** Antet de ecran de teren: unde ești, la ce lucrezi. */
-export function FieldHeader({
-  eyebrow,
-  title,
-  meta,
+/** Buton de acțiune într-un formular mic (anulare, decizie) — fără bara lipicioasă. */
+export function ActionButton({
+  label,
+  variant = "gho",
+  small = true,
+  icon,
 }: {
-  eyebrow: string;
-  title: string;
-  meta?: ReactNode;
+  label: string;
+  variant?: "pri" | "out" | "gho" | "grn" | "red" | "dark";
+  small?: boolean;
+  icon?: "check" | "x" | "pen";
 }) {
+  const { pending } = useFormStatus();
   return (
-    <header className="border-b border-rule pb-3">
-      <div className="eyebrow">{eyebrow}</div>
-      <h1 className="mt-1 font-narrow text-xl font-semibold leading-tight tracking-tight text-ink">
-        {title}
-      </h1>
-      {meta ? <div className="mt-1 text-tiny text-ink-2">{meta}</div> : null}
-    </header>
+    <button
+      type="submit"
+      disabled={pending}
+      className={`f-bt f-${variant}${small ? " f-s" : ""}`}
+    >
+      {icon && !pending ? <Icon name={icon} /> : null}
+      {pending ? "…" : label}
+    </button>
   );
 }
 
+/* ───────────────────────── ＋ și cele patru acțiuni ───────────────────────── */
+
 /**
- * Punctul de checklist. La NOK apare imediat ieșirea impusă — nu se poate trimite
- * o constatare fără să spui ce se întâmplă cu ea.
+ * A doua atingere din cele trei. Se deschide de sus, ca o foaie, și se închide
+ * din buton — fundalul închide DOAR meniul ăsta, care nu conține date scrise.
+ * Formularele cu date nu se închid la click în afară (regula 4).
+ */
+export function FieldQuickAdd({ workUnitId }: { workUnitId?: string }) {
+  const [open, setOpen] = useState(false);
+  const suffix = workUnitId ? `?ul=${workUnitId}` : "";
+
+  const actions = [
+    { href: `/teren/necesar${suffix}`, label: "Cer materiale", hint: "trei atingeri cap-coadă", icon: "box" as const },
+    { href: "/teren/pontaj", label: "Pontaj", hint: "ziua împărțită pe lucrări", icon: "clock" as const },
+    { href: `/teren/jurnal${suffix}`, label: "Jurnal de șantier", hint: "se deschide gata de scris", icon: "pen" as const },
+    { href: `/teren/constatare${suffix}`, label: "Constatare", hint: "am văzut ceva, trebuie rezolvat", icon: "alert" as const },
+  ];
+
+  return (
+    <>
+      <button
+        type="button"
+        className="f-ib"
+        onClick={() => setOpen(true)}
+        aria-label="Adaugă"
+      >
+        <Icon name="plus" />
+      </button>
+
+      {open ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 60,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            background: "rgba(10,14,21,.55)",
+          }}
+        >
+          <button
+            type="button"
+            aria-label="Închide"
+            onClick={() => setOpen(false)}
+            style={{ position: "absolute", inset: 0, border: 0, background: "transparent" }}
+          />
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              background: "#fff",
+              borderRadius: "26px 26px 0 0",
+              paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 5,
+                background: "#D3D8E0",
+                borderRadius: 3,
+                margin: "12px auto 0",
+              }}
+            />
+            <div className="f-line1" style={{ padding: "10px 18px 4px", color: "#10151F" }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, flex: 1 }}>Ce vrei să faci?</h2>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Închide"
+                className="f-ib"
+                style={{ background: "#EEF0F3", color: "#10151F" }}
+              >
+                <Icon name="x" />
+              </button>
+            </div>
+            {actions.map((action) => (
+              <Link
+                key={action.href}
+                href={action.href}
+                onClick={() => setOpen(false)}
+                className="f-brow"
+              >
+                <span className="f-sq f-a">
+                  <Icon name={action.icon} />
+                </span>
+                <span className="f-tx">
+                  <b>{action.label}</b>
+                  <span>{action.hint}</span>
+                </span>
+                <span className="f-go">
+                  <Icon name="right" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+/* ───────────────────────── punctul de checklist ───────────────────────── */
+
+/**
+ * La NOK apare imediat ieșirea impusă — nu se poate trimite o constatare fără să
+ * spui ce se întâmplă cu ea. Fără ieșire, constatarea moare în fișă și Delta rămâne
+ * neumplută (§7).
  */
 export function ChecklistPoint({
   id,
@@ -122,25 +192,37 @@ export function ChecklistPoint({
   const [verdict, setVerdict] = useState<"" | "ok" | "nok">("");
 
   return (
-    <li className="border-b border-rule py-3">
+    <div className="f-li" style={{ display: "block" }}>
       <input type="hidden" name="itemId" value={id} />
       <input type="hidden" name={`text_${id}`} value={text} />
-      {section ? <div className="eyebrow mb-1">{section}</div> : null}
-      <div className="flex items-start justify-between gap-3">
-        <span className="text-[0.9375rem] leading-snug text-ink">{text}</span>
-        <span className="flex shrink-0 gap-1">
+      {section ? (
+        <div className="f-xs f-mut" style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 4 }}>
+          {section}
+        </div>
+      ) : null}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ flex: 1, fontSize: 15.5, lineHeight: 1.35, fontWeight: 600 }}>{text}</span>
+        <span style={{ display: "flex", gap: 6, flex: "0 0 auto" }}>
           {(["ok", "nok"] as const).map((value) => (
             <button
               key={value}
               type="button"
               onClick={() => setVerdict(value)}
-              className={`h-10 w-12 rounded-[4px] border text-tiny font-semibold uppercase ${
-                verdict === value
-                  ? value === "ok"
-                    ? "border-fill bg-fill text-white"
-                    : "border-over bg-over text-white"
-                  : "border-rule-strong bg-sheet text-ink-2"
-              }`}
+              style={{
+                width: 56,
+                height: 48,
+                borderRadius: 13,
+                fontFamily: "inherit",
+                fontSize: 13,
+                fontWeight: 800,
+                cursor: "pointer",
+                border: "2px solid",
+                borderColor:
+                  verdict === value ? (value === "ok" ? "#0E9F6E" : "#E11D48") : "#E4E6EB",
+                background:
+                  verdict === value ? (value === "ok" ? "#0E9F6E" : "#E11D48") : "#fff",
+                color: verdict === value ? "#fff" : "#6B7688",
+              }}
             >
               {value === "ok" ? "OK" : "NOK"}
             </button>
@@ -150,36 +232,42 @@ export function ChecklistPoint({
       <input type="hidden" name={`ok_${id}`} value={verdict} />
 
       {verdict === "nok" ? (
-        <div className="mt-2 space-y-2 border-l-2 border-over pl-3">
+        <div style={{ marginTop: 12, borderLeft: "3px solid #E11D48", paddingLeft: 12 }}>
           <input
             name={`note_${id}`}
             placeholder="Ce ai găsit"
-            className="h-10 w-full rounded-[3px] border border-rule-strong bg-sheet px-2.5 text-[0.875rem] text-ink"
+            style={{
+              width: "100%",
+              height: 46,
+              borderRadius: 11,
+              border: "2px solid #E4E6EB",
+              padding: "0 12px",
+              fontSize: 15,
+              fontFamily: "inherit",
+              outline: "none",
+            }}
           />
-          {/* Ieșirea e OBLIGATORIE. Fără ea, constatarea moare aici. */}
-          <div className="flex gap-1.5">
+          {/* Ieșirea e OBLIGATORIE. */}
+          <div className="f-chz f-flat" style={{ marginTop: 10, gap: 7 }}>
             {[
               { value: "rezolvat", label: "Rezolvat pe loc" },
               { value: "interventie", label: "Intervenție" },
               { value: "propunere", label: "Propunere" },
             ].map((option, i) => (
-              <label key={option.value} className="grow">
+              <label key={option.value}>
                 <input
                   type="radio"
                   name={`outcome_${id}`}
                   value={option.value}
                   defaultChecked={i === 0}
-                  className="peer sr-only"
                   required
                 />
-                <span className="block cursor-pointer rounded-[3px] border border-rule-strong bg-sheet px-2 py-2 text-center text-micro font-medium text-ink-2 peer-checked:border-blueprint peer-checked:bg-blueprint peer-checked:text-white">
-                  {option.label}
-                </span>
+                <span style={{ fontSize: 14, padding: "10px 13px" }}>{option.label}</span>
               </label>
             ))}
           </div>
         </div>
       ) : null}
-    </li>
+    </div>
   );
 }

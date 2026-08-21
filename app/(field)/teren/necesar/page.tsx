@@ -1,7 +1,8 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 
 import { submitMaterialNeed } from "@/app/actions/field";
-import { FieldHeader, SubmitBar } from "@/components/domain/FieldKit";
+import { SubmitBar } from "@/components/domain/FieldKit";
+import { Alert, Block, FieldBar, Label } from "@/components/domain/FieldUI";
 import { db } from "@/lib/db";
 import { objectives, products, warehouses, workUnits } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
@@ -11,14 +12,11 @@ export const dynamic = "force-dynamic";
 /**
  * T4 — necesar material. TREI atingeri cap-coadă.
  *
- *   1. ＋
- *   2. „Necesar material”
- *   3. Trimite
+ *   1. ＋  2. „Cer materiale"  3. Trimite
  *
- * Ca să iasă trei, tot ce se poate precompleta e precompletat: unitatea de lucru
- * (prima deschisă, sau cea din care ai venit), unitatea de măsură (din produs),
- * gestiunea de livrare. Câmpul de cantitate se deschide focalizat, cu tastatura
- * numerică — scrii „5” și apeși Trimite.
+ * Ca să iasă trei, tot ce se poate precompleta e precompletat: lucrarea (cea din care
+ * ai venit), unitatea de măsură (din produs), gestiunea de livrare. Câmpul de cantitate
+ * se deschide focalizat, cu tastatura numerică — scrii „5" și apeși Trimite.
  */
 export default async function NecesarPage({
   searchParams,
@@ -50,66 +48,64 @@ export default async function NecesarPage({
   ]);
 
   const preselected = sp.ul ?? units[0]?.unit.id ?? "";
-  const warehouse =
-    teamWarehouses.find((w) => w.keeperId === session.id) ?? teamWarehouses[0] ?? null;
+  const warehouse = teamWarehouses.find((w) => w.keeperId === session.id) ?? teamWarehouses[0] ?? null;
 
   return (
-    <form action={submitMaterialNeed} className="px-4 py-4">
+    <form action={submitMaterialNeed}>
       <input type="hidden" name="warehouseId" value={warehouse?.id ?? ""} />
 
-      <FieldHeader
-        eyebrow="Necesar material"
-        title="Ce îți lipsește"
-        meta={warehouse ? `Se livrează la ${warehouse.name}` : "Fără gestiune de echipă"}
+      <FieldBar
+        title="Cer materiale"
+        sub={warehouse ? `Se livrează la ${warehouse.name}` : "Fără gestiune de echipă"}
+        back="/teren"
       />
 
-      <div className="mt-4 space-y-4">
-        <label className="block">
-          <span className="eyebrow mb-1 block">Produs</span>
-          <select
-            name="productId"
-            defaultValue={productRows[0]?.id}
-            className="h-12 w-full rounded-[3px] border border-rule-strong bg-sheet px-2 text-[0.9375rem] text-ink"
-          >
+      <h2 className="f-q">Ce îți lipsește?</h2>
+      <p className="f-qs">Un produs și o cantitate. Restul e completat deja.</p>
+
+      <Block>
+        <div className="f-fld">
+          <label htmlFor="productId">Produs</label>
+          <select id="productId" name="productId" defaultValue={productRows[0]?.id}>
             {productRows.map((product) => (
               <option key={product.id} value={product.id}>
                 {product.name} ({product.unit})
               </option>
             ))}
           </select>
-        </label>
-
-        <label className="block">
-          <span className="eyebrow mb-1 block">Cantitate</span>
+        </div>
+        <div className="f-fld">
+          <label htmlFor="quantity">Cantitate</label>
           <input
+            id="quantity"
             name="quantity"
             inputMode="decimal"
             autoFocus
             placeholder="0"
-            className="h-14 w-full rounded-[3px] border border-rule-strong bg-sheet px-3 text-right text-xl tabular text-ink"
+            style={{ fontSize: 30, fontWeight: 800 }}
           />
-        </label>
+        </div>
+      </Block>
 
-        <label className="block">
-          <span className="eyebrow mb-1 block">Pentru</span>
-          <select
-            name="workUnitId"
-            defaultValue={preselected}
-            className="h-12 w-full rounded-[3px] border border-rule-strong bg-sheet px-2 text-[0.875rem] text-ink"
-          >
+      <Label>Pentru care lucrare</Label>
+      <Block>
+        <div className="f-fld">
+          <select name="workUnitId" defaultValue={preselected} aria-label="Lucrarea">
             {units.map(({ unit, objective }) => (
               <option key={unit.id} value={unit.id}>
-                {unit.code} — {objective?.name ?? unit.title}
+                {objective?.name ?? unit.title} — {unit.code}
               </option>
             ))}
           </select>
-        </label>
-      </div>
+        </div>
+      </Block>
 
-      <SubmitBar
-        label="Trimite necesarul"
-        hint="Merge întâi la magazie, care are 24 de ore să-l acopere din stoc. Abia după aceea se comandă."
-      />
+      <Alert tone="b" icon="truck" title="Întâi magazia, abia apoi furnizorul">
+        Necesarul stă 24 de ore la magazie, care poate să-l acopere din stocul existent.
+        Vezi unde a ajuns în „Cererile mele".
+      </Alert>
+
+      <SubmitBar label="Trimite necesarul" />
     </form>
   );
 }

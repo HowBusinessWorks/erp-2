@@ -385,6 +385,101 @@ export async function submitTimesheet(formData: FormData): Promise<void> {
   redirect("/teren");
 }
 
+/* ───────────────── bon de consum din teren ───────────────── */
+
+/**
+ * Ce s-a consumat azi din gestiunea echipei, fără să fie legat de închiderea unei fișe.
+ *
+ * Materialul devine COST la consum, nu la recepție — în magazie e activ, nu cheltuială.
+ * Valoarea se ia la prețul produsului, nu la cel al ultimei facturi: cu trei livrări la
+ * trei prețuri, ultima factură ar rescrie retroactiv costul lucrărilor de luna trecută.
+ */
+export async function submitConsumption(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  if (!can(session.role, "teren.opereaza")) return;
+
+  const workUnitId = String(formData.get("workUnitId") ?? "");
+  const warehouseId = String(formData.get("warehouseId") ?? "");
+  if (!workUnitId || !warehouseId) return;
+
+  const ctx = await unitContext(workUnitId);
+  if (!ctx) return;
+  const { unit, allocation } = ctx;
+
+  const day = today();
+  const note = String(formData.get("note") ?? "").trim() || null;
+  const stageId = String(formData.get("stageId") ?? "") || null;
+
+  const lines = formData
+    .getAll("productId")
+    .map(String)
+    .filter(Boolean)
+    .map((productId) => ({ productId, quantity: Number(formData.get(`qty_${productId}`) ?? 0) }))
+    .filter((line) => line.quantity > 0);
+  if (lines.length === 0) return;
+
+  const [consumption] = await db
+    .insert(consumptionNotes)
+    .values({
+      code: `BC-${Date.now().toString().slice(-6)}`,
+      firmId: unit.firmId,
+      warehouseId,
+      workUnitId,
+      stageId,
+      day,
+      effectDate: day,
+      note,
+      createdBy: session.id,
+    })
+    .returning();
+
+  for (const line of lines) {
+    const [productRow] = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, line.productId))
+      .limit(1);
+    const unitCost = productRow ? Number(productRow.lastPrice) * 100 : 0;
+    const value = multiplyQty(unitCost, line.quantity);
+
+    await db.insert(consumptionLines).values({
+      noteId: consumption.id,
+      productId: line.productId,
+      quantity: String(line.quantity),
+      unitCost: (unitCost / 100).toFixed(2),
+      value: (value / 100).toFixed(2),
+    });
+
+    await db
+      .update(stock)
+      .set({ quantity: raw`${stock.quantity} - ${line.quantity}`, updatedAt: new Date() })
+      .where(and(eq(stock.warehouseId, warehouseId), eq(stock.productId, line.productId)));
+
+    await recordCost({
+      firmId: unit.firmId,
+      documentDate: day,
+      objectiveId: unit.objectiveId,
+      workUnitId,
+      usedContractId: allocation?.contractId ?? null,
+      usedComponentId: allocation?.componentId ?? null,
+      costType: "material",
+      stage: "consumat",
+      value,
+      quantity: line.quantity,
+      unit: productRow?.unit ?? "buc",
+      productId: line.productId,
+      documentType: "bon_consum",
+      documentId: consumption.id,
+      createdBy: session.id,
+    });
+  }
+
+  revalidatePath("/teren");
+  revalidatePath("/teren/inventar");
+  revalidatePath("/stoc");
+  redirect("/teren/inventar");
+}
+
 /* ─────────────────── constatare rapidă din teren ─────────────────── */
 
 /**

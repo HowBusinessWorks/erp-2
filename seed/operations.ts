@@ -10,6 +10,7 @@ import { and, eq } from "drizzle-orm";
 
 import { db } from "../lib/db";
 import * as s from "../lib/db/schema";
+import { nextWorkingDay, workingDaysBetween } from "../lib/leave";
 import { toDb } from "../lib/money";
 import { chance, dayIn, int, lastMonths, MONTH, pick, rnd, YEAR, type SeedContext } from "./index";
 
@@ -1168,6 +1169,43 @@ export async function seedOperations(ctx: SeedContext) {
    * fost un al doilea adevăr — și primul care se strică, pentru că nu le schimbă
    * nimeni când situația se rezolvă. Tabela rămâne pentru mesaje om-către-om.
    */
+
+  /*
+   * Concedii. Un an credibil are și zile luate, și o cerere care așteaptă: fără
+   * amândouă, ecranul „Concediu" din teren arată gol și nimeni nu vede ce face.
+   * `workingDays` se calculează cu aceeași funcție ca la depunere.
+   */
+  console.log("→ concedii");
+
+  const leaveValues: (typeof s.leaveRequests.$inferInsert)[] = [];
+  const fieldPeople = userRows.filter((u) => u.role === "sef_santier");
+
+  for (const [index, person] of fieldPeople.entries()) {
+    const plans: { from: string; to: string; kind: "odihna" | "medical" | "fara_plata"; status: "aprobata" | "ceruta" | "respinsa" }[] = [
+      { from: dayIn(YEAR, 7, 6 + index), to: dayIn(YEAR, 7, 10 + index), kind: "odihna", status: "aprobata" },
+      { from: dayIn(YEAR, 4, 13 + index), to: dayIn(YEAR, 4, 15 + index), kind: "odihna", status: "aprobata" },
+      { from: dayIn(YEAR, MONTH + 1 > 12 ? 12 : MONTH + 1, 3), to: dayIn(YEAR, MONTH + 1 > 12 ? 12 : MONTH + 1, 7), kind: "odihna", status: "ceruta" },
+    ];
+    if (index === 0) {
+      plans.push({ from: dayIn(YEAR, 3, 2), to: dayIn(YEAR, 3, 4), kind: "medical", status: "aprobata" });
+    }
+
+    for (const plan of plans) {
+      leaveValues.push({
+        userId: person.id,
+        kind: plan.kind,
+        fromDate: plan.from,
+        toDate: plan.to,
+        returnDate: nextWorkingDay(plan.to),
+        workingDays: workingDaysBetween(plan.from, plan.to),
+        replacementId: fieldPeople[(index + 1) % fieldPeople.length]?.id ?? null,
+        status: plan.status,
+        decidedBy: plan.status === "ceruta" ? null : pm.id,
+        decidedAt: plan.status === "ceruta" ? null : new Date(),
+      });
+    }
+  }
+  if (leaveValues.length) await db.insert(s.leaveRequests).values(leaveValues);
 
   console.log("→ gata partea 2");
 }

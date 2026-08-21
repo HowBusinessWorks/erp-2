@@ -1,7 +1,8 @@
 import { asc, eq, inArray } from "drizzle-orm";
 
 import { submitObservation } from "@/app/actions/field";
-import { FieldHeader, SubmitBar } from "@/components/domain/FieldKit";
+import { SubmitBar } from "@/components/domain/FieldKit";
+import { Block, FieldBar, Label, Note } from "@/components/domain/FieldUI";
 import { db } from "@/lib/db";
 import { objectives, workUnits } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
@@ -35,53 +36,54 @@ export default async function ConstatarePage({
   const unit = units.find((u) => u.id === sp.ul) ?? units[0] ?? null;
 
   return (
-    <form action={submitObservation} className="px-4 py-4">
+    <form action={submitObservation}>
       <input type="hidden" name="workUnitId" value={unit?.id ?? ""} />
 
-      <FieldHeader eyebrow="Constatare" title="Ce ai văzut" />
+      <FieldBar title="Constatare" sub="Ce ai văzut și trebuie rezolvat" back="/teren" />
 
-      <div className="mt-4 space-y-4">
-        <label className="block">
-          <span className="eyebrow mb-1 block">Pe scurt</span>
+      <h2 className="f-q">Ce ai văzut?</h2>
+      <p className="f-qs">Scrie simplu, ca într-un mesaj. Biroul decide ce se face.</p>
+
+      <Block>
+        <div className="f-fld">
+          <label htmlFor="title">Pe scurt</label>
           <input
+            id="title"
             name="title"
             required
             autoFocus
             placeholder="Ex: burlan spart la colțul clădirii"
-            className="h-12 w-full rounded-[3px] border border-rule-strong bg-sheet px-3 text-[0.9375rem] text-ink"
           />
-        </label>
+        </div>
+        <div className="f-fld">
+          <label htmlFor="description">Detalii</label>
+          <textarea id="description" name="description" placeholder="Opțional" />
+        </div>
+      </Block>
 
-        <label className="block">
-          <span className="eyebrow mb-1 block">Detalii</span>
-          <textarea
-            name="description"
-            rows={3}
-            placeholder="Opțional"
-            className="w-full rounded-[3px] border border-rule-strong bg-sheet px-3 py-2.5 text-[0.9375rem] leading-relaxed text-ink"
-          />
-        </label>
-
-        <label className="block">
-          <span className="eyebrow mb-1 block">Obiectiv</span>
+      <Label>Unde</Label>
+      <Block>
+        <div className="f-fld">
           <select
             name="objectiveId"
             defaultValue={unit?.objectiveId ?? objectiveRows[0]?.id}
-            className="h-11 w-full rounded-[3px] border border-rule-strong bg-sheet px-2 text-[0.875rem] text-ink"
+            aria-label="Obiectivul"
           >
             {objectiveRows.map((objective) => (
               <option key={objective.id} value={objective.id}>
-                {objective.code} — {objective.name}
+                {objective.name} — {objective.code}
               </option>
             ))}
           </select>
-        </label>
-      </div>
+        </div>
+      </Block>
 
-      <SubmitBar
-        label="Trimite constatarea"
-        hint="Ajunge la birou, care decide dacă e intervenție pe mentenanță, lucrare din Delta sau ofertă separată."
-      />
+      <Note>
+        Ajunge la birou, care decide dacă e intervenție pe mentenanță, lucrare din Delta
+        sau ofertă separată. Vezi răspunsul în „Cererile mele".
+      </Note>
+
+      <SubmitBar label="Trimite constatarea" />
     </form>
   );
 }
