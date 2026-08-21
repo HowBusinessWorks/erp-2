@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
-import { useFormStatus } from "react-dom";
+import { createContext, useContext, useState, type FormEvent, type ReactNode } from "react";
 
 import { Modal } from "./modal";
 import { Button, Input, NumberInput, Select, Textarea } from "./primitives";
@@ -12,7 +11,7 @@ import { Button, Input, NumberInput, Select, Textarea } from "./primitives";
  * Trei piese și atât:
  *   `FormModal`    — buton + fereastră + <form> + subsolul cu acțiuni
  *   `Field`        — etichetă + control + eroare, pe variante
- *   `SubmitButton` — starea de trimitere, din `useFormStatus`
+ *   `SubmitButton` — starea de trimitere, ținută local în `FormModal`
  *
  * Validarea NU stă aici (principiul 4): `validate` primește valorile și întoarce
  * erori pe nume de câmp. Funcția vine din `lib/`, aceeași care păzește și acțiunea.
@@ -190,12 +189,13 @@ export function SubmitButton({
   children = "Salvează",
   variant = "primary",
   size = "md",
+  pending = false,
 }: {
   children?: ReactNode;
   variant?: "primary" | "default" | "danger";
   size?: "sm" | "md";
+  pending?: boolean;
 }) {
-  const { pending } = useFormStatus();
   return (
     <Button type="submit" variant={variant} size={size} disabled={pending}>
       {pending ? "Se salvează…" : children}
@@ -204,8 +204,7 @@ export function SubmitButton({
 }
 
 /** Butonul de renunțare din subsolul formularului — trece prin verificarea de „modificat”. */
-function CancelButton({ onClick }: { onClick: () => void }) {
-  const { pending } = useFormStatus();
+function CancelButton({ onClick, pending }: { onClick: () => void; pending: boolean }) {
   return (
     <Button type="button" size="md" onClick={onClick} disabled={pending}>
       Renunț
@@ -218,6 +217,12 @@ function CancelButton({ onClick }: { onClick: () => void }) {
 /**
  * Regula 4 din CLAUDE.md: fereastra nu se închide la click în afara ei. `Modal` o
  * păzește deja (deduce singur starea de „modificat”), deci aici nu se reimplementează.
+ *
+ * Trimiterea NU trece prin `<form action={...}>`: React 19 golește câmpurile
+ * necontrolate după ce funcția de acțiune a formularului rulează, chiar și atunci
+ * când ea doar afișează erori și nu trimite nimic mai departe — exact cazul unei
+ * validări eșuate. `handleSubmit` cheamă acțiunea de server ca pe o funcție
+ * obișnuită, din `onSubmit`, ca datele scrise să rămână pe ecran până la succes.
  */
 export function FormModal({
   label,
@@ -247,8 +252,12 @@ export function FormModal({
 }) {
   const [open, setOpen] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [pending, setPending] = useState(false);
 
-  async function submit(data: FormData) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+
     if (validate) {
       const values: Record<string, string> = {};
       for (const key of new Set(data.keys())) {
@@ -264,8 +273,13 @@ export function FormModal({
       }
     }
     setErrors({});
-    await action(data);
-    setOpen(false);
+    setPending(true);
+    try {
+      await action(data);
+      setOpen(false);
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -284,7 +298,7 @@ export function FormModal({
         width={width}
       >
         <ErrorsContext.Provider value={errors}>
-          <form action={submit} noValidate>
+          <form onSubmit={handleSubmit} noValidate>
             <div className={columns === 1 ? "grid gap-3" : "grid gap-3 sm:grid-cols-2"}>
               {children}
             </div>
@@ -295,15 +309,16 @@ export function FormModal({
               </p>
             ) : null}
 
-            <div className="-mx-5 -mb-4 mt-4 flex items-center justify-end gap-2 border-t border-rule bg-sunk/50 px-5 py-3">
+            <div className="-mx-6 -mb-5 mt-4 flex items-center justify-end gap-2 border-t border-rule bg-sunk/50 px-6 py-3.5">
               {/* Renunțarea trece prin aceeași poartă ca ✕ și Escape — nu ocolește
                   confirmarea de modificări nesalvate (regula 4). */}
               <CancelButton
+                pending={pending}
                 onClick={() =>
                   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
                 }
               />
-              <SubmitButton>{submitLabel}</SubmitButton>
+              <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
             </div>
           </form>
         </ErrorsContext.Provider>

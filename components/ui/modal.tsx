@@ -65,59 +65,63 @@ export function Modal({
 
   if (!open) return null;
 
-  const maxWidth = width === "sm" ? "max-w-md" : width === "lg" ? "max-w-3xl" : "max-w-xl";
+  // Un singur standard de dimensiune, generos, pe toate ecranele — nu una îngustă
+  // ascunsă într-un colț de ecran mare. `width` alege doar cât de lat, nu și cât de „mic".
+  const maxWidth = width === "sm" ? "max-w-xl" : width === "lg" ? "max-w-6xl" : "max-w-3xl";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/35 p-4 py-10 backdrop-blur-[1px]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/35 p-4 backdrop-blur-[1px]">
       {/* Fundalul e doar fundal. Nu are onClick — asta e regula. */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className={`sheet w-full ${maxWidth} shadow-[0_24px_60px_-24px_rgba(24,20,16,0.45)]`}
-      >
-        <header className="flex items-start justify-between gap-4 border-b border-rule-strong px-5 py-3.5">
-          <div className="min-w-0">
-            <h2 className="font-narrow text-[1.0625rem] font-semibold leading-tight tracking-tight text-ink">
-              {title}
-            </h2>
-            {subtitle ? <p className="mt-0.5 text-tiny text-ink-2">{subtitle}</p> : null}
-          </div>
-          <Button type="button" variant="quiet" size="sm" onClick={attemptClose} aria-label="Închide">
-            ✕
-          </Button>
-        </header>
-
+      <div className="flex min-h-full items-center justify-center py-10">
         <div
-          ref={bodyRef}
-          onInput={() => setDirty(true)}
-          onChange={() => setDirty(true)}
-          className="px-5 py-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          className={`sheet w-full ${maxWidth} shadow-[0_24px_60px_-24px_rgba(24,20,16,0.45)]`}
         >
-          {children}
-        </div>
-
-        {footer ? (
-          <footer className="flex items-center justify-end gap-2 border-t border-rule bg-sunk/50 px-5 py-3">
-            {footer}
-          </footer>
-        ) : null}
-
-        {confirming ? (
-          <div className="border-t-2 border-over bg-over-soft px-5 py-3">
-            <p className="text-tiny text-over">
-              Ai modificări nesalvate. Dacă închizi acum, se pierd.
-            </p>
-            <div className="mt-2 flex gap-2">
-              <Button type="button" variant="danger" size="sm" onClick={onClose}>
-                Închide și pierde modificările
-              </Button>
-              <Button type="button" size="sm" onClick={() => setConfirming(false)}>
-                Rămân aici
-              </Button>
+          <header className="flex items-start justify-between gap-4 border-b border-rule-strong px-6 py-4">
+            <div className="min-w-0">
+              <h2 className="font-narrow text-lg font-semibold leading-tight tracking-tight text-ink">
+                {title}
+              </h2>
+              {subtitle ? <p className="mt-1 text-sm text-ink-2">{subtitle}</p> : null}
             </div>
+            <Button type="button" variant="quiet" size="sm" onClick={attemptClose} aria-label="Închide">
+              ✕
+            </Button>
+          </header>
+
+          <div
+            ref={bodyRef}
+            onInput={() => setDirty(true)}
+            onChange={() => setDirty(true)}
+            className="px-6 py-5"
+          >
+            {children}
           </div>
-        ) : null}
+
+          {footer ? (
+            <footer className="flex items-center justify-end gap-2 border-t border-rule bg-sunk/50 px-6 py-3.5">
+              {footer}
+            </footer>
+          ) : null}
+
+          {confirming ? (
+            <div className="border-t-2 border-over bg-over-soft px-6 py-3.5">
+              <p className="text-tiny text-over">
+                Ai modificări nesalvate. Dacă închizi acum, se pierd.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button type="button" variant="danger" size="sm" onClick={onClose}>
+                  Închide și pierde modificările
+                </Button>
+                <Button type="button" size="sm" onClick={() => setConfirming(false)}>
+                  Rămân aici
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );
