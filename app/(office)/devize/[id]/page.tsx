@@ -30,9 +30,10 @@ import { requireSession } from "@/lib/session";
 import {
   DeleteDevizLineButton,
   DevizLineForm,
+  DevizSiblingForm,
   DevizTemplateForm,
 } from "@/components/domain/DevizForms";
-import { normedArticles } from "@/lib/db/schema";
+import { devizTemplates, normedArticles } from "@/lib/db/schema";
 import { UNITS } from "@/lib/nomenclatoare-types";
 import { MappingPanel, type MapLine, type MapLink } from "./MappingPanel";
 
@@ -66,6 +67,10 @@ export default async function DevizPage({
           .from(normedArticles)
           .orderBy(desc(normedArticles.usageCount))
           .limit(200)
+      : [];
+  const templateRows =
+    canEdit || canEditClient
+      ? await db.select({ value: devizTemplates.id, label: devizTemplates.name }).from(devizTemplates)
       : [];
 
   const [row] = await db
@@ -167,7 +172,15 @@ export default async function DevizPage({
           </span>
         }
         actions={
-          internalDeviz && canEdit ? <DevizTemplateForm devizId={internalDeviz.id} /> : undefined
+          <>
+            {!clientDeviz && canEditClient ? (
+              <DevizSiblingForm workUnitId={row.deviz.workUnitId} kind="client" templates={templateRows} />
+            ) : null}
+            {!internalDeviz && canEdit ? (
+              <DevizSiblingForm workUnitId={row.deviz.workUnitId} kind="intern" templates={templateRows} />
+            ) : null}
+            {internalDeviz && canEdit ? <DevizTemplateForm devizId={internalDeviz.id} /> : null}
+          </>
         }
       />
 

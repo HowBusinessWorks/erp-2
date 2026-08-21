@@ -81,6 +81,52 @@ export function DevizForm({
   );
 }
 
+/**
+ * Devizul-frate lipsă pe o unitate de lucru: are deja unul (client sau intern),
+ * dar nu și celălalt. Unitatea și felul sunt deja știute — nu se mai aleg.
+ */
+export function DevizSiblingForm({
+  workUnitId,
+  kind,
+  templates,
+}: {
+  workUnitId: string;
+  kind: "client" | "intern";
+  templates: Opt[];
+}) {
+  return (
+    <FormModal
+      label={kind === "client" ? "＋ Deviz client" : "＋ Deviz intern"}
+      variant="primary"
+      size="sm"
+      width="md"
+      title={kind === "client" ? "Deviz client nou" : "Deviz intern nou"}
+      subtitle="Versiunea se pune singură: e următoarea pe perechea lucrare + fel."
+      action={createDeviz}
+      submitLabel="Deschide devizul"
+    >
+      <input type="hidden" name="workUnitId" value={workUnitId} />
+      <input type="hidden" name="kind" value={kind} />
+      <Field
+        name="templateId"
+        label="Pornește de la un șablon"
+        kind="select"
+        hint="un deviz pornit de la zero de fiecare dată e motivul pentru care lumea lucrează în Excel"
+      >
+        <option value="">— de la zero —</option>
+        {templates.map((t) => (
+          <option key={t.value} value={t.value}>
+            {t.label}
+          </option>
+        ))}
+      </Field>
+      <Field name="overheadPercent" label="Indirecte (%)" kind="number" step="0.01" />
+      <Field name="profitPercent" label="Profit (%)" kind="number" step="0.01" />
+      <Field name="notes" label="Observații" kind="textarea" rows={2} full />
+    </FormModal>
+  );
+}
+
 /* ═══════════════ Poziție de deviz ═══════════════ */
 
 export type DevizLineValues = {
