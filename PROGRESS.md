@@ -196,6 +196,13 @@ se întoarce în bazin după fiecare tranzacție. `DATABASE_URL` pe 6543, `DIREC
 pe 5432, fiindcă `drizzle-kit` are nevoie de stare pe sesiune. `lib/db/index.ts` avertizează dacă
 cineva pune iar 5432 pe `DATABASE_URL`.
 
+**Aplicația care atârnă la infinit, pe toate paginile.** Simptom: în browser „Failed to fetch RSC
+payload” / „network error”, în terminal nimic. Cauză: rețeaua s-a schimbat sub aplicație (Tailscale,
+sleep, wifi), socket-urile către pooler au rămas `ESTABLISHED` local dar celălalt capăt nu mai există;
+postgres.js le crede vii, interogările pleacă și nu se mai întorc, iar după zece cereri bazinul e plin
+de morți. Se verifică cu `netstat -ano | grep 6543` — zece conexiuni deschise de procesul Next.
+`lib/db/index.ts` se apără acum singur: 20s fără răspuns ⇒ bazinul se aruncă și se redeschide.
+
 **Nu da rafale de conexiuni către pooler.** 24–30 de cereri simultane l-au făcut pe Supavisor să
 răspundă `password authentication failed` pe ambele porturi, cu credențiale corecte. Leacul:
 Database → Connection pooling → **Restart pooler**, sau ~15 minute. Baza nu e afectată, doar
@@ -220,6 +227,20 @@ pooler-ul. Prima cerere după trezire poate da un 500 izolat — a doua merge.
 ---
 
 ## 6. Istoric pe sesiuni
+
+### 2026-08-21 — coordonatele obiectivului se aleg de pe hartă
+
+`components/ui/map-picker.tsx`: hartă „slippy” peste dalele OpenStreetMap, scrisă direct (pan,
+zoom, click ⇒ punct), fără Leaflet și fără dependență nouă. Căutare de adresă prin Nominatim
+(`countrycodes=ro`), cu revenire la alegerea manuală dacă nu răspunde. Câmpurile `lat`/`lng` au
+rămas în formular, controlate de hartă și editabile la mână. Folosită în `ObjectiveForm`.
+
+### 2026-08-21 — bazinul de conexiuni se reface singur
+
+Aplicația atârna la infinit pe **orice** pagină cu cookie de sesiune — browserul raporta „network
+error” pe `/nomenclatoare?fila=produse`, dar ecranul n-avea nicio vină. Vezi capcana din §5.
+`lib/db/index.ts`: fiecare interogare are termen limită de 20s, la depășire bazinul se aruncă și se
+redeschide, iar `db`/`sql` sunt proxy-uri, deci importatorii nu observă. `keep_alive` 60s → 15s.
 
 ### 2026-08-21 — blocul E: aplicația poate fi operată, nu doar demonstrată
 
@@ -258,53 +279,31 @@ pooler-ul. Prima cerere după trezire poate da un 500 izolat — a doua merge.
   cumulatele. `/situatii` doar trimite acolo.
 - Încărcarea de fișiere merge prin REST-ul Supabase Storage, cu `fetch` — fără dependență nouă.
 
-### 2026-08-20 — ziua 3, partea 1: facturi, clopoțel viu, schelete declarate
+### 2026-08-20 — ziua 3, partea 1: facturi, clopoțel viu, integrări (comprimat)
 
-**Baza a revenit.** Cele 5 rute din C2, neplimbate sesiunea trecută, dau acum 200 pe `admin`:
-`/stoc`, `/stoc/consum`, `/achizitii`, `/receptii`. (Primul `/stoc` a dat 500; la a doua cerere,
-200 — prima compilare peste un pooler abia trezit.)
-
-**A intrat:**
-
-- `lib/notifications.ts` + `lib/notification-types.ts` + `NotificationBell` — opt familii de semnale
-  calculate din date (buget la 80%, Delta neumplută, SL de aprobat, PV deschis, revizie scadentă pe
-  dată **și** pe ore, contract care expiră, stoc sub minim, solicitări de utilaj). Familia e sărită
-  complet dacă rolul n-are dreptul. Fără „marchează ca citit": n-ai ce citi, ai ce rezolva.
-- `/facturi` (`lib/invoicing.ts`, `app/actions/invoices.ts`) — coada „de facturat" (rapoarte
-  înghețate fără factură) cu emitere într-o apăsare, registrul cu stare și e-Factura, și vechimea
-  creanței pe patru cupe. Numărul de factură e următorul din serie, per firmă.
-- `/integrari` — cele șase cusături din `PLAN.md` §7 care au corespondent în aplicație, fiecare cu
-  ce face prototipul azi, ce ar însemna în producție și câte documente ar trece prin ea acum.
-- Intrările `/facturi` și `/integrari` au ieșit din starea `stub` în bara de navigație.
-
-**S-a scos:** blocul de notificări statice din `seed/operations.ts` (8 rânduri inventate).
-
-**Verificat:** `tsc`, `eslint`, `next build` (**51 de rute**) curate; cele 7 rute atinse — toate 200.
+- `lib/notifications.ts` + `NotificationBell` — opt familii de semnale calculate din date, sărite
+  complet dacă rolul n-are dreptul. Fără „marchează ca citit”: n-ai ce citi, ai ce rezolva.
+- `/facturi` (`lib/invoicing.ts`) — coada „de facturat”, emitere într-o apăsare, registru cu stare
+  și e-Factura, vechimea creanței pe patru cupe. Număr de factură per firmă, următorul din serie.
+- `/integrari` — cele șase cusături din `PLAN.md` §7. Ambele au ieșit din starea `stub` în navigație.
+- S-au scos cele 8 notificări inventate din `seed/operations.ts`. `next build`: 51 de rute curate.
 
 ### 2026-08-20 — blocurile C2, B2, A2, C, fundația, A și B — GATA (comprimat)
 
 - **C2** `lib/stock.ts` + ecranele 23–25: coloana centrală e **disponibil** (cantitate − rezervat),
-  bon de consum blocat peste disponibil și fără preț în formular, cele 3 canale de achiziție ca file
-  separate (canalul C cu ceasul de 24h), analitică **pe linie**, recepție cu CMP recalculat și
-  angajament stins prin `releaseCommitment`.
+  bon de consum blocat peste disponibil și fără preț, cele 3 canale de achiziție ca file separate
+  (canalul C cu ceasul de 24h), recepție cu CMP recalculat și angajament stins prin `releaseCommitment`.
 - **B2** `lib/execution.ts` + `/lucrari/[id]/executie`. Două defecte prinse doar pe ecran, nu de
-  `tsc`: o etapă încheiată la 98% apărea „Atenție" (ordinea din `stageState`: `depasita` →
-  `incheiata` → `atentie`); „fără blocaje deschise ✓" apărea pe o lucrare **fără jurnal** — absența
-  notărilor nu e absența blocajelor.
-- **A2** `lib/deviz.ts` + ecranele 16–21 și T8: mapare N:M cu bară de trasabilitate, materialele fără
-  buton de adăugare în pachet, aprobare de SL blocată pe depășire, suplimentare atomică, scadențar
-  de garanții.
+  `tsc`: etapă încheiată la 98% marcată „Atenție” (ordinea din `stageState`); „fără blocaje ✓” pe o
+  lucrare **fără jurnal** — absența notărilor nu e absența blocajelor.
+- **A2** `lib/deviz.ts` + ecranele 16–21 și T8: mapare N:M cu bară de trasabilitate, aprobare de SL
+  blocată pe depășire, suplimentare atomică, scadențar de garanții.
 - **C** `lib/equipment.ts` (scadențe pe dată **și** pe ore, imobilizare), `lib/pv-templates.ts`,
   `SignaturePad`, ecranele 26–33 și T7.
 - **Fundația + A + B** Next.js 16 + Tailwind 4, schema într-un fișier, nucleul din `lib/`, design
-  system, shell, login, comutator de perspectivă, seed în două părți. Ecranele 2–6, 14, 15 și
-  7–13, 34, 36, T1–T6.
-- **Plimbarea pe A+B:** 31 de rute, 4 roluri. Regula 5 ține — 0 apariții de „lei" pe cele 7 ecrane
-  de teren. Panoul: 15s (N+1) → 0,7s cu `budgetsForMonth` în lot. Marjele din seed 16,7%–36,5%,
-  media 29,3%, încadrează exemplul de 33,9% din documentul de business.
+  system, shell, login, comutator de perspectivă, seed. Ecranele 2–15, 34, 36, T1–T6.
+- **Plimbarea pe A+B:** 31 de rute, 4 roluri. Regula 5 ține — 0 apariții de „lei” pe cele 7 ecrane de
+  teren. Panoul: 15s (N+1) → 0,7s cu `budgetsForMonth`. Marjele din seed: 16,7%–36,5%, media 29,3%.
 
-**Cele două accidente care se repetă și de care merită să-ți amintești:**
-1. `RoutingForm.tsx` (client) importa din `lib/routing.ts` → `lib/db` → `postgres`. **Tot blocul B
-   dădea 500**, cu `tsc` curat. De aici vin `lib/routing-types.ts`, `lib/notification-types.ts`,
-   `lib/contracts-types.ts` și `lib/operability-types.ts`.
-2. Ghilimelele `„…"` închise cu `"` drept **închid atributul JSX**. `„` se închide cu `”`.
+**Accidentul care se repetă:** un fișier de client care importă un `lib/` cu `lib/db` în spate dă
+500 pe tot blocul, cu `tsc` curat. De aici vin toate fișierele `lib/*-types.ts`.

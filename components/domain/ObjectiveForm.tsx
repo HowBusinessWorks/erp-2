@@ -2,6 +2,7 @@
 
 import { saveObjective } from "@/app/actions/contracts";
 import { Field, FormModal } from "@/components/ui/form";
+import { MapPicker } from "@/components/ui/map-picker";
 import { OBJECTIVE_KINDS, validateObjective } from "@/lib/contracts-types";
 
 export type ObjectiveValues = {
@@ -68,22 +69,7 @@ export function ObjectiveForm({
       />
       <Field name="name" label="Denumire" required full defaultValue={objective?.name} />
       <Field name="address" label="Adresă" full defaultValue={objective?.address} />
-      <Field
-        name="lat"
-        label="Latitudine"
-        kind="number"
-        step="0.0000001"
-        defaultValue={objective?.lat}
-        placeholder="45.7489"
-      />
-      <Field
-        name="lng"
-        label="Longitudine"
-        kind="number"
-        step="0.0000001"
-        defaultValue={objective?.lng}
-        placeholder="21.2087"
-      />
+      <MapPicker defaultLat={objective?.lat} defaultLng={objective?.lng} />
       <Field
         name="surface"
         label="Suprafață (mp)"
