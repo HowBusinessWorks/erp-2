@@ -26,6 +26,10 @@ import { formatShort, fromDb } from "@/lib/money";
 import { canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
+import { EquipmentForm } from "@/components/domain/OperabilityForms";
+import { equipmentActivities, firmOptions } from "@/lib/pickers";
+import { can } from "@/lib/permissions";
+
 export const dynamic = "force-dynamic";
 
 /** Trei săptămâni: destul cât să vezi ce vine, nu atât cât să nu mai citești nimic. */
@@ -39,6 +43,10 @@ export default async function UtilajePage({
   const session = await requireSession();
   const sp = await searchParams;
   const showPrices = canSeePrices(session.role);
+  const canManage = can(session.role, "flota.gestioneaza");
+  const [firmOpts, activityOpts] = canManage
+    ? await Promise.all([firmOptions(), equipmentActivities()])
+    : [[], []];
 
   const today = todayIso();
   const from = sp.de_la ?? startOfWeek(today);
@@ -96,11 +104,14 @@ export default async function UtilajePage({
         title="Flota"
         meta="Revizia e scadentă pe dată sau pe ore de funcționare — care vine prima. Un utilaj imobilizat nu produce cost de exploatare cât stă."
         actions={
+          <>
+            {canManage ? <EquipmentForm firms={firmOpts} activities={activityOpts} /> : null}
           <Link href="/utilaje/solicitari">
             <Button variant="primary" size="sm">
               Solicitări de utilaj
             </Button>
           </Link>
+          </>
         }
       />
 

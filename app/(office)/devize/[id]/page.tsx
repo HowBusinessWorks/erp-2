@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 
 import { Badge, EmptyState, PageHeader } from "@/components/ui/primitives";
 import { Sheet, TBody, TD, TFootRow, TH, THead, TR, Table } from "@/components/ui/table";
@@ -26,6 +26,14 @@ import {
 import { formatShort, fromDb } from "@/lib/money";
 import { can, canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
+
+import {
+  DeleteDevizLineButton,
+  DevizLineForm,
+  DevizTemplateForm,
+} from "@/components/domain/DevizForms";
+import { normedArticles } from "@/lib/db/schema";
+import { UNITS } from "@/lib/nomenclatoare-types";
 import { MappingPanel, type MapLine, type MapLink } from "./MappingPanel";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +57,16 @@ export default async function DevizPage({
   const tab = TABS.some((t) => t.key === sp.fila) ? sp.fila! : "client";
   const showPrices = canSeePrices(session.role);
   const canEdit = can(session.role, "deviz.intern.editeaza");
+  const canEditClient = can(session.role, "deviz.client.editeaza");
+  // §9.6 — catalogul de articole normate avea salvarea, nu și consumul. Aici e consumul.
+  const articleRows =
+    canEdit || canEditClient
+      ? await db
+          .select({ value: normedArticles.id, label: normedArticles.name })
+          .from(normedArticles)
+          .orderBy(desc(normedArticles.usageCount))
+          .limit(200)
+      : [];
 
   const [row] = await db
     .select({ deviz: devize, unit: workUnits, objective: objectives })
@@ -148,6 +166,9 @@ export default async function DevizPage({
             ) : null}
           </span>
         }
+        actions={
+          internalDeviz && canEdit ? <DevizTemplateForm devizId={internalDeviz.id} /> : undefined
+        }
       />
 
       {/* ─────────── bara de trasabilitate ─────────── */}
@@ -228,6 +249,18 @@ export default async function DevizPage({
                 : links.length,
         }))}
       />
+
+      {/* Adăugarea de poziții — doar cât devizul e ciornă (§9.11). */}
+      {(tab === "client" && clientDeviz?.status === "draft" && canEditClient) ||
+      (tab === "intern" && internalDeviz?.status === "draft" && canEdit) ? (
+        <div className="flex items-center justify-end">
+          <DevizLineForm
+            devizId={(tab === "client" ? clientDeviz!.id : internalDeviz!.id)}
+            units={UNITS}
+            articles={articleRows}
+          />
+        </div>
+      ) : null}
 
       {/* ─────────── ecranul 16 — devizul client ─────────── */}
       {tab === "client" ? (

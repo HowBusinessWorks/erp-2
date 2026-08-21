@@ -12,6 +12,10 @@ import { fromDb } from "@/lib/money";
 import { canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
+import { ToolForm } from "@/components/domain/OperabilityForms";
+import { firmOptions, partnerOptions, userOptions, warehouseOptions } from "@/lib/pickers";
+import { can } from "@/lib/permissions";
+
 export const dynamic = "force-dynamic";
 
 export default async function UneltePage({
@@ -22,6 +26,10 @@ export default async function UneltePage({
   const session = await requireSession();
   const sp = await searchParams;
   const showPrices = canSeePrices(session.role);
+  const canCreate = can(session.role, "stoc.opereaza");
+  const [firmOpts, warehouseOpts, userOpts, partnerOpts] = canCreate
+    ? await Promise.all([firmOptions(), warehouseOptions(), userOptions(), partnerOptions("subcontractant")])
+    : [[], [], [], []];
 
   const [rows, staff, history] = await Promise.all([
     db
@@ -50,6 +58,16 @@ export default async function UneltePage({
         eyebrow="Resurse"
         title="Unelte"
         meta="O unealtă e la cineva sau e în magazie — nu există stare intermediară. Cine o are acum răspunde de ea; PV-ul spune din ce moment."
+        actions={
+          canCreate ? (
+            <ToolForm
+              firms={firmOpts}
+              warehouses={warehouseOpts}
+              users={userOpts}
+              partners={partnerOpts}
+            />
+          ) : undefined
+        }
       />
 
       <div className="grid gap-3 md:grid-cols-3">

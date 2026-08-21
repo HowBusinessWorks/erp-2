@@ -4,6 +4,7 @@ import { asc, desc, eq, sql as raw } from "drizzle-orm";
 
 import { setWorkUnitStatus } from "@/app/actions/work-units";
 import { Badge, Button, EmptyState, PageHeader } from "@/components/ui/primitives";
+import { StageForm } from "@/components/domain/OperabilityForms";
 import { Sheet, TBody, TD, TFootRow, TH, THead, TR, Table } from "@/components/ui/table";
 import { DataPair } from "@/components/ui/tabs";
 import { Money } from "@/components/ui/gauge";
@@ -40,6 +41,7 @@ export default async function ExecutiePage({ params }: { params: Promise<{ id: s
   const session = await requireSession();
   const { id } = await params;
   const showPrices = canSeePrices(session.role);
+  const canPlan = can(session.role, "contracte.editeaza");
   const canClose = can(session.role, "cereri.decide");
   const today = todayIso();
 
@@ -135,12 +137,14 @@ export default async function ExecutiePage({ params }: { params: Promise<{ id: s
             </span>
           </span>
         }
+        actions={canPlan ? <StageForm workUnitId={id} /> : undefined}
       />
 
       {stages.length === 0 ? (
         <EmptyState
           title="Lucrarea nu are etape"
           hint="Graficul de execuție se construiește pe etape. Fără ele, lucrarea are un buget global și nimic care să spună unde se duce."
+          action={canPlan ? <StageForm workUnitId={id} /> : undefined}
         />
       ) : (
         <>

@@ -10,6 +10,10 @@ import { canSeePrices } from "@/lib/permissions";
 import { ROUTING_LABELS, type RoutingDecision } from "@/lib/routing";
 import { requireSession } from "@/lib/session";
 
+import { RequestForm } from "@/components/domain/OperabilityForms";
+import { contractOptions, firmOptions, objectiveOptions } from "@/lib/pickers";
+import { can } from "@/lib/permissions";
+
 export const dynamic = "force-dynamic";
 
 const KIND_LABEL: Record<string, string> = {
@@ -53,6 +57,10 @@ export default async function CereriPage({
   const session = await requireSession();
   const sp = await searchParams;
   const showPrices = canSeePrices(session.role);
+  const canCreate = can(session.role, "cereri.decide");
+  const [objectiveOpts, contractOpts, firmOpts] = canCreate
+    ? await Promise.all([objectiveOptions(), contractOptions(), firmOptions()])
+    : [[], [], []];
 
   const filters: SQL[] = [];
   if (sp.stare) filters.push(raw`${requests.status} = ${sp.stare}`);
@@ -98,11 +106,16 @@ export default async function CereriPage({
         title="Cereri și tichete"
         meta="O singură cutie pentru tot ce intră: sesizări de la client, constatări de la inspecții, propuneri interne. Tipul e o etichetă, nu o entitate separată."
         actions={
-          pending > 0 ? (
-            <Link href={qs({ stare: "neprocesata" })}>
-              <Badge tone="warn">{pending} neprocesate</Badge>
-            </Link>
-          ) : null
+          <>
+            {pending > 0 ? (
+              <Link href={qs({ stare: "neprocesata" })}>
+                <Badge tone="warn">{pending} neprocesate</Badge>
+              </Link>
+            ) : null}
+            {canCreate ? (
+              <RequestForm objectives={objectiveOpts} contracts={contractOpts} firms={firmOpts} />
+            ) : null}
+          </>
         }
       />
 

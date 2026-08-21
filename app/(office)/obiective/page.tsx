@@ -6,8 +6,10 @@ import { Sheet, TBody, TD, TH, THead, TR, Table } from "@/components/ui/table";
 import { db } from "@/lib/db";
 import { contractObjectives, contracts, costEntries, objectives, workUnits } from "@/lib/db/schema";
 import { formatShort, fromDb } from "@/lib/money";
-import { canSeePrices } from "@/lib/permissions";
+import { can, canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
+
+import { ObjectiveForm } from "@/components/domain/ObjectiveForm";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +30,7 @@ export default async function ObiectivePage({
 }) {
   const session = await requireSession();
   const showPrices = canSeePrices(session.role);
+  const canEdit = can(session.role, "contracte.editeaza");
   const { tip, contract: contractFilter } = await searchParams;
 
   const all = await db.select().from(objectives).orderBy(objectives.code);
@@ -79,6 +82,7 @@ export default async function ObiectivePage({
         eyebrow="Conducere"
         title="Obiective"
         meta={`${filtered.length} din ${all.length} · un obiectiv poate fi pe mai multe contracte, în timp sau simultan`}
+        actions={canEdit ? <ObjectiveForm /> : undefined}
       />
 
       <div className="flex flex-wrap items-center gap-1.5">

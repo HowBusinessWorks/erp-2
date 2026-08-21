@@ -16,6 +16,17 @@ import {
 import { formatShort, fromDb, ratio } from "@/lib/money";
 import { canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
+
+import { WorkUnitForm } from "@/components/domain/OperabilityForms";
+import {
+  componentOptions,
+  contractOptions,
+  firmOptions,
+  objectiveOptions,
+  partnerOptions,
+  userOptions,
+} from "@/lib/pickers";
+import { can } from "@/lib/permissions";
 import { KIND_LABEL, STATUS_LABEL } from "@/lib/work-units";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +49,17 @@ export default async function LucrariPage({
   const session = await requireSession();
   const sp = await searchParams;
   const showPrices = canSeePrices(session.role);
+  const canCreate = can(session.role, "contracte.editeaza");
+  const [firmOpts, objectiveOpts, userOpts, contractOpts, componentOpts, subOpts] = canCreate
+    ? await Promise.all([
+        firmOptions(),
+        objectiveOptions(),
+        userOptions(),
+        contractOptions(),
+        componentOptions(),
+        partnerOptions("subcontractant"),
+      ])
+    : [[], [], [], [], [], []];
 
   const filters: SQL[] = [];
   if (sp.tip) filters.push(raw`${workUnits.kind} = ${sp.tip}`);
@@ -109,6 +131,18 @@ export default async function LucrariPage({
         eyebrow="Operațional"
         title="Unități de lucru"
         meta="Inspecție, intervenție și lucrare sunt același obiect cu etichete diferite. De asta promovarea unei intervenții în lucrare păstrează pozele, orele și consumurile."
+        actions={
+          canCreate ? (
+            <WorkUnitForm
+              firms={firmOpts}
+              objectives={objectiveOpts}
+              users={userOpts}
+              contracts={contractOpts}
+              components={componentOpts}
+              subcontractors={subOpts}
+            />
+          ) : undefined
+        }
       />
 
       <div className="flex flex-wrap items-center gap-1.5">

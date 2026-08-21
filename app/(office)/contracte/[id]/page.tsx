@@ -1,19 +1,30 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, eq, sql as raw } from "drizzle-orm";
+import { and, asc, eq, inArray, sql as raw } from "drizzle-orm";
 
 import { MonthNav } from "@/components/domain/MonthNav";
+import { ObjectiveForm } from "@/components/domain/ObjectiveForm";
 import { BudgetRow } from "@/components/ui/gauge";
 import { Badge, EmptyState, PageHeader, SectionRule } from "@/components/ui/primitives";
 import { Sheet, TBody, TD, TFootRow, TH, THead, TR, Table } from "@/components/ui/table";
+import {
+  BudgetForm,
+  ContractEditForm,
+  ContractYearForm,
+  LinkObjectiveForm,
+  UnlinkObjectiveButton,
+} from "./ContractForms";
 import { budgetsForMonth, marginOf } from "@/lib/budget";
 import { db } from "@/lib/db";
 import {
+  checklistTemplates,
+  componentBudgets,
   contractComponents,
   contractObjectives,
   contractYears,
   contracts,
   costEntries,
+  firms,
   fundingAllocations,
   objectives,
   partners,
@@ -22,8 +33,8 @@ import {
   workUnits,
 } from "@/lib/db/schema";
 import { formatShort, fromDb } from "@/lib/money";
-import { labelPeriod, periodFromParams } from "@/lib/period";
-import { canSeePrices } from "@/lib/permissions";
+import { MONTHS_SHORT, labelPeriod, periodFromParams } from "@/lib/period";
+import { can, canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +54,7 @@ export default async function ContractPage({
 }) {
   const session = await requireSession();
   const showPrices = canSeePrices(session.role);
+  const canEdit = can(session.role, "contracte.editeaza");
   const { id } = await params;
   const period = periodFromParams(await searchParams);
 
@@ -126,10 +138,69 @@ export default async function ContractPage({
     )
     .limit(60);
 
-  const objectiveCount = await db
-    .select({ id: contractObjectives.id })
+  // Pasul 4 din §9.2: obiectivele arondate, cu profilul lor de inspecție.
+  const linked = await db
+    .select({ link: contractObjectives, objective: objectives, template: checklistTemplates })
     .from(contractObjectives)
-    .where(eq(contractObjectives.contractId, id));
+    .innerJoin(objectives, eq(contractObjectives.objectiveId, objectives.id))
+    .leftJoin(checklistTemplates, eq(contractObjectives.checklistTemplateId, checklistTemplates.id))
+    .where(eq(contractObjectives.contractId, id))
+    .orderBy(asc(objectives.code));
+
+  const activeLinks = linked.filter((l) => !l.link.toDate || l.link.toDate >= day);
+
+  // Datele de referință ale formularelor — doar când rolul poate edita.
+  const components = await db
+    .select()
+    .from(contractComponents)
+    .where(eq(contractComponents.contractId, id))
+    .orderBy(asc(contractComponents.createdAt));
+
+  const componentIds = components.map((c) => c.id);
+  const monthBudgets = canEdit && componentIds.length > 0
+    ? await db
+        .select()
+        .from(componentBudgets)
+        .where(
+          and(
+            inArray(componentBudgets.componentId, componentIds),
+            eq(componentBudgets.year, period.year),
+            eq(componentBudgets.month, period.month),
+          ),
+        )
+    : [];
+  const budgetOf = new Map(monthBudgets.map((b) => [b.componentId, b]));
+
+  const [firmOpts, clientOpts, ownerOpts, freeObjectives, templateOpts] = canEdit
+    ? await Promise.all([
+        db.select({ value: firms.id, label: firms.name }).from(firms).where(eq(firms.active, true)),
+        db
+          .select({ value: partners.id, label: partners.name })
+          .from(partners)
+          .where(raw`${partners.active} = true and 'client' = any(${partners.types})`),
+        db
+          .select({ value: users.id, label: users.name })
+          .from(users)
+          .where(raw`${users.active} = true and ${users.role} in ('pm', 'admin')`),
+        db
+          .select({ value: objectives.id, label: raw<string>`${objectives.code} || ' — ' || ${objectives.name}` })
+          .from(objectives)
+          .orderBy(asc(objectives.code)),
+        db
+          .select({ value: checklistTemplates.id, label: checklistTemplates.name })
+          .from(checklistTemplates),
+      ])
+    : [[], [], [], [], []];
+
+  const linkedIds = new Set(activeLinks.map((l) => l.objective.id));
+  const availableObjectives = freeObjectives.filter((o) => !linkedIds.has(o.value));
+
+  // Anul următor, propus: continuă de unde s-a oprit ultimul.
+  const lastYear = [...years].sort((a, b) => b.yearNo - a.yearNo)[0];
+  const nextStart = lastYear
+    ? new Date(new Date(lastYear.endDate).getTime() + 86400000).toISOString().slice(0, 10)
+    : contract.startDate;
+  const nextEnd = `${Number(nextStart.slice(0, 4)) + 1}${nextStart.slice(4)}`;
 
   return (
     <div className="space-y-7">
@@ -144,7 +215,7 @@ export default async function ContractPage({
               {contract.startDate} → {contract.endDate}
             </span>
             <span aria-hidden>·</span>
-            <span>{objectiveCount.length} obiective</span>
+            <span>{activeLinks.length} obiective</span>
             {activeYear ? (
               <>
                 <span aria-hidden>·</span>
@@ -158,7 +229,35 @@ export default async function ContractPage({
             ) : null}
           </span>
         }
-        actions={<MonthNav period={period} basePath={`/contracte/${id}`} closed={isClosed} />}
+        actions={
+          <>
+            <MonthNav period={period} basePath={`/contracte/${id}`} closed={isClosed} />
+            {canEdit ? (
+              <ContractEditForm
+                contract={{
+                  id: contract.id,
+                  code: contract.code,
+                  name: contract.name,
+                  firmId: contract.firmId,
+                  clientId: contract.clientId,
+                  ownerId: contract.ownerId,
+                  kind: contract.kind,
+                  startDate: contract.startDate,
+                  endDate: contract.endDate,
+                  totalValue: contract.totalValue,
+                  monthlyValue: contract.monthlyValue,
+                  paymentDays: contract.paymentDays,
+                  indexationPercent: contract.indexationPercent,
+                  maintenanceThreshold: contract.maintenanceThreshold,
+                  expiryAlertMonths: contract.expiryAlertMonths,
+                }}
+                firms={firmOpts}
+                clients={clientOpts}
+                owners={ownerOpts}
+              />
+            ) : null}
+          </>
+        }
       />
 
       <nav className="flex gap-4 border-b border-rule text-tiny">
@@ -243,6 +342,169 @@ export default async function ContractPage({
           </footer>
         </section>
       ) : null}
+
+      {canEdit && components.length > 0 ? (
+        <section>
+          <SectionRule right={isClosed ? "luna e închisă — plafoanele nu se mai schimbă" : undefined}>
+            Plafoanele lunii {labelPeriod(period)}
+          </SectionRule>
+          <Sheet className="mt-2.5 flex flex-wrap items-center gap-2 px-3 py-2.5">
+            {isClosed ? (
+              <p className="text-tiny text-ink-2">
+                Cifrele lunii au intrat deja în raport. Corecția e o realocare, nu o rescriere.
+              </p>
+            ) : (
+              components.map((c) => {
+                const b = budgetOf.get(c.id);
+                return (
+                  <span key={c.id} className="flex items-center gap-1.5 border border-rule px-2 py-1">
+                    <span className="text-tiny text-ink-2">{c.name}</span>
+                    <span className="tabular text-tiny font-medium text-ink">
+                      {formatShort(fromDb(b?.plan ?? "0"))}
+                    </span>
+                    <BudgetForm
+                      componentId={c.id}
+                      componentName={c.name}
+                      isDelta={c.kind === "delta"}
+                      year={period.year}
+                      month={period.month}
+                      monthLabel={`${MONTHS_SHORT[period.month - 1]} ${period.year}`}
+                      plan={b?.plan ?? "0"}
+                      manualCap={b?.manualCap ?? null}
+                      notes={b?.notes ?? null}
+                    />
+                  </span>
+                );
+              })
+            )}
+          </Sheet>
+        </section>
+      ) : null}
+
+      <section>
+        <SectionRule
+          right={
+            canEdit ? (
+              <span className="flex items-center gap-2">
+                <ObjectiveForm contractId={id} label="＋ Obiectiv nou" variant="quiet" />
+                <LinkObjectiveForm
+                  contractId={id}
+                  objectives={availableObjectives}
+                  templates={templateOpts}
+                />
+              </span>
+            ) : (
+              `${activeLinks.length} obiective`
+            )
+          }
+        >
+          Obiective arondate
+        </SectionRule>
+        <Sheet className="mt-2.5">
+          {linked.length === 0 ? (
+            <EmptyState
+              title="Niciun obiectiv pe contract"
+              hint="Fără obiective, contractul n-are unde produce lucrări. Arondează unul existent sau creează-l pe loc."
+            />
+          ) : (
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Cod</TH>
+                  <TH>Denumire</TH>
+                  <TH>Tip</TH>
+                  <TH>Perioadă pe contract</TH>
+                  <TH>Inspecție</TH>
+                  <TH>Checklist</TH>
+                  {canEdit ? <TH /> : null}
+                </TR>
+              </THead>
+              <TBody>
+                {linked.map(({ link, objective, template }) => {
+                  const out = Boolean(link.toDate && link.toDate < day);
+                  return (
+                    <TR key={link.id} className={out ? "opacity-55" : undefined}>
+                      <TD strong>
+                        <Link href={`/obiective/${objective.id}`} className="hover:text-blueprint">
+                          {objective.code}
+                        </Link>
+                      </TD>
+                      <TD>{objective.name}</TD>
+                      <TD muted>{objective.kind.replaceAll("_", " ")}</TD>
+                      <TD muted>
+                        {link.fromDate} → {link.toDate ?? "nedefinit"}
+                      </TD>
+                      <TD>
+                        {link.inspectionFrequencyMonths ? (
+                          <Badge tone="blueprint">la {link.inspectionFrequencyMonths} luni</Badge>
+                        ) : (
+                          <span className="text-ink-3">neprogramată</span>
+                        )}
+                      </TD>
+                      <TD muted>{template?.name ?? "—"}</TD>
+                      {canEdit ? (
+                        <TD numeric>
+                          {out ? (
+                            <span className="text-micro text-ink-3">scos</span>
+                          ) : (
+                            <UnlinkObjectiveButton linkId={link.id} contractId={id} />
+                          )}
+                        </TD>
+                      ) : null}
+                    </TR>
+                  );
+                })}
+              </TBody>
+            </Table>
+          )}
+        </Sheet>
+      </section>
+
+      <section>
+        <SectionRule
+          right={
+            canEdit ? (
+              <ContractYearForm
+                contractId={id}
+                nextYearNo={(lastYear?.yearNo ?? 0) + 1}
+                suggestedStart={nextStart}
+                suggestedEnd={nextEnd}
+                indexationPercent={contract.indexationPercent}
+              />
+            ) : (
+              `${years.length} ani`
+            )
+          }
+        >
+          Ani contractuali
+        </SectionRule>
+        <Sheet className="mt-2.5 flex flex-wrap items-center gap-2 px-3 py-2.5">
+          {years.length === 0 ? (
+            <p className="text-tiny text-ink-2">Niciun an înregistrat.</p>
+          ) : (
+            [...years]
+              .sort((a, b) => a.yearNo - b.yearNo)
+              .map((y) => (
+                <span
+                  key={y.id}
+                  className={`flex items-center gap-2 border px-2 py-1 ${
+                    activeYear?.id === y.id ? "border-blueprint bg-blueprint-soft" : "border-rule"
+                  }`}
+                >
+                  <span className="eyebrow">An {y.yearNo}</span>
+                  <span className="text-micro text-ink-3">
+                    {y.startDate} → {y.endDate}
+                  </span>
+                  {showPrices ? (
+                    <span className="tabular text-tiny font-medium">
+                      {formatShort(fromDb(y.monthlyValue))} lei/lună
+                    </span>
+                  ) : null}
+                </span>
+              ))
+          )}
+        </Sheet>
+      </section>
 
       <section>
         <SectionRule right={`${financed.length} unități`}>

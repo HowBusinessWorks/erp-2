@@ -24,6 +24,10 @@ import { fromDb, multiplyQty } from "@/lib/money";
 import { can, canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
+import { SituatieForm, SupplementForm } from "@/components/domain/DevizForms";
+import { slLines } from "@/lib/db/schema";
+import { UNITS } from "@/lib/nomenclatoare-types";
+
 export const dynamic = "force-dynamic";
 
 const MONTHS = [
@@ -36,6 +40,8 @@ export default async function PachetPage({ params }: { params: Promise<{ id: str
   const { id } = await params;
   const showPrices = canSeePrices(session.role);
   const canEdit = can(session.role, "pachete.gestioneaza");
+  // §9.6 — situația manuală, pentru lucrările care nu vin prin portalul de subcontractanți.
+  const canDeclare = can(session.role, "sl.verifica") || can(session.role, "sl.aproba");
 
   const [row] = await db
     .select({ pkg: packages, subcontractor: partners, unit: workUnits, objective: objectives })
@@ -67,6 +73,35 @@ export default async function PachetPage({ params }: { params: Promise<{ id: str
       .orderBy(asc(devizLines.position)),
   ]);
 
+  // Executatul cumulat de până acum, pe poziție — de el atârnă blocajul de la §10.1.
+  const executed = canDeclare
+    ? await db
+        .select({
+          packageLineId: slLines.packageLineId,
+          executedCumulative: slLines.executedCumulative,
+        })
+        .from(slLines)
+        .innerJoin(situatiiLucrari, eq(slLines.situatieId, situatiiLucrari.id))
+        .where(eq(situatiiLucrari.packageId, id))
+    : [];
+
+  const executedOf = new Map<string, number>();
+  for (const e of executed) {
+    if (!e.packageLineId) continue;
+    executedOf.set(
+      e.packageLineId,
+      Math.max(executedOf.get(e.packageLineId) ?? 0, Number(e.executedCumulative ?? 0)),
+    );
+  }
+
+  const declarableLines = lines.map((l) => ({
+    id: l.id,
+    name: l.name,
+    unit: l.unit,
+    contracted: Number(l.contractedQty ?? 0),
+    executed: executedOf.get(l.id) ?? 0,
+  }));
+
   const inPackage = new Set(lines.map((l) => l.internalLineId).filter(Boolean) as string[]);
   const candidates = internal
     .map((i) => ({ line: i.line, gate: canEnterPackage(i.line) }))
@@ -95,6 +130,14 @@ export default async function PachetPage({ params }: { params: Promise<{ id: str
             <span>{row.pkg.specialty}</span>
             <span>· {row.subcontractor?.name ?? "regie proprie"}</span>
           </span>
+        }
+        actions={
+          <>
+            {canDeclare && lines.length > 0 ? (
+              <SituatieForm packageId={id} lines={declarableLines} />
+            ) : null}
+            {canDeclare ? <SupplementForm packageId={id} units={UNITS} /> : null}
+          </>
         }
       />
 

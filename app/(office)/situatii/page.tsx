@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { desc, eq, inArray, sql as raw } from "drizzle-orm";
 
-import { Badge, EmptyState, PageHeader } from "@/components/ui/primitives";
+import { Badge, Button, EmptyState, PageHeader } from "@/components/ui/primitives";
 import { Sheet, TBody, TD, TFootRow, TH, THead, TR, Table } from "@/components/ui/table";
 import { Money } from "@/components/ui/gauge";
 import { db } from "@/lib/db";
 import { objectives, packages, partners, situatiiLucrari, slLines, workUnits } from "@/lib/db/schema";
 import { SL_STATUS_LABEL, SL_STATUS_TONE, checkCumulative } from "@/lib/deviz";
 import { fromDb } from "@/lib/money";
-import { canSeePrices } from "@/lib/permissions";
+import { can, canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +26,8 @@ export default async function SituatiiPage({
   const session = await requireSession();
   const sp = await searchParams;
   const showPrices = canSeePrices(session.role);
+  // Situația manuală se declară de pe pachet, unde se știu pozițiile și cumulatele (§9.6).
+  const canDeclare = can(session.role, "sl.verifica") || can(session.role, "sl.aproba");
 
   const rows = await db
     .select({
@@ -67,6 +69,15 @@ export default async function SituatiiPage({
         eyebrow="Comercial"
         title="Situații de lucrări"
         meta="Cele cinci cumulate, una lângă alta. Cumulatul aprobat nu poate depăși cantitatea contractată — blocajul e la introducere, nu la factură, ca discuția să fie cu omul care tocmai a scris cifra."
+        actions={
+          canDeclare ? (
+            <Link href="/pachete">
+              <Button size="sm" variant="primary">
+                ＋ Situație — alege pachetul
+              </Button>
+            </Link>
+          ) : undefined
+        }
       />
 
       {withBlocks > 0 ? (

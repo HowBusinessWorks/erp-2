@@ -3,14 +3,14 @@ import { eq } from "drizzle-orm";
 
 import { Gauge } from "@/components/ui/gauge";
 import { MonthNav } from "@/components/domain/MonthNav";
-import { Badge, PageHeader, SectionRule } from "@/components/ui/primitives";
+import { Badge, Button, PageHeader, SectionRule } from "@/components/ui/primitives";
 import { Sheet, TBody, TD, TFootRow, TH, THead, TR, Table } from "@/components/ui/table";
 import { budgetsForMonth } from "@/lib/budget";
 import { db } from "@/lib/db";
 import { contracts, firms, partners, users } from "@/lib/db/schema";
 import { formatShort } from "@/lib/money";
 import { periodFromParams } from "@/lib/period";
-import { canSeePrices } from "@/lib/permissions";
+import { can, canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +35,7 @@ export default async function ContractePage({
 }) {
   const session = await requireSession();
   const showPrices = canSeePrices(session.role);
+  const canEdit = can(session.role, "contracte.editeaza");
   const period = periodFromParams(await searchParams);
 
   const rows = await db
@@ -62,7 +63,18 @@ export default async function ContractePage({
         eyebrow="Conducere"
         title="Contracte"
         meta={`${maintenance.length} de mentenanță · ${individual.length} individuale`}
-        actions={<MonthNav period={period} basePath="/contracte" />}
+        actions={
+          <>
+            <MonthNav period={period} basePath="/contracte" />
+            {canEdit ? (
+              <Link href="/contracte/nou">
+                <Button size="sm" variant="primary">
+                  ＋ Contract
+                </Button>
+              </Link>
+            ) : null}
+          </>
+        }
       />
 
       <section>

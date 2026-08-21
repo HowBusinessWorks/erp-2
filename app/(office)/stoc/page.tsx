@@ -10,6 +10,10 @@ import { products, stock, stockMovements, warehouses } from "@/lib/db/schema";
 import { fromDb } from "@/lib/money";
 import { canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
+
+import { WarehouseForm } from "@/components/domain/OperabilityForms";
+import { firmOptions, openWorkUnitOptions, partnerOptions, userOptions } from "@/lib/pickers";
+import { can } from "@/lib/permissions";
 import {
   MOVEMENT_LABEL,
   SIGNAL_LABEL,
@@ -37,6 +41,10 @@ export default async function StocPage({
   const session = await requireSession();
   const sp = await searchParams;
   const showPrices = canSeePrices(session.role);
+  const canOperate = can(session.role, "stoc.opereaza");
+  const [firmOpts, unitOpts, supplierOpts, userOpts] = canOperate
+    ? await Promise.all([firmOptions(), openWorkUnitOptions(), partnerOptions("furnizor"), userOptions()])
+    : [[], [], [], []];
 
   const warehouseRows = await db
     .select()
@@ -93,11 +101,21 @@ export default async function StocPage({
         title="Gestiuni și stoc"
         meta="Gestiunea e un loc fizic, nu un contract. Ce se ia de pe raft devine cost abia pe bonul de consum — până atunci e marfă, nu cheltuială."
         actions={
+          <>
+            {canOperate ? (
+              <WarehouseForm
+                firms={firmOpts}
+                workUnits={unitOpts}
+                partners={supplierOpts}
+                users={userOpts}
+              />
+            ) : null}
           <Link href="/stoc/consum">
             <Button variant="primary" size="sm">
               Bon de consum
             </Button>
           </Link>
+          </>
         }
       />
 

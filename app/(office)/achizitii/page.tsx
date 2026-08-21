@@ -14,6 +14,20 @@ import { partners, poLines, products, purchaseOrders, stock, warehouses, workUni
 import { fromDb } from "@/lib/money";
 import { canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
+
+import { PurchaseOrderForm } from "./PurchaseOrderForm";
+import {
+  contractComponents as componentsTable,
+  contracts as contractsTable,
+} from "@/lib/db/schema";
+import {
+  firmOptions,
+  openWorkUnitOptions,
+  partnerOptions,
+  productOptions,
+  warehouseOptions,
+} from "@/lib/pickers";
+import { can } from "@/lib/permissions";
 import {
   CHANNEL_HINT,
   CHANNEL_LABEL,
@@ -46,6 +60,33 @@ export default async function AchizitiiPage({
   const sp = await searchParams;
   const channel = (CHANNELS.includes(sp.canal as Channel) ? sp.canal : "lucrare") as Channel;
   const showPrices = canSeePrices(session.role);
+
+  // §9.8 — canalul B: comanda de birou pentru o lucrare anume.
+  const canOrder = can(session.role, "achizitii.gestioneaza");
+  const [firmOpts, supplierOpts, warehouseOpts, productOpts, unitOpts, componentRows] = canOrder
+    ? await Promise.all([
+        firmOptions(),
+        partnerOptions("furnizor"),
+        warehouseOptions(),
+        productOptions(),
+        openWorkUnitOptions(),
+        db
+          .select({
+            id: componentsTable.id,
+            name: componentsTable.name,
+            contractId: componentsTable.contractId,
+            contractCode: contractsTable.code,
+          })
+          .from(componentsTable)
+          .innerJoin(contractsTable, eq(componentsTable.contractId, contractsTable.id)),
+      ])
+    : [[], [], [], [], [], []];
+
+  const componentOpts = componentRows.map((c) => ({
+    value: c.id,
+    label: `${c.contractCode} · ${c.name}`,
+  }));
+  const contractOfComponent = Object.fromEntries(componentRows.map((c) => [c.id, c.contractId]));
 
   const [orders, warehouseRows] = await Promise.all([
     db
@@ -95,6 +136,19 @@ export default async function AchizitiiPage({
         eyebrow="Aprovizionare · ecranul 24"
         title="Achiziții"
         meta={CHANNEL_HINT[channel]}
+        actions={
+          canOrder ? (
+            <PurchaseOrderForm
+              firms={firmOpts}
+              suppliers={supplierOpts}
+              warehouses={warehouseOpts}
+              products={productOpts}
+              components={componentOpts}
+              contractOfComponent={contractOfComponent}
+              workUnits={unitOpts}
+            />
+          ) : undefined
+        }
       />
 
       <Tabs

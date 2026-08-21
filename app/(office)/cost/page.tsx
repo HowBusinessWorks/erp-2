@@ -19,6 +19,17 @@ import { labelPeriod, periodFromParams } from "@/lib/period";
 import { canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
+import { ManualCostForm } from "@/components/domain/OperabilityForms";
+import {
+  componentOptions,
+  contractOptions,
+  firmOptions,
+  objectiveOptions,
+  openWorkUnitOptions,
+  partnerOptions,
+} from "@/lib/pickers";
+import { can } from "@/lib/permissions";
+
 export const dynamic = "force-dynamic";
 
 const COST_LABEL: Record<string, string> = {
@@ -59,6 +70,19 @@ export default async function CostPage({
 
   const sp = await searchParams;
   const period = periodFromParams(sp);
+
+  // §9.10 — factura care nu vine printr-o recepție. Intră tot prin `recordCost`.
+  const canAdd = can(session.role, "cost.realoca");
+  const [firmOpts, contractOpts, componentOpts, objectiveOpts, unitOpts, supplierOpts] = canAdd
+    ? await Promise.all([
+        firmOptions(),
+        contractOptions(),
+        componentOptions(),
+        objectiveOptions(),
+        openWorkUnitOptions(),
+        partnerOptions("furnizor"),
+      ])
+    : [[], [], [], [], [], []];
 
   /**
    * §12 — dubla analitică. Trebuie să fie limpede, pe fiecare ecran, pe care
@@ -140,7 +164,25 @@ export default async function CostPage({
         eyebrow="Operațional"
         title="Registrul de cost"
         meta={`Fiecare leu cheltuit produce o linie aici, indiferent de sursă. Toate rapoartele sunt filtre pe tabela asta.`}
-        actions={<MonthNav period={period} basePath="/cost" extraParams={{ analitica: analytic, contract: sp.contract }} />}
+        actions={
+          <>
+            <MonthNav
+              period={period}
+              basePath="/cost"
+              extraParams={{ analitica: analytic, contract: sp.contract }}
+            />
+            {canAdd ? (
+              <ManualCostForm
+                firms={firmOpts}
+                contracts={contractOpts}
+                components={componentOpts}
+                objectives={objectiveOpts}
+                workUnits={unitOpts}
+                suppliers={supplierOpts}
+              />
+            ) : null}
+          </>
+        }
       />
 
       {/* Comutatorul de analitică — cel mai important control de pe ecran. */}

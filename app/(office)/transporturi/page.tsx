@@ -18,6 +18,10 @@ import { fromDb } from "@/lib/money";
 import { canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
+import { TransportForm } from "@/components/domain/OperabilityForms";
+import { objectiveOptions, openWorkUnitOptions } from "@/lib/pickers";
+import { can } from "@/lib/permissions";
+
 export const dynamic = "force-dynamic";
 
 const NEXT_STATUS: Record<string, { to: string; label: string } | null> = {
@@ -35,6 +39,10 @@ export default async function TransporturiPage({
   const session = await requireSession();
   const sp = await searchParams;
   const showPrices = canSeePrices(session.role);
+  const canCreate = can(session.role, "flota.solicita");
+  const [objectiveOpts, unitOpts] = canCreate
+    ? await Promise.all([objectiveOptions(), openWorkUnitOptions()])
+    : [[], []];
   const today = todayIso();
 
   const filters = [];
@@ -70,6 +78,7 @@ export default async function TransporturiPage({
         eyebrow="Resurse"
         title="Transporturi"
         meta="O coadă centrală, nu un dosar per șantier. Transporturile generate automat — din comenzi și din rezervări de utilaje — intră singure aici, fără să le ceară nimeni."
+        actions={canCreate ? <TransportForm objectives={objectiveOpts} workUnits={unitOpts} /> : undefined}
       />
 
       <div className="grid gap-3 md:grid-cols-4">

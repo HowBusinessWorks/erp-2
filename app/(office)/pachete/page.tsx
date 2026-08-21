@@ -18,6 +18,10 @@ import { fromDb } from "@/lib/money";
 import { canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
+import { PackageForm } from "@/components/domain/DevizForms";
+import { openWorkUnitOptions, partnerOptions } from "@/lib/pickers";
+import { can } from "@/lib/permissions";
+
 export const dynamic = "force-dynamic";
 
 export default async function PachetePage({
@@ -28,6 +32,10 @@ export default async function PachetePage({
   const session = await requireSession();
   const sp = await searchParams;
   const showPrices = canSeePrices(session.role);
+  const canManage = can(session.role, "pachete.gestioneaza");
+  const [unitOpts, subOpts] = canManage
+    ? await Promise.all([openWorkUnitOptions(), partnerOptions("subcontractant")])
+    : [[], []];
 
   const rows = await db
     .select({ pkg: packages, subcontractor: partners, unit: workUnits, objective: objectives })
@@ -72,6 +80,9 @@ export default async function PachetePage({
         eyebrow="Comercial"
         title="Pachete de subcontractare"
         meta="Un pachet iese din devizul intern, pe specialitate. Materialele NU intră în pachet — subcontractantul dă manoperă, materialul îl dă firma. Regula e impusă de sistem, nu lăsată la bunăvoința celui care compune pachetul."
+        actions={
+          canManage ? <PackageForm workUnits={unitOpts} subcontractors={subOpts} /> : undefined
+        }
       />
 
       <div className="flex flex-wrap items-center gap-1.5">

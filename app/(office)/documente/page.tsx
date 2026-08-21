@@ -8,6 +8,8 @@ import { contracts, fileNodes, fileVersions, objectives, users, workUnits } from
 import { formatDay } from "@/lib/equipment";
 import { requireSession } from "@/lib/session";
 
+import { FolderForm, UploadForm } from "@/components/domain/OperabilityForms";
+
 export const dynamic = "force-dynamic";
 
 function formatSize(bytes: number | null): string {
@@ -82,9 +84,13 @@ export default async function DocumentePage({
         title="Documente"
         meta="Fiecare unitate de lucru primește un folder propriu, generat automat. Nimeni nu-l creează de mână și nimeni nu uită să-l creeze — de asta pozele de pe teren au unde să ajungă."
         actions={
-          <Link href="/documente/sabloane">
-            <Button size="sm">Șabloane de PV</Button>
-          </Link>
+          <>
+            <FolderForm parentId={folderId ?? undefined} parentName={current[0]?.name} />
+            <UploadForm parentId={folderId ?? undefined} parentName={current[0]?.name} />
+            <Link href="/documente/sabloane">
+              <Button size="sm">Șabloane de PV</Button>
+            </Link>
+          </>
         }
       />
 

@@ -17,6 +17,11 @@ import { fromDb } from "@/lib/money";
 import { canSeePrices } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
 
+import { DevizForm } from "@/components/domain/DevizForms";
+import { devizTemplates } from "@/lib/db/schema";
+import { openWorkUnitOptions } from "@/lib/pickers";
+import { can } from "@/lib/permissions";
+
 export const dynamic = "force-dynamic";
 
 export default async function DevizePage({
@@ -27,6 +32,14 @@ export default async function DevizePage({
   const session = await requireSession();
   const sp = await searchParams;
   const showPrices = canSeePrices(session.role);
+  const canDraft =
+    can(session.role, "deviz.intern.editeaza") || can(session.role, "deviz.client.editeaza");
+  const [unitOpts, templateRows] = canDraft
+    ? await Promise.all([
+        openWorkUnitOptions(),
+        db.select({ value: devizTemplates.id, label: devizTemplates.name }).from(devizTemplates),
+      ])
+    : [[], []];
 
   const rows = await db
     .select({ deviz: devize, unit: workUnits, objective: objectives, author: users })
@@ -65,12 +78,15 @@ export default async function DevizePage({
         title="Devize"
         meta="Devizul client și devizul intern sunt documente diferite, legate N:M. O poziție ofertată se poate executa din trei articole interne — de asta maparea are coeficient, nu bifă."
         actions={
+          <>
+            {canDraft ? <DevizForm workUnits={unitOpts} templates={templateRows} /> : null}
           <Link
             href="/devize/articole"
             className="rounded-[3px] border border-rule-strong bg-sheet px-2.5 py-1 text-tiny text-ink-2 hover:bg-sunk hover:text-ink"
           >
             Articole normate
           </Link>
+          </>
         }
       />
 
