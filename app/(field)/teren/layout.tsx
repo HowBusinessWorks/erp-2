@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { FieldIconSprite } from "@/components/domain/FieldIcons";
 import { FieldTabs } from "@/components/domain/FieldTabs";
+import { FieldViewportFit } from "@/components/domain/FieldViewportFit";
 import { getSession } from "@/lib/session";
 
 import "./field.css";
@@ -23,6 +24,7 @@ export default async function FieldLayout({ children }: { children: React.ReactN
   return (
     <div className="f-app">
       <FieldIconSprite />
+      <FieldViewportFit />
       <div className="f-main">{children}</div>
       <FieldTabs />
     </div>

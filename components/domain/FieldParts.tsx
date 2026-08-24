@@ -376,6 +376,7 @@ export function BottomSheet({
           style={{
             position: "fixed",
             inset: 0,
+            bottom: "calc(-1 * var(--f-extra, 0px))",
             zIndex: 70,
             display: "flex",
             flexDirection: "column",
@@ -390,7 +391,7 @@ export function BottomSheet({
               borderRadius: "26px 26px 0 0",
               maxHeight: "88dvh",
               overflowY: "auto",
-              paddingBottom: "calc(18px + env(safe-area-inset-bottom))",
+              paddingBottom: "calc(18px + max(env(safe-area-inset-bottom), var(--f-extra, 0px)))",
             }}
           >
             <div className="f-line1" style={{ padding: "16px 18px 4px", color: "#10151F" }}>

@@ -106,6 +106,7 @@ export function FieldQuickAdd({ workUnitId }: { workUnitId?: string }) {
           style={{
             position: "fixed",
             inset: 0,
+            bottom: "calc(-1 * var(--f-extra, 0px))",
             zIndex: 60,
             display: "flex",
             flexDirection: "column",
@@ -125,7 +126,7 @@ export function FieldQuickAdd({ workUnitId }: { workUnitId?: string }) {
               zIndex: 1,
               background: "#fff",
               borderRadius: "26px 26px 0 0",
-              paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
+              paddingBottom: "calc(20px + max(env(safe-area-inset-bottom), var(--f-extra, 0px)))",
             }}
           >
             <div

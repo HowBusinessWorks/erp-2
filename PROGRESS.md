@@ -222,6 +222,18 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ## 6. Istoric pe sesiuni
 
+### 2026-08-24 — fâșia de sub bara de jos, a treia (și ultima) încercare
+
+Poză nouă: pe iOS instalat rămâne o bandă deschisă la culoare (fundalul `body`) sub `.f-tabs`,
+deci viewport-ul de layout se raportează mai scurt decât ecranul fizic — `inset: 0` nu ajunge.
+Fix în două straturi: (1) `FieldViewportFit` (client, montat în layout-ul de teren) măsoară
+`screen.height − innerHeight` doar în modul instalat, clamp 0–80px, și îl pune în `--f-extra`;
+`.f-app` primește `bottom: calc(-1 * var(--f-extra))`, iar `.f-tabs` mută padding-ul de jos în
+`max(env(safe-area-inset-bottom), var(--f-extra))` — bara cade fix pe marginea ecranului, iconițele
+rămân peste bara de gesturi. (2) `html`/`body` sub `.f-app` au fundal `#10151f`, deci orice
+milimetru scăpat se citește ca bară, nu ca fâșie albă. Sheet-urile fixed din `FieldKit`/`FieldParts`
+folosesc același offset.
+
 ### 2026-08-24 — bara de jos: mai scundă, „Lucrări" în loc de „Locuri", tab nou Mentenanță
 
 `.f-tabs`/`.f-tab` comprimate (padding, iconițe, text) — ocupa prea mult. „Locuri"→**„Lucrări"**

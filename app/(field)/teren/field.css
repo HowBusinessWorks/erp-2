@@ -22,6 +22,9 @@ html:has(.f-app),
 body:has(> .f-app) {
   overflow: hidden;
   height: 100%;
+  /* Ce rămâne dedesubt e închis la culoare, nu alb: dacă vreun milimetru tot scapă de sub
+     shell (bounce elastic, viewport raportat scurt), se citește ca parte din bara de jos. */
+  background: #10151f;
 }
 
 .f-app {
@@ -50,6 +53,9 @@ body:has(> .f-app) {
    */
   position: fixed;
   inset: 0;
+  /* `--f-extra` (măsurat în `FieldViewportFit`) e cât raportează iOS mai puțin decât
+     ecranul real; shell-ul se prelungește cu atât sub marginea viewport-ului de layout. */
+  bottom: calc(-1 * var(--f-extra, 0px));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -985,7 +991,7 @@ body:has(> .f-app) {
   flex: 0 0 auto;
   background: var(--f-ink);
   display: flex;
-  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  padding: 6px 6px calc(6px + max(env(safe-area-inset-bottom), var(--f-extra, 0px)));
 }
 .f-tab {
   flex: 1;
