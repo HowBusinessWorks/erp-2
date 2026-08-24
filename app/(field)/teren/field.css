@@ -991,7 +991,7 @@ body:has(> .f-app) {
   flex: 0 0 auto;
   background: var(--f-ink);
   display: flex;
-  padding: 6px 6px calc(6px + max(env(safe-area-inset-bottom), var(--f-extra, 0px)));
+  padding: 3px 6px calc(3px + max(env(safe-area-inset-bottom), var(--f-extra, 0px)));
 }
 .f-tab {
   flex: 1;
@@ -1000,20 +1000,21 @@ body:has(> .f-app) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 4px 0;
+  gap: 1px;
+  padding: 3px 0;
   cursor: pointer;
   color: #78829a;
   font-family: inherit;
   text-decoration: none;
 }
 .f-tab svg {
-  width: 21px;
-  height: 21px;
+  width: 25px;
+  height: 25px;
 }
 .f-tab span {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 800;
+  line-height: 1.2;
 }
 .f-tab.f-on {
   color: var(--f-am);
