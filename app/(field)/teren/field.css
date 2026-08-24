@@ -965,7 +965,7 @@
   flex: 0 0 auto;
   background: var(--f-ink);
   display: flex;
-  padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
 }
 .f-tab {
   flex: 1;
@@ -974,19 +974,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px 0;
+  gap: 2px;
+  padding: 4px 0;
   cursor: pointer;
   color: #78829a;
   font-family: inherit;
   text-decoration: none;
 }
 .f-tab svg {
-  width: 26px;
-  height: 26px;
+  width: 21px;
+  height: 21px;
 }
 .f-tab span {
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 800;
 }
 .f-tab.f-on {

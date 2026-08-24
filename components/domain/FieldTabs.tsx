@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 import { Icon, type IconName } from "./FieldIcons";
 
 /**
- * Bara de jos, sub degetul mare. Trei tab-uri, nu șase: tot ce se poate ajunge din
- * „Azi" sau din meniul unui loc nu merită un buton propriu.
+ * Bara de jos, sub degetul mare. Patru tab-uri, nu șase: tot ce se poate ajunge din
+ * „Azi" sau din meniul unei lucrări nu merită un buton propriu.
  *
  * Un ecran aparține tab-ului sub care a fost deschis — de asta apartenența se decide
  * pe prefixul căii, nu pe potrivire exactă.
@@ -23,7 +23,7 @@ const TABS: { href: string; icon: IconName; label: string; owns: (path: string) 
   {
     href: "/teren/locuri",
     icon: "pin",
-    label: "Locuri",
+    label: "Lucrări",
     owns: (p) =>
       p.startsWith("/teren/locuri") ||
       p.startsWith("/teren/jurnal") ||
@@ -34,6 +34,15 @@ const TABS: { href: string; icon: IconName; label: string; owns: (path: string) 
       p.startsWith("/teren/situatii") ||
       p.startsWith("/teren/utilaje") ||
       /^\/teren\/[0-9a-f-]{36}$/.test(p),
+  },
+  {
+    href: "/teren/mentenanta",
+    icon: "tool",
+    label: "Mentenanță",
+    owns: (p) =>
+      p.startsWith("/teren/mentenanta") ||
+      p.startsWith("/teren/inspectii") ||
+      p.startsWith("/teren/interventii"),
   },
   {
     href: "/teren/eu",

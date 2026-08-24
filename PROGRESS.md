@@ -222,32 +222,35 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ## 6. Istoric pe sesiuni
 
+### 2026-08-24 — bara de jos: mai scundă, „Lucrări" în loc de „Locuri", tab nou Mentenanță
+
+`.f-tabs`/`.f-tab` comprimate (padding, iconițe 26→21px, text 11.5→10.5px) — ocupa prea mult
+din ecran. Al doilea tab redenumit „Lucrări" (ruta rămâne `/teren/locuri`, doar eticheta se
+schimbă). Tab nou **Mentenanță** → `/teren/mentenanta`, deține și `/inspectii`, `/interventii`.
+Patru tab-uri acum, nu trei — comentariile din `FieldTabs.tsx`/`teren/layout.tsx` actualizate.
+
 ### 2026-08-24 — tastatura pe iOS nu mai strică bara de tab-uri
 
-Bug real (poză utilizator): pe iOS, la focus pe un `<textarea>`/`<input>`, tastatura deschidea
-și bara `.f-tabs` (fixed) sărea la mijlocul ecranului, deasupra tastaturii — `body` era cel care
-se scrola, iar elementele `fixed` nu mai corespundeau vizual. Fix: `.f-app` a devenit un shell de
-`height: 100dvh; overflow: hidden` cu `display: flex; flex-direction: column`; `.f-main` e acum
-containerul cu `overflow-y: auto` (singurul care se scrolează), iar `.f-tabs` a trecut din
-`position: fixed` la element normal de flex, ultimul din coloană. `.f-submit`/`.f-cart` (sticky)
-nu mai au nevoie de offset-ul `84px` care compensa tab-bar-ul fixat — acum `bottom: 0` ajunge,
-pentru că tab-urile nu mai suprapun conținutul. Neplimbat pe device fizic iOS.
+Bug real (poză utilizator): la focus pe un input, tastatura deschidea și `.f-tabs` (fixed)
+sărea la mijlocul ecranului — `body` era cel care se scrola. Fix: `.f-app` e acum un shell
+`height: 100dvh; overflow: hidden; flex column`; doar `.f-main` se scrolează, `.f-tabs` a
+ieșit din `position: fixed` și e ultimul element din coloană. `.f-submit`/`.f-cart` (sticky)
+nu mai au nevoie de offset-ul `84px`. Neplimbat pe device fizic iOS.
 
 ### 2026-08-24 — coșul de comandă la `/teren/catalog`, cu adăugare pe linii
 
 Ecranul de comandă (`catalog/page.tsx`) trecea printr-o listă de bife peste tot catalogul, cu
-căutare pe reîncărcare de pagină. Înlocuit cu `components/domain/OrderCart.tsx` ("use client"):
-coșul pornește gol, „+ Adaugă produs" deschide o căutare **client-side instantă** (catalogul,
-~30 produse, deja încărcat — filtrare fără rețea), alegerea unui rezultat adaugă o linie cu
-cantitate 1, editabilă. Câmpurile trimise nu s-au schimbat (`productId[]`, `qty_<id>`) —
-`submitCart` neatins. CSS nou `.f-oc*` în `field.css`. `tsc`/`build` curate, neplimbat (§2).
+căutare pe reîncărcare de pagină. Înlocuit cu `OrderCart.tsx` ("use client"): coșul pornește gol,
+„+ Adaugă produs" deschide o căutare **client-side instantă** (~30 produse, deja încărcate,
+filtrare fără rețea), alegerea adaugă o linie cu cantitate 1, editabilă. Câmpurile trimise
+neschimbate (`productId[]`, `qty_<id>`) — `submitCart` neatins. `tsc`/`build` curate (§2).
 
 ### 2026-08-24 — blocul F: funcțiile noi din mockup-ul `santierappv3.html`
 
 `tsc`/`build` curate, **15 rute noi**. `db:push` **de rulat**. Din `santierappv3.html`/
 `santierappmockup.html` se iau **doar funcțiile**, nu designul; `v3` e
-canonic unde diferă. Limbajul rămâne `f-`, tab-urile rămân trei. Media (poze, filmări, semnături)
-e doar interfață; stocarea pe **Cloudflare R2** (`media_slots.storage_key` gol până atunci).
+canonic unde diferă. Limbajul rămâne `f-`. Media (poze, filmări, semnături) e doar interfață;
+stocarea pe **Cloudflare R2** (`media_slots.storage_key` gol până atunci).
 
 **Schemă:** `subcontractor_attendance` (ore-om/zi, nu produce cost) · `media_slots` (poze
 declarate) · `work_units` + `inspection_type/discipline/source_tag/source_unit_id` ·
@@ -257,19 +260,15 @@ declarate) · `work_units` + `inspection_type/discipline/source_tag/source_unit_
 
 - **Mentenanța, ca două fluxuri.** `/teren/mentenanta` · `/inspectii/noua` (wizard 3 pași) +
   `[id]` · `/interventii/noua` + `[id]`. Inspecția se închide odată, cu verdict; intervenția stă
-  **deschisă**, primește ore/materiale/însemnări. Firul se împletește la citire din
+  **deschisă**, primește ore/materiale/însemnări, firul se împletește la citire din
   `site_journal_entries`+`timesheets`+`intervention_details` — zero tabele noi. La „nu am
   rezolvat pe loc", **intervenția se naște în același apel** cu inspecția.
-- **Timp:** `/teren/pontaj/echipa` (ore din intrare−plecare, manoperă per om) ·
-  `/teren/pontaj/firme` (ziua se **rescrie**).
-- **Lucrarea pe patru file** `?f=jurnal|echipa|depozit|acte`, ca linkuri, nu stare de client ·
-  `/teren/lucrare/[id]/inainte-dupa` (unghi N/S/E/V).
+- **Timp:** `/teren/pontaj/echipa` (ore din intrare−plecare) · `/teren/pontaj/firme` (**rescrie**).
+- **Lucrarea pe patru file** `?f=jurnal|echipa|depozit|acte`, ca linkuri · `/lucrare/[id]/inainte-dupa`.
 - **Comenzi:** `/teren/comenzi` · `/comenzi/nou` · `/catalog` (coș, zero prețuri) ·
   `/utilaj-nou` (rutat, nu comandă) · `/transport-nou` · `/comenzi/[id]` (trepte din status).
-- **Acte:** `/teren/pv/nou` (semnătură canvas, `signatureImage`) · `/teren/pv/unelte/[id]`
-  (primire → **blocată** → predare).
-- Piese noi: `FieldParts.tsx` (stepper, bifă, galerie, semnătură, foaie de jos) +
-  `InspectionWizard.tsx`.
+- **Acte:** `/teren/pv/nou` (semnătură canvas, `signatureImage`) · `/pv/unelte/[id]` (**blocată**).
+- Piese noi: `FieldParts.tsx` (stepper, bifă, galerie, semnătură, foaie de jos) + `InspectionWizard.tsx`.
 
 **Rutare schimbată:** intervențiile merg pe `/teren/interventii/[id]`; `/teren/[id]` redirectează
 acolo și rămâne fișa cu **checklist** pentru inspecția planificată de la birou.
@@ -293,8 +292,8 @@ pe teren, `/concedii` la birou. 64 de rute, `tsc` și `build` curate.
 - **C2** `lib/stock.ts` + 23–25: disponibil = cantitate − rezervat, 3 canale, CMP, `releaseCommitment`.
 - **B2** `lib/execution.ts` + `/lucrari/[id]/executie` · **A2** `lib/deviz.ts` + 16–21, T8 (N:M,
   SL blocată pe depășire, garanții) · **C** `lib/equipment.ts`, `pv-templates.ts`, ecranele 26–33.
-- **Fundația+A+B**: Next.js 16, Tailwind 4, `lib/`, design system, shell, login, seed. 2–15, 34,
-  36, T1–T6. Plimbate: 31 rute, 4 roluri, 0 „lei" pe teren. Panoul: 15s → 0,7s.
+- **Fundația+A+B**: Next.js 16, Tailwind 4, `lib/`, design system, shell, login, seed, 2–15, 34,
+  36, T1–T6, plimbate — 31 rute, 4 roluri, 0 „lei" pe teren, panoul 15s → 0,7s.
 
 **Accidentul care se repetă:** un fișier de client care importă un `lib/` cu `lib/db` în spate dă
 500 pe tot blocul, cu `tsc` curat. De aici vin toate fișierele `lib/*-types.ts`.
