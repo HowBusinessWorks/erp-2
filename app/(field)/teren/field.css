@@ -991,9 +991,11 @@ body:has(> .f-app) {
   flex: 0 0 auto;
   background: var(--f-ink);
   display: flex;
-  /* Marea parte din inaltimea barei era zona de home indicator (34pt pe iPhone).
-     N-are nevoie de toata: 60% lasa indicatorul liber si scoate ~14px de gol. */
-  padding: 3px 6px calc(2px + max(env(safe-area-inset-bottom), var(--f-extra, 0px)) * 0.6);
+  padding: 4px 6px 0;
+  /* `--f-extra` compenseaza cat coboara iOS aplicatia sub viewportul vizibil — daca
+     nu-l dam intreg, randul de etichete ajunge sub marginea ecranului. Doar inset-ul
+     de home indicator e negociabil: din el taiem 12px, ca bara sa nu para goala. */
+  padding-bottom: max(var(--f-extra, 0px), calc(env(safe-area-inset-bottom) - 12px), 4px);
 }
 .f-tab {
   flex: 1;
@@ -1014,9 +1016,9 @@ body:has(> .f-app) {
   height: 28px;
 }
 .f-tab span {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 .f-tab.f-on {
   color: var(--f-am);
