@@ -991,7 +991,9 @@ body:has(> .f-app) {
   flex: 0 0 auto;
   background: var(--f-ink);
   display: flex;
-  padding: 3px 6px calc(3px + max(env(safe-area-inset-bottom), var(--f-extra, 0px)));
+  /* Marea parte din inaltimea barei era zona de home indicator (34pt pe iPhone).
+     N-are nevoie de toata: 60% lasa indicatorul liber si scoate ~14px de gol. */
+  padding: 3px 6px calc(2px + max(env(safe-area-inset-bottom), var(--f-extra, 0px)) * 0.6);
 }
 .f-tab {
   flex: 1;
@@ -1001,15 +1003,15 @@ body:has(> .f-app) {
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  padding: 3px 0;
+  padding: 2px 0;
   cursor: pointer;
   color: #78829a;
   font-family: inherit;
   text-decoration: none;
 }
 .f-tab svg {
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
 }
 .f-tab span {
   font-size: 10px;
