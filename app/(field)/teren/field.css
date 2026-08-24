@@ -11,6 +11,19 @@
  * global odată intrat în pagină — prefixul garantează că nu atinge nimic din birou.
  */
 
+/*
+ * `.f-app` e `position: fixed`, deci nu mai contează pentru înălțimea lui `html`/`body` —
+ * dar documentul rămas dedesubt tot poate face „bounce" elastic pe iOS la un swipe, ceea
+ * ce dă la iveală, pentru o clipă, fundalul alb din spatele lui `.f-app` (exact fâșia
+ * raportată). `:has()` blochează scroll-ul pe `html`/`body` DOAR pe ecranele de teren —
+ * biroul, care se bazează pe scroll normal de `body`, nu e atins.
+ */
+html:has(.f-app),
+body:has(> .f-app) {
+  overflow: hidden;
+  height: 100%;
+}
+
 .f-app {
   --f-ink: #10151f;
   --f-ink-2: #2b3444;

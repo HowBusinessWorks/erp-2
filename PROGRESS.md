@@ -224,28 +224,28 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ### 2026-08-24 — bara de jos: mai scundă, „Lucrări" în loc de „Locuri", tab nou Mentenanță
 
-`.f-tabs`/`.f-tab` comprimate (padding, iconițe 26→21px, text 11.5→10.5px) — ocupa prea mult
-din ecran. Al doilea tab redenumit „Lucrări" (ruta rămâne `/teren/locuri`). Tab nou
-**Mentenanță** → `/teren/mentenanta`, deține și `/inspectii`, `/interventii`. Patru tab-uri
-acum, nu trei. **Bug separat, tot azi:** fâșie albă sub bară pe iOS instalat — `.f-app` folosea
-`height: 100dvh`, care rămâne uneori mai scurt decât ecranul real în standalone; trecut pe
-`position: fixed; inset: 0`, ancorat direct de marginile viewport-ului.
+`.f-tabs`/`.f-tab` comprimate (padding, iconițe, text) — ocupa prea mult. „Locuri"→**„Lucrări"**
+(ruta rămâne `/teren/locuri`). Tab nou **Mentenanță** → `/teren/mentenanta` (+ `/inspectii`,
+`/interventii`). Patru tab-uri, nu trei. **Fâșia albă de sub bară, a doua încercare:**
+`height: 100dvh`→`position: fixed; inset: 0` pe `.f-app` tot nu ajungea — cauza reală era
+bounce-ul elastic din iOS: `html`/`body` rămâneau scrollabile și, la swipe, dădeau la iveală
+o clipă fundalul din spatele shell-ului fix. Fix: `html:has(.f-app), body:has(> .f-app)
+{ overflow: hidden }` în `field.css` — blochează scroll-ul **doar** pe ecranele de teren.
 
 ### 2026-08-24 — tastatura pe iOS nu mai strică bara de tab-uri
 
 Bug real (poză utilizator): la focus pe un input, tastatura deschidea și `.f-tabs` (fixed)
-sărea la mijlocul ecranului — `body` era cel care se scrola. Fix: `.f-app` e acum un shell
-(`overflow: hidden; flex column`, vezi mai jos pt. înălțime); doar `.f-main` se scrolează,
-`.f-tabs` a ieșit din `position: fixed`, e ultimul din coloană. `.f-submit`/`.f-cart` nu mai
-au nevoie de offset-ul `84px`. Neplimbat pe device fizic iOS.
+sărea la mijlocul ecranului. Fix: `.f-main` a devenit singurul container care se scrolează
+(`overflow-y: auto`), `.f-tabs` a ieșit din `position: fixed` și e ultimul din coloana flex
+`.f-app`. `.f-submit`/`.f-cart` nu mai au nevoie de offset-ul `84px`.
 
 ### 2026-08-24 — coșul de comandă la `/teren/catalog`, cu adăugare pe linii
 
 Ecranul de comandă (`catalog/page.tsx`) trecea printr-o listă de bife peste tot catalogul, cu
-căutare pe reîncărcare de pagină. Înlocuit cu `OrderCart.tsx` ("use client"): coșul pornește gol,
-„+ Adaugă produs" deschide o căutare **client-side instantă** (~30 produse, deja încărcate,
-filtrare fără rețea), alegerea adaugă o linie cu cantitate 1, editabilă. Câmpurile trimise
-neschimbate (`productId[]`, `qty_<id>`) — `submitCart` neatins. `tsc`/`build` curate (§2).
+căutare pe reîncărcare de pagină. Înlocuit cu `OrderCart.tsx`: coșul pornește gol, „+ Adaugă
+produs" deschide o căutare **client-side instantă** (~30 produse, deja încărcate, fără rețea),
+alegerea adaugă o linie cu cantitate 1, editabilă. Câmpuri neschimbate (`productId[]`,
+`qty_<id>`) — `submitCart` neatins.
 
 ### 2026-08-24 — blocul F: funcțiile noi din mockup-ul `santierappv3.html`
 
@@ -294,7 +294,7 @@ consum, notificări. **Concedii**, nou: `leave_requests` + `users.annual_leave_d
 - **B2** `lib/execution.ts` + `/lucrari/[id]/executie` · **A2** `lib/deviz.ts` + 16–21, T8 (N:M,
   SL blocată pe depășire, garanții) · **C** `lib/equipment.ts`, `pv-templates.ts`, ecranele 26–33.
 - **Fundația+A+B**: Next.js 16, Tailwind 4, `lib/`, design system, shell, login, seed, 2–15, 34,
-  36, T1–T6, plimbate — 31 rute, 4 roluri, 0 „lei" pe teren, panoul 15s → 0,7s.
+  36, T1–T6, plimbate: 31 rute, 4 roluri, 0 „lei" pe teren, panoul 15s→0,7s.
 
-**Accidentul care se repetă:** un fișier de client care importă un `lib/` cu `lib/db` în spate dă
-500 pe tot blocul, cu `tsc` curat. De aici vin toate fișierele `lib/*-types.ts`.
+**Accidentul care se repetă:** un fișier client care importă `lib/` cu `lib/db` în spate dă 500
+pe tot blocul, `tsc` curat — de-aici `lib/*-types.ts`.
