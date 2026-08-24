@@ -1504,3 +1504,154 @@
 .f-cart .f-bt {
   box-shadow: 0 10px 28px rgba(16, 21, 31, 0.22);
 }
+
+/* ── coșul de comandă: linii adăugate + căutare inline ── */
+.f-oc {
+  margin: 0 16px;
+}
+.f-oc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 26px 18px;
+  border: 2px dashed var(--f-line);
+  border-radius: 16px;
+  color: var(--f-mut);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: center;
+}
+.f-oc-empty svg {
+  width: 26px;
+  height: 26px;
+  opacity: 0.6;
+}
+.f-oc-ln {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--f-line);
+}
+.f-oc-ln:last-child {
+  border-bottom: 0;
+}
+.f-oc-ln .f-tx {
+  flex: 1;
+  min-width: 0;
+}
+.f-oc-rm {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--f-mut);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.f-oc-rm svg {
+  width: 17px;
+  height: 17px;
+}
+.f-oc-rm:active {
+  background: var(--f-bg);
+}
+.f-oc-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 2px dashed #c9cdd6;
+  background: transparent;
+  color: var(--f-ink);
+  font-size: 15px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+}
+.f-oc-add svg {
+  width: 18px;
+  height: 18px;
+}
+.f-oc-add:active {
+  background: var(--f-bg);
+}
+.f-oc-panel {
+  margin-top: 10px;
+  border-radius: 16px;
+  border: 1px solid var(--f-line);
+  background: var(--f-card);
+  overflow: hidden;
+}
+.f-oc-src {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--f-line);
+}
+.f-oc-src svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--f-mut);
+}
+.f-oc-src input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 16.5px;
+  font-weight: 650;
+  font-family: inherit;
+  color: var(--f-ink);
+  outline: none;
+}
+.f-oc-res {
+  max-height: 320px;
+  overflow-y: auto;
+}
+.f-oc-none {
+  padding: 22px 14px;
+  text-align: center;
+  color: var(--f-mut);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.f-oc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--f-line);
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.f-oc-item:last-child {
+  border-bottom: 0;
+}
+.f-oc-item:active {
+  background: var(--f-bg);
+}
+.f-oc-item .f-tx {
+  flex: 1;
+  min-width: 0;
+}
+.f-oc-item svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--f-gr);
+}

@@ -1,16 +1,10 @@
 import { submitCart } from "@/app/actions/teren-comenzi";
 import { SubmitBar } from "@/components/domain/FieldKit";
-import { ChipPick, PickableLine } from "@/components/domain/FieldParts";
-import {
-  Block,
-  Empty,
-  FieldBar,
-  Filters,
-  Label,
-  Note,
-} from "@/components/domain/FieldUI";
+import { ChipPick } from "@/components/domain/FieldParts";
+import { Block, Empty, FieldBar, Label, Note } from "@/components/domain/FieldUI";
+import { OrderCart } from "@/components/domain/OrderCart";
 import { todayIso } from "@/lib/field";
-import { catalogCategories, catalogProducts, catalogTools, myWorks } from "@/lib/field-data";
+import { catalogProducts, catalogTools, myWorks } from "@/lib/field-data";
 import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -27,18 +21,16 @@ export const dynamic = "force-dynamic";
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ul?: string; tip?: string; cat?: string; q?: string }>;
+  searchParams: Promise<{ ul?: string; tip?: string }>;
 }) {
   const session = await requireSession();
   const sp = await searchParams;
 
   const isTools = sp.tip === "unelte";
-  const category = sp.cat ?? "toate";
 
-  const [works, categories, items] = await Promise.all([
+  const [works, items] = await Promise.all([
     myWorks(session.id),
-    isTools ? Promise.resolve<string[]>([]) : catalogCategories(),
-    isTools ? catalogTools(sp.q) : catalogProducts(sp.q, category),
+    isTools ? catalogTools() : catalogProducts(),
   ]);
 
   const workUnitId = sp.ul && works.some((w) => w.id === sp.ul) ? sp.ul : works[0]?.id;
@@ -52,7 +44,13 @@ export default async function CatalogPage({
   }
 
   const work = works.find((w) => w.id === workUnitId)!;
-  const base = `/teren/catalog?ul=${workUnitId}${isTools ? "&tip=unelte" : ""}`;
+
+  const cartItems = items.map((item) => ({
+    id: item.id,
+    name: item.name,
+    unit: "unit" in item ? item.unit : "buc",
+    meta: item.category,
+  }));
 
   return (
     <>
@@ -62,56 +60,15 @@ export default async function CatalogPage({
         back="/teren/comenzi/nou"
       />
 
-      {/*
-        Căutarea e un formular GET separat, deasupra coșului. Un `<form>` nu poate sta în
-        alt `<form>`, iar căutarea nu are ce trimite odată cu comanda.
-      */}
-      <form method="get" action="/teren/catalog" className="f-pad">
-        <input type="hidden" name="ul" value={workUnitId} />
-        {isTools ? <input type="hidden" name="tip" value="unelte" /> : null}
-        {!isTools ? <input type="hidden" name="cat" value={category} /> : null}
-        <div className="f-fld" style={{ margin: 0 }}>
-          <input
-            name="q"
-            defaultValue={sp.q ?? ""}
-            placeholder={isTools ? "Caută unealtă" : "Caută produs"}
-            aria-label="Caută"
-          />
-        </div>
-      </form>
-
-      {!isTools && categories.length > 0 ? (
-        <Filters
-          options={[
-            { value: "toate", label: "Toate" },
-            ...categories.map((c) => ({ value: c, label: c })),
-          ]}
-          current={category}
-          hrefFor={(value) => `${base}&cat=${value}`}
-        />
-      ) : null}
-
       <form action={submitCart}>
       <input type="hidden" name="workUnitId" value={workUnitId} />
 
-      <Label>Bifează ce îți trebuie</Label>
-      {items.length === 0 ? (
-        <Empty icon="box" title="Nimic găsit">
-          Schimbă filtrul sau caută altfel.
-        </Empty>
-      ) : (
-        <Block>
-          {items.map((item) => (
-            <PickableLine
-              key={item.id}
-              id={item.id}
-              name={item.name}
-              meta={"unit" in item ? `se cere în ${item.unit}` : (item.category ?? "unealtă")}
-              unit={"unit" in item ? item.unit : "buc"}
-            />
-          ))}
-        </Block>
-      )}
+      <Label>Ce comanzi</Label>
+      <OrderCart
+        items={cartItems}
+        addLabel={isTools ? "Adaugă unealtă" : "Adaugă produs"}
+        searchPlaceholder={isTools ? "Caută unealtă" : "Caută produs"}
+      />
 
       <Label>Unde și când</Label>
       <Block>

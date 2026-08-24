@@ -222,21 +222,27 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ## 6. Istoric pe sesiuni
 
+### 2026-08-24 — coșul de comandă la `/teren/catalog`, cu adăugare pe linii
+
+Ecranul de comandă (`catalog/page.tsx`) trecea printr-o listă de bife peste tot catalogul, cu
+căutare pe reîncărcare de pagină. Înlocuit cu `components/domain/OrderCart.tsx` ("use client"):
+coșul pornește gol, „+ Adaugă produs" deschide o căutare **client-side instantă** (catalogul,
+~30 produse, deja încărcat — filtrare fără rețea), alegerea unui rezultat adaugă o linie cu
+cantitate 1, editabilă. Câmpurile trimise nu s-au schimbat (`productId[]`, `qty_<id>`) —
+`submitCart` neatins. CSS nou `.f-oc*` în `field.css`. `tsc`/`build` curate, neplimbat (§2).
+
 ### 2026-08-24 — blocul F: funcțiile noi din mockup-ul `santierappv3.html`
 
 `tsc` și `build` curate, **15 rute noi** de teren. `db:push` **de rulat**.
 
-Decizia de pornire: din `santierappv3.html` și `santierappmockup.html` se iau **doar
-funcțiile**, nu designul; `v3` e canonic unde diferă. Limbajul rămâne `f-`, tab-urile rămân
-trei. Media (poze, filmări, semnături) se face ca interfață; stocarea se leagă separat, pe
-**Cloudflare R2** (`media_slots.storage_key` gol până atunci).
+Din `santierappv3.html`/`santierappmockup.html` se iau **doar funcțiile**, nu designul; `v3` e
+canonic unde diferă. Limbajul rămâne `f-`, tab-urile rămân trei. Media (poze, filmări, semnături)
+e doar interfață; stocarea pe **Cloudflare R2** (`media_slots.storage_key` gol până atunci).
 
-**Schemă:** `subcontractor_attendance` (ore-om pe firmă/zi; `timesheets` e pe OM, o firmă cu
-unsprezece oameni nu încape acolo; nu produce cost — manopera lor intră prin SL) ·
-`media_slots` (poze declarate, fără conținut) · `work_units` + `inspection_type`,
-`discipline`, `source_tag`, `source_unit_id` (leagă intervenția de inspecția care a produs-o,
-în ambele sensuri, fără tabelă de legătură) · `purchase_orders` + `needed_by`, `drop_point`,
-`urgency`, `field_note`.
+**Schemă:** `subcontractor_attendance` (ore-om pe firmă/zi, nu produce cost — manopera lor intră
+prin SL) · `media_slots` (poze declarate, fără conținut) · `work_units` +
+`inspection_type/discipline/source_tag/source_unit_id` (leagă intervenția de inspecția care a
+produs-o) · `purchase_orders` + `needed_by/drop_point/urgency/field_note`.
 
 **Ecrane:**
 
@@ -274,27 +280,21 @@ pe teren, `/concedii` la birou. 64 de rute, `tsc` și `build` curate.
 
 ### 2026-08-21 și mai devreme — restul blocurilor (comprimat)
 
-- **Hartă și bazin:** `components/ui/map-picker.tsx` (slippy peste dale OSM, scrisă direct, fără
-  Leaflet; căutare prin Nominatim) · `lib/db/index.ts` cu termen limită de 20s pe interogare, la
-  depășire bazinul se aruncă și se redeschide (§5).
-- **E** (§9.2–§9.10): `/contracte/nou` (asistent 3 pași, o tranzacție; **pagină**, nu modal — 12
-  coloane de plafoane nu încap altfel), `ObjectiveForm`, `OperabilityForms`, `DevizForms`,
-  `lib/pickers.ts`.
-- **Facturi și clopoțel:** `lib/notifications.ts` + `NotificationBell` (opt familii de semnale
-  calculate din date, fără „marchează ca citit"), `/facturi` + `lib/invoicing.ts`, `/integrari`.
-- **C2** `lib/stock.ts` + ecranele 23–25: coloana centrală e **disponibil** (cantitate − rezervat),
-  bon blocat peste disponibil, cele 3 canale ca file, recepție cu CMP și `releaseCommitment`.
-- **B2** `lib/execution.ts` + `/lucrari/[id]/executie`. Două defecte prinse doar pe ecran, nu de
-  `tsc`: etapă la 98% marcată „Atenție" (ordinea din `stageState`); „fără blocaje ✓" pe o lucrare
-  **fără jurnal** — absența notărilor nu e absența blocajelor.
-- **A2** `lib/deviz.ts` + ecranele 16–21, T8: mapare N:M, aprobare de SL blocată pe depășire,
-  suplimentare atomică, scadențar de garanții.
+- **Hartă și bazin:** `map-picker.tsx` (slippy OSM, fără Leaflet) · `lib/db/index.ts` cu termen
+  limită de 20s pe interogare (§5).
+- **E** (§9.2–§9.10): `/contracte/nou` (asistent 3 pași, o tranzacție, **pagină** nu modal),
+  `ObjectiveForm`, `OperabilityForms`, `DevizForms`, `lib/pickers.ts`.
+- **Facturi și clopoțel:** `lib/notifications.ts` (semnale calculate, fără „marchează ca citit"),
+  `/facturi` + `lib/invoicing.ts`, `/integrari`.
+- **C2** `lib/stock.ts` + ecranele 23–25: **disponibil** = cantitate − rezervat, cele 3 canale ca
+  file, recepție cu CMP și `releaseCommitment`.
+- **B2** `lib/execution.ts` + `/lucrari/[id]/executie`: etapă/buget/jurnal.
+- **A2** `lib/deviz.ts` + ecranele 16–21, T8: mapare N:M, SL blocată pe depășire, garanții.
 - **C** `lib/equipment.ts` (scadențe pe dată **și** pe ore), `lib/pv-templates.ts`, `SignaturePad`,
   ecranele 26–33, T7.
-- **Fundația + A + B** Next.js 16 + Tailwind 4, schema într-un fișier, nucleul din `lib/`, design
-  system, shell, login, comutator de perspectivă, seed. Ecranele 2–15, 34, 36, T1–T6.
-- **Plimbarea pe A+B:** 31 de rute, 4 roluri. Regula 5 ține — 0 apariții de „lei" pe ecranele de
-  teren. Panoul: 15s (N+1) → 0,7s cu `budgetsForMonth`. Marje din seed: 16,7%–36,5%, media 29,3%.
+- **Fundația + A + B**: Next.js 16 + Tailwind 4, schema într-un fișier, `lib/`, design system,
+  shell, login, comutator de perspectivă, seed. Ecranele 2–15, 34, 36, T1–T6. Plimbate: 31 rute,
+  4 roluri, 0 apariții „lei" pe teren. Panoul: 15s → 0,7s cu `budgetsForMonth`.
 
 **Accidentul care se repetă:** un fișier de client care importă un `lib/` cu `lib/db` în spate dă
 500 pe tot blocul, cu `tsc` curat. De aici vin toate fișierele `lib/*-types.ts`.
