@@ -2,7 +2,7 @@ import { and, asc, eq, inArray, or } from "drizzle-orm";
 
 import { submitTimesheet } from "@/app/actions/field";
 import { SubmitBar } from "@/components/domain/FieldKit";
-import { Block, Empty, FieldBar, Label, Note, longDate } from "@/components/domain/FieldUI";
+import { Block, Empty, FieldBar, Label, Note, Row, longDate } from "@/components/domain/FieldUI";
 import { db } from "@/lib/db";
 import { objectives, timesheets, workUnits } from "@/lib/db/schema";
 import { todayIso } from "@/lib/field";
@@ -75,6 +75,23 @@ export default async function PontajPage() {
           </div>
         </div>
       </FieldBar>
+
+      <Label>Sau pontează pe alții</Label>
+      <Block>
+        <Row
+          href="/teren/pontaj/echipa"
+          icon="users"
+          tone="a"
+          title="Echipa mea"
+          meta="Opt oameni deodată, de la 7:30 la 17:00"
+        />
+        <Row
+          href="/teren/pontaj/firme"
+          icon="truck"
+          title="Subcontractanții"
+          meta="Ore-om pe firmă — cifra care contrazice situația de lucrări"
+        />
+      </Block>
 
       <Label>Calificare</Label>
       <Block>

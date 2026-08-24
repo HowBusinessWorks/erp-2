@@ -164,6 +164,29 @@ export default async function TerenPage() {
         </>
       ) : null}
 
+      <Label>Scurtături</Label>
+      <Block>
+        <Row
+          href="/teren/mentenanta"
+          icon="tool"
+          tone="a"
+          title="Mentenanță"
+          meta="Inspecțiile și intervențiile mele"
+        />
+        <Row
+          href="/teren/comenzi"
+          icon="cart"
+          title="Comenzi"
+          meta="Materiale, unelte, utilaje, transport"
+        />
+        <Row
+          href="/teren/pontaj/echipa"
+          icon="users"
+          title="Pontează echipa"
+          meta="Mai mulți oameni deodată, aceleași ore"
+        />
+      </Block>
+
       <Buttons>
         <ButtonLink href="/teren/cereri" icon="list">
           Vezi toate cererile mele

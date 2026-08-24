@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { and, asc, desc, eq, sql as raw } from "drizzle-orm";
 
 import { submitIntervention, submitInspection } from "@/app/actions/field";
@@ -49,6 +49,14 @@ export default async function FieldUnitPage({ params }: { params: Promise<{ id: 
     .limit(1);
   if (!row) notFound();
   const { unit, objective } = row;
+
+  /*
+   * Intervenția are ecran propriu, cu fir de lucru: se completează pe parcurs și se închide
+   * explicit. Fișa de aici închide dintr-o singură trimitere, ceea ce e potrivit pentru
+   * inspecția cu checklist planificată de la birou, dar nu și pentru o intervenție care
+   * ține trei zile.
+   */
+  if (unit.kind === "interventie") redirect(`/teren/interventii/${unit.id}`);
 
   const back = unit.objectiveId ? `/teren/locuri/${unit.objectiveId}` : "/teren";
 

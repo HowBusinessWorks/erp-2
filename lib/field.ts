@@ -254,7 +254,9 @@ export async function dayState(userId: string): Promise<DayState> {
       key: unit.id,
       title: unit.title,
       meta: `${objective?.name ?? "—"} · ${unit.code}`,
-      href: `/teren/${unit.id}`,
+      // Intervenția are fir propriu, care se completează pe parcurs; inspecția planificată
+      // de la birou rămâne pe fișa cu checklist, care se închide dintr-o singură trimitere.
+      href: unit.kind === "interventie" ? `/teren/interventii/${unit.id}` : `/teren/${unit.id}`,
       done: false,
       cta: unit.kind === "inspectie" ? "Completează fișa" : "Deschide fișa",
     });

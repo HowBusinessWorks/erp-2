@@ -82,6 +82,8 @@ export function FieldQuickAdd({ workUnitId }: { workUnitId?: string }) {
   const suffix = workUnitId ? `?ul=${workUnitId}` : "";
 
   const actions = [
+    { href: `/teren/comenzi/nou${suffix}`, label: "Comand ceva", hint: "materiale, unelte, utilaj, transport", icon: "cart" as const },
+    { href: "/teren/inspectii/noua", label: "Fișă de inspecție", hint: "trei pași, se închide singură", icon: "clip" as const },
     { href: `/teren/necesar${suffix}`, label: "Cer materiale", hint: "trei atingeri cap-coadă", icon: "box" as const },
     { href: "/teren/pontaj", label: "Pontaj", hint: "ziua împărțită pe lucrări", icon: "clock" as const },
     { href: `/teren/jurnal${suffix}`, label: "Jurnal de șantier", hint: "se deschide gata de scris", icon: "pen" as const },

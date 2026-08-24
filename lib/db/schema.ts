@@ -198,6 +198,36 @@ export const leaveType = pgEnum("leave_type", [
 ]);
 export const leaveStatus = pgEnum("leave_status", ["ceruta", "aprobata", "respinsa", "anulata"]);
 
+/* ─── Blocul F — aplicația de teren, funcțiile din mockup-ul v3 ─── */
+
+/** Ritmul unei inspecții. Stă pe unitatea de lucru, nu pe șablon: același șablon
+ *  de checklist se folosește și lunar, și la cerere. */
+export const inspectionType = pgEnum("inspection_type", [
+  "lunara",
+  "trimestriala",
+  "anuala",
+  "la_cerere",
+]);
+
+/** De la ce a pornit o intervenție. „inspectie" o leagă de fișa care a produs-o. */
+export const workUnitSource = pgEnum("work_unit_source", ["tichet", "solicitare", "inspectie"]);
+
+/** Cât de tare arde comanda venită din teren. Magazia sortează după ea. */
+export const orderUrgency = pgEnum("order_urgency", ["poate_astepta", "normal", "urgent"]);
+
+/** Unde atârnă un fișier de teren. Un singur enum, ca să nu apară al doilea tabel de poze. */
+export const mediaSlot = pgEnum("media_slot", [
+  "inainte",
+  "dupa",
+  "inspectie",
+  "interventie",
+  "jurnal",
+  "pv",
+  "unealta",
+]);
+
+export const mediaKind = pgEnum("media_kind", ["foto", "video"]);
+
 /* ══════════════════════════ 1. ORGANIZARE ══════════════════════════ */
 
 export const firms = pgTable("firms", {
@@ -402,6 +432,16 @@ export const workUnits = pgTable("work_units", {
   endDate: date("end_date"),
   estimatedValue: money("estimated_value").notNull().default("0"),
   budgetCost: money("budget_cost").notNull().default("0"),
+  /** doar la inspecții — ritmul și disciplina verificată (fișa de inspecție, v3) */
+  inspectionType: inspectionType("inspection_type"),
+  discipline: text("discipline"),
+  /**
+   * De la ce a pornit. La intervenția născută dintr-o inspecție, `sourceUnitId`
+   * trimite la fișa de inspecție — așa se vede „ce s-a întâmplat mai departe"
+   * din amândouă capetele, fără tabelă de legătură.
+   */
+  sourceTag: workUnitSource("source_tag"),
+  sourceUnitId: uuid("source_unit_id"),
   /** dacă a fost promovată dintr-o intervenție, păstrăm urma */
   promotedFrom: workUnitType("promoted_from"),
   promotedAt: timestamp("promoted_at", { withTimezone: true }),
@@ -1137,6 +1177,12 @@ export const purchaseOrders = pgTable("purchase_orders", {
   /** filtrul de 24h la magazie, pe canalul C (§16) */
   warehouseCheckUntil: timestamp("warehouse_check_until", { withTimezone: true }),
   warehouseCoveredFromStock: boolean("warehouse_covered_from_stock").notNull().default(false),
+  /* ─── ce adaugă coșul din teren (v3): magazia are nevoie de ele ca să livreze ─── */
+  neededBy: date("needed_by"),
+  /** unde se descarcă efectiv — „poarta 2", nu adresa din contract */
+  dropPoint: text("drop_point"),
+  urgency: orderUrgency("urgency").notNull().default("normal"),
+  fieldNote: text("field_note"),
   approvedBy: uuid("approved_by").references(() => users.id),
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: createdAt(),
@@ -1505,6 +1551,62 @@ export const invoiceLines = pgTable("invoice_lines", {
   unitPrice: money("unit_price").notNull().default("0"),
   value: money("value").notNull().default("0"),
   situatieId: uuid("situatie_id").references(() => situatiiLucrari.id),
+  createdAt: createdAt(),
+});
+
+/* ══════════════════════ 13. TEREN — ADĂUGIRILE DIN v3 ══════════════════════ */
+
+/**
+ * Pontajul subcontractanților.
+ *
+ * `timesheets` e pe OM și pe unitate de lucru — bun pentru angajați, inutil pentru o
+ * firmă care vine cu unsprezece oameni și pleacă. Aici ținem ore-om pe firmă și pe zi,
+ * cifra care se compară la sfârșit de lună cu situația de lucrări declarată de ea.
+ *
+ * Nu produce cost: manopera subcontractantului intră prin situația de lucrări, nu prin
+ * pontaj. De asta tabela asta nu trece prin registrul de cost.
+ */
+export const subcontractorAttendance = pgTable("subcontractor_attendance", {
+  id: id(),
+  workUnitId: uuid("work_unit_id")
+    .notNull()
+    .references(() => workUnits.id, { onDelete: "cascade" }),
+  partnerId: uuid("partner_id")
+    .notNull()
+    .references(() => partners.id),
+  day: date("day").notNull(),
+  peopleCount: integer("people_count").notNull().default(0),
+  /** ore per om; ore-om = peopleCount × hoursPerPerson */
+  hoursPerPerson: qty("hours_per_person").notNull().default("0"),
+  fromTime: text("from_time"),
+  toTime: text("to_time"),
+  note: text("note"),
+  createdBy: uuid("created_by").references(() => users.id),
+  createdAt: createdAt(),
+});
+
+/**
+ * Fișierele de teren, declarate fără conținut.
+ *
+ * Poza există ca rând din clipa în care omul a apăsat pe aparat; unde stă efectiv
+ * se completează când legăm Cloudflare R2 (`storageKey` rămâne gol până atunci).
+ * Fără rândul ăsta, „6 poze la ÎNAINTE" ar fi un număr inventat în interfață.
+ */
+export const mediaSlots = pgTable("media_slots", {
+  id: id(),
+  /** work_unit | stage | inspection | pv | tool_protocol */
+  ownerType: text("owner_type").notNull(),
+  ownerId: uuid("owner_id").notNull(),
+  workUnitId: uuid("work_unit_id").references(() => workUnits.id, { onDelete: "cascade" }),
+  stageId: uuid("stage_id").references(() => workUnitStages.id, { onDelete: "cascade" }),
+  slot: mediaSlot("slot").notNull(),
+  kind: mediaKind("kind").notNull().default("foto"),
+  /** „N", „S", „film" — eticheta de sub miniatură */
+  label: text("label"),
+  /** gol până la legarea cu R2 */
+  storageKey: text("storage_key"),
+  capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
+  createdBy: uuid("created_by").references(() => users.id),
   createdAt: createdAt(),
 });
 

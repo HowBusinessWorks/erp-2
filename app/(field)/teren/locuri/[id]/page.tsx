@@ -93,7 +93,16 @@ export default async function TerenLocPage({ params }: { params: Promise<{ id: s
           icon="alert"
           title={`${notStarted.length} ${notStarted.length === 1 ? "lucru neînceput aici" : "lucruri neîncepute aici"}`}
           action={
-            <ButtonLink href={`/teren/${notStarted[0].id}`} icon="arrow" variant="pri" small>
+            <ButtonLink
+              href={
+                notStarted[0].kind === "interventie"
+                  ? `/teren/interventii/${notStarted[0].id}`
+                  : `/teren/${notStarted[0].id}`
+              }
+              icon="arrow"
+              variant="pri"
+              small
+            >
               Vezi ce e de făcut
             </ButtonLink>
           }
@@ -113,7 +122,13 @@ export default async function TerenLocPage({ params }: { params: Promise<{ id: s
             {open.map((unit) => (
               <Row
                 key={unit.id}
-                href={`/teren/${unit.id}`}
+                href={
+                  unit.kind === "interventie"
+                    ? `/teren/interventii/${unit.id}`
+                    : unit.kind === "lucrare"
+                      ? `/teren/lucrare/${unit.id}`
+                      : `/teren/${unit.id}`
+                }
                 icon={unit.kind === "inspectie" ? "clip" : unit.kind === "lucrare" ? "build" : "tool"}
                 tone={unit.status === "in_lucru" ? "a" : "n"}
                 title={unit.title}
@@ -128,6 +143,46 @@ export default async function TerenLocPage({ params }: { params: Promise<{ id: s
           </Block>
         </>
       ) : null}
+
+      {isSite && place.workUnitId ? (
+        <>
+          <Label>Lucrarea</Label>
+          <Block>
+            <Row
+              href={`/teren/lucrare/${place.workUnitId}`}
+              icon="build"
+              tone="a"
+              title={place.workUnitTitle ?? "Lucrarea de aici"}
+              meta="Jurnal · Echipă · Depozit · Acte"
+            />
+          </Block>
+        </>
+      ) : (
+        <>
+          <Label>Mentenanță</Label>
+          <Block>
+            <Row
+              href={`/teren/mentenanta?loc=${place.objectiveId}`}
+              icon="tool"
+              tone={notStarted.length > 0 ? "r" : "n"}
+              title="Inspecții și intervenții"
+              meta="Lista de lucru a obiectivului"
+            />
+            <Row
+              href={`/teren/inspectii/noua?loc=${place.objectiveId}`}
+              icon="clip"
+              title="Fișă de inspecție nouă"
+              meta="Trei pași: unde · ce ai găsit · trimite"
+            />
+            <Row
+              href={`/teren/interventii/noua?loc=${place.objectiveId}`}
+              icon="pen"
+              title="Fișă de intervenție nouă"
+              meta="Rămâne deschisă până o închizi tu"
+            />
+          </Block>
+        </>
+      )}
 
       <Label>Azi</Label>
       <Block>
@@ -152,11 +207,17 @@ export default async function TerenLocPage({ params }: { params: Promise<{ id: s
       <Label>Materiale și scule</Label>
       <Block>
         <Row
+          href={`/teren/comenzi/nou${suffix}`}
+          icon="cart"
+          tone="a"
+          title="Comandă ceva"
+          meta="Materiale, unelte, utilaj sau transport"
+        />
+        <Row
           href={`/teren/necesar${suffix}`}
           icon="plus"
-          tone="a"
-          title="Cere materiale"
-          meta="Merge la magazie, care are 24 de ore să acopere din stoc"
+          title="Necesar rapid de material"
+          meta="Un singur produs, trei atingeri"
         />
         <Row
           href={`/teren/inventar?loc=${place.objectiveId}`}
@@ -171,7 +232,7 @@ export default async function TerenLocPage({ params }: { params: Promise<{ id: s
           meta="Scade ce ai folosit din gestiune"
         />
         <Row href="/teren/utilaje" icon="crane" title="Utilaje" meta="Ce ai pe șantier, contor și PV-uri" />
-        <Row href="/teren/cereri" icon="list" title="Cererile mele" meta="Vezi unde au ajuns" />
+        <Row href="/teren/comenzi" icon="list" title="Comenzile mele" meta="Vezi unde au ajuns" />
       </Block>
 
       <Label>Acte</Label>
@@ -189,6 +250,12 @@ export default async function TerenLocPage({ params }: { params: Promise<{ id: s
               <Pill tone="g">La zi</Pill>
             )
           }
+        />
+        <Row
+          href={`/teren/pv/nou${place.workUnitId ? `?ul=${place.workUnitId}` : ""}`}
+          icon="pen"
+          title="Proces verbal nou"
+          meta="Se semnează pe loc, cu degetul"
         />
         <Row
           href={`/teren/constatare${suffix}`}

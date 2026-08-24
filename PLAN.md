@@ -236,6 +236,32 @@ Grupate pe module. Toate au `id`, `created_at`; unde contează, `created_by`.
 un ecran de sub ＋ are voie la **o singură atingere** — cea de Trimite. Nu se impune cu test, se
 respectă la proiectare.
 
+#### Blocul F — ce a adus mockup-ul `santierappv3.html` (2026-08-24)
+
+Din cele două mockup-uri noi se iau **doar funcțiile**. Designul rămâne cel existent (clase `f-`),
+bara rămâne pe trei tab-uri. `santierappv3.html` e canonic acolo unde diferă de `santierappmockup.html`.
+
+| # | Ecran | Regula |
+|---|---|---|
+| F1 | Mentenanță | File pe **stări** (de făcut · în lucru · gata · inspecții), nu pe tipul fișei — omul se gândește la ce mai are de rezolvat, nu la ce fel de document e |
+| F2 | Fișă de inspecție nouă | Trei pași. „Nu am rezolvat pe loc" **naște intervenția în același apel** |
+| F3 | Fișă de inspecție (citire) | Se termină cu „ce s-a întâmplat mai departe" — altfel constatarea n-are urmă |
+| F4 | Fișă de intervenție nouă | „Mă apuc acum" / „doar o planific". Fișa **nu se închide** aici |
+| F5 | Fișă de intervenție (fir) | Cronologie, nu patru liste. Trei stări: planificată → în lucru → finalizată. După finalizare nu se mai adaugă nimic |
+| F6 | Pontaj echipă | Mai mulți oameni deodată; orele ies din intrare − plecare. Un rând de pontaj **per om**, la calificarea lui |
+| F7 | Pontaj subcontractanți | Ore-om pe firmă și pe zi. **Nu produce cost.** Ziua se rescrie, nu se adaugă |
+| F8 | Lucrare, patru file | Jurnal · Echipă · Depozit · Acte. Filele sunt **linkuri**, nu stare de client |
+| F9 | Înainte / După | Două seturi de poze cu unghi (N/S/E/V), nu două etape de lucru |
+| F10 | Comenzi | Materiale, unelte și transporturi într-o listă. Treptele derivă din status |
+| F11 | Catalog + coș | Se răsfoiește, nu se caută pe de rost. **Zero prețuri.** Un coș = o comandă |
+| F12 | Cerere utilaj | Cerere de **rutat**, nu comandă — trece prin PM. Categoria, nu utilajul anume |
+| F13 | Cerere transport | O singură coadă centrală, oricare ar fi tipul cursei (§18) |
+| F14 | PV nou | Semnătură pe canvas, în **același câmp** folosit de semnarea prin link de la birou |
+| F15 | PV unelte | Primire → starea se **blochează** → predare, comparată cu ea |
+
+**Media:** pozele, filmările și semnăturile se declară ca rânduri în `media_slots`, cu `storage_key`
+gol. Conținutul se leagă separat, pe **Cloudflare R2** — nu pe Supabase Storage.
+
 ---
 
 ## 4. Cele 8 reguli de business care fac demo-ul credibil

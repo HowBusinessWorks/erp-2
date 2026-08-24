@@ -275,10 +275,16 @@ export async function approveSituatie(formData: FormData): Promise<void> {
   const percent = Number(situatie?.pkg?.retentionPercent ?? 0);
   const retentionValue = Math.round(retained * 100 * (percent / 100));
 
+  // codul SL se generează o singură dată, la prima aprobare — pe el se face matching-ul cu SPV
+  const code =
+    situatie?.sl.code ??
+    `SL-${situatie?.pkg?.code ?? "?"}-${situatie?.sl.year}-${String(situatie?.sl.month).padStart(2, "0")}`;
+
   await db
     .update(situatiiLucrari)
     .set({
       status: "aprobata",
+      code,
       approvedBy: session.id,
       approvedAt: new Date(),
       retentionValue: toDb(retentionValue),
@@ -297,7 +303,7 @@ export async function approveSituatie(formData: FormData): Promise<void> {
       value: toDb(retentionValue),
       percent: String(percent),
       dueDate: due.toISOString().slice(0, 10),
-      note: `Garanție din SL ${situatie.sl.code ?? ""}`.trim(),
+      note: `Garanție din SL ${code}`.trim(),
     });
   }
 

@@ -11,7 +11,8 @@ export type IconName =
   | "home" | "sun" | "pin" | "clock" | "plus" | "tool" | "build" | "left" | "right"
   | "cam" | "check" | "alert" | "cal" | "truck" | "box" | "file" | "users" | "x"
   | "pen" | "clip" | "search" | "bell" | "plane" | "img" | "crane" | "list"
-  | "swap" | "ticket" | "play" | "info" | "user" | "arrow" | "logout";
+  | "swap" | "ticket" | "play" | "info" | "user" | "arrow" | "logout"
+  | "minus" | "cart" | "send" | "video" | "more";
 
 const S = {
   fill: "none",
@@ -57,6 +58,11 @@ export function FieldIconSprite() {
       <symbol id="fi-info" viewBox="0 0 24 24" {...S}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></symbol>
       <symbol id="fi-user" viewBox="0 0 24 24" {...S}><circle cx="12" cy="8" r="4" /><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" /></symbol>
       <symbol id="fi-arrow" viewBox="0 0 24 24" {...S} strokeWidth={2.4}><path d="M5 12h14M13 6l6 6-6 6" /></symbol>
+      <symbol id="fi-minus" viewBox="0 0 24 24" {...S} strokeWidth={2.7}><path d="M5 12h14" /></symbol>
+      <symbol id="fi-cart" viewBox="0 0 24 24" {...S}><path d="M2.5 3h2.2l2.4 12.2a2 2 0 0 0 2 1.6h8.3a2 2 0 0 0 2-1.6L21 7H6" /><circle cx="9.5" cy="20" r="1.6" /><circle cx="17.5" cy="20" r="1.6" /></symbol>
+      <symbol id="fi-send" viewBox="0 0 24 24" {...S}><path d="M21.5 2.5L11 13" /><path d="M21.5 2.5l-6.7 19-3.8-8.5-8.5-3.8z" /></symbol>
+      <symbol id="fi-video" viewBox="0 0 24 24" {...S}><rect x="2" y="6" width="14" height="12" rx="3" /><path d="M16 10.5l6-3.5v10l-6-3.5z" /></symbol>
+      <symbol id="fi-more" viewBox="0 0 24 24" {...S} strokeWidth={2.6}><path d="M12 6h.01M12 12h.01M12 18h.01" /></symbol>
       <symbol id="fi-logout" viewBox="0 0 24 24" {...S}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></symbol>
     </svg>
   );

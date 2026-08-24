@@ -20,25 +20,22 @@ sesiune, nu o scrie. Planul e în `PLAN.md` și e **sursa de adevăr**. Fișieru
 ```bash
 git clone https://github.com/HowBusinessWorks/erp-2.git && cd erp-2
 npm install
-cp .env.local.example .env.local     # completează valorile, vezi mai jos
+cp .env.local.example .env.local     # completează valorile
 npm run db:push                      # împinge schema (idempotent)
 npm run seed                         # ~150s; ȘTERGE tot și repopulează
 npm run dev                          # http://localhost:3000
 ```
 
-Login: `admin@damina.ro` / parola din `SEED_PASSWORD`. Contul de admin comută perspectiva
-din bara de sus — așa se verifică în 10 secunde că șeful de șantier nu vede prețuri.
+Login: `admin@damina.ro` / parola din `SEED_PASSWORD`. Contul de admin comută perspectiva din bara
+de sus — așa se verifică în 10 secunde că șeful de șantier nu vede prețuri.
 
-**`.env.local` NU e în repo** (e în `.gitignore`, intenționat). Vezi `.env.local.example` pentru
-chei și pentru ce port merge pe fiecare. Două capcane, amândouă în §5: host-ul direct
-`db.<ref>.supabase.co` e IPv6-only și nu e rutabil din multe rețele, iar aplicația trebuie să
-meargă pe **6543**, nu pe 5432.
+`.env.local` **nu e în repo**, intenționat. Două capcane, amândouă în §5: host-ul direct
+`db.<ref>.supabase.co` e IPv6-only și nu e rutabil din multe rețele, iar aplicația trebuie să meargă
+pe **6543**, nu pe 5432.
 
-**Ordinea de citit:** `CLAUDE.md` (regulile care nu se negociază) → §1 și §2 de mai jos →
-secțiunea blocului tău din `PLAN.md` §3 și §5.
-
-**Sursa de adevăr pentru business:** `DaminaStructuraCapCoada FInal.md`, **în rădăcina repo-ului**.
-Referințele de tip §4.2, §13.1, §18.1.4 din cod și din plan trimit acolo.
+**Ordinea de citit:** `CLAUDE.md` → §1 și §2 de mai jos → secțiunea blocului tău din `PLAN.md` §3 și
+§5. **Sursa de adevăr pentru business:** `DaminaStructuraCapCoada FInal.md`, în rădăcina repo-ului —
+referințele de tip §4.2, §13.1, §18.1.4 din cod și din plan trimit acolo.
 
 ---
 
@@ -59,7 +56,8 @@ Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `d
 | C2 — Stoc și achiziții | ✅ **gata** — ecranele 23–25, plimbate în browser |
 | Integrare și lustruire | 🟨 **în lucru** — facturi, clopoțel viu, schelete declarate. Rămâne plimbarea pe cele 8 reguli |
 | E — Operabilitate (introducerea datelor) | ✅ **gata** — ecranul 37 + §9.2–§9.10. Rămâne plimbarea cap-coadă a contractului nou |
-| Aplicația de teren (3 tab-uri) + concedii | ✅ **gata ca și cod** — `tsc` și `build` curate. **Neplimbată în browser**, `db:push` nerulat |
+| Aplicația de teren (3 tab-uri) + concedii | ✅ **gata ca și cod** — `tsc` și `build` curate. **Neplimbată în browser** |
+| F — Teren, funcțiile din mockup-ul v3 (mentenanță, timp, lucrare pe file, comenzi, acte) | ✅ **gata ca și cod** — 15 rute noi, `tsc` și `build` curate. **Neplimbată în browser**, `db:push` de rulat |
 
 Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
@@ -81,22 +79,12 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 - Shell: `components/shell/{Rail,TopBar}.tsx`, `app/(office)/layout.tsx`, login + comutator de perspectivă
 - Seed: `seed/{index,operations,run}.ts` — 5 firme, 9 contracte, 124 obiective, 756 unități de lucru,
   1.671 linii de cost, 1.400 puncte de checklist, 467 ponturi, 129 însemnări de jurnal, 15 utilaje, SL-uri, comenzi
-- Ecrane birou: `/panou` · `/contracte` · `/contracte/[id]` (§4.3) · `/contracte/[id]/ani` (§22.6) ·
-  `/obiective` · `/obiective/[id]` (§5) · `/cost` (dubla analitică, §12) · `/perioade` (§13.1) ·
-  `/cereri` · `/cereri/[id]` (rutarea din §7) · `/backlog` (Delta) · `/lucrari` · `/lucrari/[id]`
-  (5 tab-uri + mutarea finanțării) · `/realocari` (§13.1) · `/rapoarte` (§20.1) · `/rapoarte/inspectii` (§22.2) ·
-  `/utilaje` (registru + Gantt + decalare în masă + PV deschise) · `/utilaje/[id]` (7 file) ·
-  `/utilaje/solicitari` (§18.1.2) · `/pv/[id]` (2 etape, semnătură, A4) · `/unelte` · `/transporturi` ·
-  `/documente` (arbore) · `/documente/sabloane` (câmpuri procentuale, ecranul 33) ·
-  `/devize` + `/devize/[id]` (client / intern / mapare N:M cu bară de trasabilitate) ·
-  `/devize/articole` · `/pachete` + `/pachete/[id]` · `/situatii` + `/situatii/[id]` (cele 5
-  cumulate) · `/garantii` (suplimentare atomică + scadențar) ·
-  `/lucrari/[id]/executie` (Gantt pe consum, jurnal, necesar pe etape, închidere) ·
-  `/stoc` (disponibil, semnale, transfer, inventar) · `/stoc/consum` (bon de consum, ecranul 23) ·
-  `/achizitii` (cele 3 canale, filtrul de 24h) · `/achizitii/[id]` (analitică pe linie, lansare) ·
-  `/receptii` (recepție + NIR, ecranul 25) ·
-  `/facturi` (emitere din raportul înghețat, vechimea creanței) · `/integrari` (scheletele, §7) ·
-  `/concedii` (aprobarea cererilor venite din teren)
+- Ecrane birou (48 de rute): panou · contracte (+ ani, + `/contracte/nou`) · obiective · cost
+  (dubla analitică) · perioade · cereri + rutare · backlog · lucrări (5 file + execuție) ·
+  realocări · rapoarte (+ inspecții) · utilaje (registru, Gantt, solicitări, PV) · unelte ·
+  transporturi · documente (+ șabloane) · devize (client/intern, mapare N:M) · pachete ·
+  situații · garanții · stoc (+ consum) · achiziții · recepții · facturi · integrări · concedii ·
+  nomenclatoare.
 - **Aplicația de teren — 3 tab-uri (Azi · Locuri · Eu)**, limbaj vizual propriu în
   `app/(field)/teren/field.css` (clase cu prefix `f-`), `components/domain/{FieldUI,FieldKit,FieldIcons,FieldTabs,LeaveWizard}.tsx`,
   date în `lib/field.ts`:
@@ -111,20 +99,21 @@ Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
 ## 2. Ce blochează acum
 
-**Nimic.** `npx tsc --noEmit` și `npm run build` trec curat, cu `/contracte/nou` în lista de rute.
+**Un singur lucru:** `npm run db:push` **nu a fost rulat** după blocul F. Până rulează, ecranele
+noi de teren dau eroare pe coloanele și tabelele care nu există încă (`subcontractor_attendance`,
+`media_slots`, coloanele noi de pe `work_units` și `purchase_orders`). `tsc` și `build` trec curat.
 
-**Blocul E e închis ca și cod** (`PLAN.md` §9): toate cele nouă zone au drum din interfață.
+**Ce a mai rămas, în ordine:**
 
-**Ce a mai rămas din ziua 3:**
-
-1. **Verificarea blocului E, în browser: un contract nou dus cap-coadă până la factură, fără să
-   atingi seed-ul.** Ăsta e testul din `PLAN.md` §9.12. Nefăcut — codul compilează, drumul nu s-a
-   plimbat.
-2. **Plimbarea cap-coadă pe cele 8 reguli de la §4 din documentul de business.** Nefăcută.
-3. **Încărcarea de fișiere are nevoie de bucket-ul `fisiere` în Supabase Storage.** `uploadFile`
-   urcă prin REST cu cheia de service role, fără SDK nou; dacă bucket-ul lipsește, întoarce eroarea
-   pe față. De verificat la prima încărcare reală.
-4. **Lustruire**: aliniere, spațiere, stări goale, stări de încărcare.
+1. **`npm run db:push`**, apoi plimbarea blocului F în browser: inspecție cu „nu am rezolvat pe
+   loc" → intervenția născută din ea → fir → finalizare.
+2. **Verificarea blocului E, în browser:** un contract nou dus cap-coadă până la factură, fără să
+   atingi seed-ul (`PLAN.md` §9.12). Codul compilează, drumul nu s-a plimbat.
+3. **Plimbarea cap-coadă pe cele 8 reguli de la §4 din documentul de business.** Nefăcută.
+4. **Stocarea fișierelor pe Cloudflare R2.** `media_slots` există și se umple, dar `storage_key`
+   rămâne gol: interfața de poze, filmări și semnături e gata, legătura cu R2 nu. Separat, la birou
+   `uploadFile` încă merge pe Supabase Storage și are nevoie de bucket-ul `fisiere`.
+5. **Lustruire**: aliniere, spațiere, stări goale, stări de încărcare.
 
 De clarificat când e momentul, fără să blocheze:
 
@@ -139,6 +128,17 @@ De clarificat când e momentul, fără să blocheze:
 
 | Data | Decizie | De ce |
 |---|---|---|
+| 2026-08-24 | Din mockup-urile noi (`santierappv3.html`, `santierappmockup.html`) se iau **doar funcțiile**, nu designul Material 3. `v3` e canonic unde diferă. | Decizia utilizatorului. Două limbaje vizuale în aceeași aplicație de teren ar fi însemnat două seturi de componente de întreținut, pentru zero funcționalitate în plus. |
+| 2026-08-24 | **Inspecția și intervenția au ecrane separate.** Inspecția se închide într-o trimitere; intervenția stă deschisă și primește ore, materiale și însemnări pe parcurs. | Un singur ecran pentru amândouă ar fi însemnat ori o inspecție care nu se închide, ori o intervenție care nu poate fi completată a doua zi. Sunt două ritmuri de lucru, nu două forme ale aceluiași lucru. |
+| 2026-08-24 | Firul de lucru al intervenției se **împletește la citire** din `site_journal_entries`, `timesheets` și `intervention_details`. Nicio tabelă de mesaje. | Evenimentele există deja în cele trei tabele. O a patra, care le-ar copia ca să le pună în ordine, ar fi al doilea adevăr despre aceeași zi de lucru. |
+| 2026-08-24 | Intervenția născută dintr-o inspecție se creează **în același apel** cu fișa, prin `source_unit_id`. | Așa regula „fiecare NOK are o ieșire" chiar ține: urmarea nu depinde de faptul că își amintește cineva să o creeze mai târziu. |
+| 2026-08-24 | **Tabelă nouă `subcontractor_attendance`** pentru pontajul firmelor. Nu produce cost. | `timesheets` e pe OM — o firmă care vine cu unsprezece oameni nu încape acolo. Manopera subcontractantului intră prin situația de lucrări, nu prin pontaj; ce ținem aici e ore-om, singura cifră cu care se poate contrazice situația la sfârșit de lună. |
+| 2026-08-24 | Pontajul de firme **rescrie ziua**, nu adaugă la ea. | Șeful care corectează la ora 16 „au fost 9, nu 11" trebuie să schimbe cifra, nu să o dubleze. |
+| 2026-08-24 | **Tabelă nouă `media_slots`** — poze și filmări declarate, `storage_key` gol până la R2. | „6 poze la ÎNAINTE" trebuie să fie o cifră reală, nu una desenată în interfață. Rândul există din clipa apăsării; conținutul vine când se leagă stocarea. |
+| 2026-08-24 | Fișierele de teren merg pe **Cloudflare R2**, nu pe Supabase Storage. Deocamdată doar interfața. | Decizia utilizatorului. Anulează, pentru teren, rândul de mai jos din 2026-08-20. |
+| 2026-08-24 | Treptele unei comenzi se **derivă din status**, fără tabelă de istoric. | Un jurnal de tranziții ar fi a doua sursă de adevăr pentru același lucru și s-ar desincroniza la prima recepție parțială făcută manual. |
+| 2026-08-24 | Semnătura de pe teren scrie în **`pv_documents.signatureImage`**, același câmp folosit de semnarea prin link tokenizat. | Un al doilea mecanism de semnat, doar pentru că omul e pe telefon, ar da două răspunsuri diferite la întrebarea „cine a semnat". |
+| 2026-08-24 | Filele lucrării (`?f=jurnal\|echipa\|depozit\|acte`) sunt **linkuri**, nu stare de client. | Ca și la ecranul 11: o filă se dă mai departe ca link, iar paginile rămân componente de server, fiecare filă aducând doar datele ei. |
 | 2026-08-21 | Un „loc" din teren e un **obiectiv**, nu o unitate de lucru. | Omul spune „sunt la Bloc A2", nu „sunt pe UL-2411". Pe obiectiv se adună lucrarea, inspecțiile, intervențiile, inventarul și actele — altfel aceleași ecrane s-ar cere de cinci ori, cu alt filtru de fiecare dată. |
 | 2026-08-21 | Terenul are **CSS propriu** (`field.css`, clase `f-`), nu clasele Tailwind din birou. | Biroul se citește ca un registru; terenul se apasă cu mănuși, în soare, cu o mână. Prefixul `f-` garantează că foaia nu atinge niciun ecran de birou, deși CSS-ul e global odată încărcat. |
 | 2026-08-21 | `workingDays` se **îngheață la depunere** pe cererea de concediu. | Sărbătorile legale se schimbă de la an la an. O cerere aprobată în 2026 nu are voie să-și schimbe numărul de zile fiindcă cineva a corectat lista în 2028. |
@@ -199,28 +199,13 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ## 5. Capcane cunoscute
 
-**Portul 6543, nu 5432.** 5432 e *session mode*: fiecare conexiune ține blocată una pe server, plafon
-15, iar Next.js încarcă `lib/db` o dată per graf de module. 6543 e *transaction mode* — conexiunea
-se întoarce în bazin după fiecare tranzacție. `DATABASE_URL` pe 6543, `DIRECT_URL` (`db:push`, seed)
-pe 5432, fiindcă `drizzle-kit` are nevoie de stare pe sesiune. `lib/db/index.ts` avertizează dacă
-cineva pune iar 5432 pe `DATABASE_URL`.
-
-**Aplicația care atârnă la infinit, pe toate paginile.** Simptom: în browser „Failed to fetch RSC
-payload” / „network error”, în terminal nimic. Cauză: rețeaua s-a schimbat sub aplicație (Tailscale,
-sleep, wifi), socket-urile către pooler au rămas `ESTABLISHED` local dar celălalt capăt nu mai există;
-postgres.js le crede vii, interogările pleacă și nu se mai întorc, iar după zece cereri bazinul e plin
-de morți. Se verifică cu `netstat -ano | grep 6543` — zece conexiuni deschise de procesul Next.
-`lib/db/index.ts` se apără acum singur: 20s fără răspuns ⇒ bazinul se aruncă și se redeschide.
-
-**Nu da rafale de conexiuni către pooler.** 24–30 de cereri simultane l-au făcut pe Supavisor să
-răspundă `password authentication failed` pe ambele porturi, cu credențiale corecte. Leacul:
-Database → Connection pooling → **Restart pooler**, sau ~15 minute. Baza nu e afectată, doar
-pooler-ul. Prima cerere după trezire poate da un 500 izolat — a doua merge.
-
 *Lucruri care s-au stricat o dată și se pot strica din nou. Scurt, doar simptomul și leacul.*
 
 | Simptom | Leac |
 |---|---|
+| Interogări care nu se mai întorc; „Failed to fetch RSC payload" pe toate paginile | Rețeaua s-a schimbat sub aplicație (Tailscale, sleep, wifi): socket-urile către pooler sunt `ESTABLISHED` local, dar celălalt capăt nu mai există. Verifică `netstat -ano \| grep 6543`. `lib/db/index.ts` se apără singur: 20s fără răspuns ⇒ bazinul se aruncă și se redeschide. |
+| Aplicația merge, dar e lentă / plafon de conexiuni | `DATABASE_URL` trebuie să fie pe **6543** (transaction mode), nu 5432 (session mode, plafon 15). `DIRECT_URL` (`db:push`, seed) rămâne pe 5432 — `drizzle-kit` are nevoie de stare pe sesiune. |
+| `password authentication failed` pe ambele porturi, cu credențiale corecte | Rafală de 24–30 de cereri simultane l-a doborât pe Supavisor. Database → Connection pooling → **Restart pooler**, sau ~15 minute. Baza nu e afectată. |
 | `TS1382: Unexpected token` într-un atribut JSX (`meta="…"`, `hint="…"`) | Ghilimeaua românească de închidere s-a scris `"` drept, care închide atributul. `„` se închide cu `”`. A rupt două ecrane în blocul A2. |
 | `TS1127: Invalid character` într-un string cu ghilimele românești | Ghilimelele de închidere „…” ies uneori ASCII. Folosește apostrof simplu pentru stringul din jur. |
 | Drizzle refuză un `insert` cu ternar pe o coloană de enum | Ternarul dă `string`. Pune `as "a" \| "b"` pe expresie. |
@@ -237,62 +222,79 @@ pooler-ul. Prima cerere după trezire poate da un 500 izolat — a doua merge.
 
 ## 6. Istoric pe sesiuni
 
-### 2026-08-21 — aplicația de teren, refăcută pe 3 tab-uri; concedii
+### 2026-08-24 — blocul F: funcțiile noi din mockup-ul `santierappv3.html`
 
-`npx tsc --noEmit` curat, `npm run build` curat, 64 de rute.
+`tsc` și `build` curate, **15 rute noi** de teren. `db:push` **de rulat**.
 
-**A intrat:**
+Decizia de pornire: din `santierappv3.html` și `santierappmockup.html` se iau **doar
+funcțiile**, nu designul; `v3` e canonic unde diferă. Limbajul rămâne `f-`, tab-urile rămân
+trei. Media (poze, filmări, semnături) se face ca interfață; stocarea se leagă separat, pe
+**Cloudflare R2** (`media_slots.storage_key` gol până atunci).
 
-- Aplicația de teren are limbaj vizual propriu (`app/(field)/teren/field.css`): bară
-  închisă la culoare, un singur accent (chihlimbar) care înseamnă mereu „aici e treaba
-  ta", ținte de minimum 44px. Nu mai împrumută designul „Registru" din birou.
-- Bara de jos: **Azi · Locuri · Eu**, în `components/domain/FieldTabs.tsx`. Apartenența
-  unui ecran la un tab se decide pe prefixul căii.
-- `lib/field.ts` — sursa unică a cifrelor de teren: `myPlaces`, `dayState`, `myRequests`.
-- Ecrane noi: meniul unui **loc** (obiectiv, nu unitate de lucru), cererile mele cu fir
-  cronologic peste `purchase_orders` **și** `requests`, inventarul echipei (disponibil,
-  nu cantitate), bonul de consum din teren, notificările.
-- **Concedii** (nu existau): `leave_requests` + `users.annual_leave_days`, `lib/leave.ts`
-  (pur — zile lucrătoare cu sărbătorile RO, sold), `app/actions/leave.ts`, wizard în 3 pași
-  pe teren, `/concedii` pentru aprobare la birou. Seed: zile luate + o cerere în aprobare.
+**Schemă:** `subcontractor_attendance` (ore-om pe firmă/zi; `timesheets` e pe OM, o firmă cu
+unsprezece oameni nu încape acolo; nu produce cost — manopera lor intră prin SL) ·
+`media_slots` (poze declarate, fără conținut) · `work_units` + `inspection_type`,
+`discipline`, `source_tag`, `source_unit_id` (leagă intervenția de inspecția care a produs-o,
+în ambele sensuri, fără tabelă de legătură) · `purchase_orders` + `needed_by`, `drop_point`,
+`urgency`, `field_note`.
 
-**Decizii:** vezi §3.
+**Ecrane:**
 
-### 2026-08-21 — hartă, bazin de conexiuni, blocul E (comprimat)
+- **Mentenanța, ca două fluxuri.** `/teren/mentenanta` (file pe stări + filtru pe obiectiv) ·
+  `/teren/inspectii/noua` (wizard 3 pași) · `/teren/inspectii/[id]` · `/teren/interventii/noua` ·
+  `/teren/interventii/[id]`. Inspecția e un act care se închide odată, cu verdict; intervenția
+  stă **deschisă** și primește ore, materiale și însemnări pe parcurs. Firul se împletește la
+  citire din `site_journal_entries` + `timesheets` + `intervention_details` — zero tabele noi.
+- La „nu am rezolvat pe loc", **intervenția se naște în același apel** cu inspecția. Constatarea
+  nu poate rămâne fără urmare.
+- **Timp:** `/teren/pontaj/echipa` (mai mulți oameni, ore din intrare−plecare, un rând de pontaj
+  și o linie de manoperă per om, la calificarea lui) · `/teren/pontaj/firme` (ziua se **rescrie**).
+- **Lucrarea pe patru file** `?f=jurnal|echipa|depozit|acte`, filele ca linkuri, nu ca stare de
+  client · `/teren/lucrare/[id]/inainte-dupa` (seturi cu unghi N/S/E/V).
+- **Comenzi:** `/teren/comenzi` · `/comenzi/nou` · `/catalog` (catalog + coș, zero prețuri) ·
+  `/utilaj-nou` (cerere de rutat, nu comandă) · `/transport-nou` · `/comenzi/[id]` (treptele
+  derivate din status, fără tabelă de istoric).
+- **Acte:** `/teren/pv/nou` (semnătură pe canvas, în `signatureImage` — același câmp folosit de
+  semnarea prin link de la birou) · `/teren/pv/unelte/[id]` (primire → stare **blocată** → predare).
+- Piese noi: `components/domain/FieldParts.tsx` (stepper, bifă mare, galerie, semnătură, foaie de
+  jos, timeline) + `InspectionWizard.tsx`. CSS adăugat la coada lui `field.css`, aceleași culori.
 
-- `components/ui/map-picker.tsx` — hartă „slippy" peste dalele OSM, scrisă direct, fără
-  Leaflet; căutare de adresă prin Nominatim. Folosită în `ObjectiveForm`.
-- `lib/db/index.ts` — termen limită de 20s pe interogare; la depășire bazinul se aruncă și
-  se redeschide. Vezi capcana din §5.
-- **Blocul E** (§9.2–§9.10): `/contracte/nou` (asistent în 3 pași, o tranzacție),
-  `ObjectiveForm` cu `kind` listă închisă, `OperabilityForms` (cerere de birou, UL directă,
-  etape, utilaj, unealtă, transport, gestiune, canalul B, foldere, cost manual prin
-  `recordCost`), `DevizForms` (deviz versionat, poziții din articole normate, șabloane,
-  pachete, situație manuală cu blocajul de la §10.1, suplimentare), `lib/pickers.ts`.
-  Asistentul de contract e **pagină**, nu modal: 12 coloane de plafoane nu încap altfel.
+**Rutare schimbată:** intervențiile merg pe `/teren/interventii/[id]`; `/teren/[id]` redirectează
+acolo și rămâne fișa cu **checklist** pentru inspecția planificată de la birou.
 
-### 2026-08-20 — ziua 3, partea 1: facturi, clopoțel viu, integrări (comprimat)
+### 2026-08-21 — aplicația de teren pe 3 tab-uri; concedii (comprimat)
 
-`lib/notifications.ts` + `NotificationBell` (opt familii de semnale calculate din date, fără
-„marchează ca citit"), `/facturi` cu `lib/invoicing.ts` (coadă, emitere într-o apăsare, vechimea
-creanței), `/integrari` (cele șase cusături din §7). Notificările inventate au ieșit din seed.
+Limbaj vizual propriu (`field.css`, prefix `f-`), bara **Azi · Locuri · Eu**
+(`FieldTabs.tsx`, apartenența pe prefixul căii), `lib/field.ts` ca sursă unică a cifrelor
+(`myPlaces`, `dayState`, `myRequests`). Ecrane: meniul unui **loc** (obiectiv, nu UL),
+cererile mele ca fir peste `purchase_orders` **și** `requests`, inventarul echipei
+(disponibil, nu cantitate), bon de consum, notificări. **Concedii**, nou: `leave_requests`
++ `users.annual_leave_days`, `lib/leave.ts` pur (zile lucrătoare RO, sold), wizard 3 pași
+pe teren, `/concedii` la birou. 64 de rute, `tsc` și `build` curate.
 
-### 2026-08-20 — blocurile C2, B2, A2, C, fundația, A și B — GATA (comprimat)
+### 2026-08-21 și mai devreme — restul blocurilor (comprimat)
 
+- **Hartă și bazin:** `components/ui/map-picker.tsx` (slippy peste dale OSM, scrisă direct, fără
+  Leaflet; căutare prin Nominatim) · `lib/db/index.ts` cu termen limită de 20s pe interogare, la
+  depășire bazinul se aruncă și se redeschide (§5).
+- **E** (§9.2–§9.10): `/contracte/nou` (asistent 3 pași, o tranzacție; **pagină**, nu modal — 12
+  coloane de plafoane nu încap altfel), `ObjectiveForm`, `OperabilityForms`, `DevizForms`,
+  `lib/pickers.ts`.
+- **Facturi și clopoțel:** `lib/notifications.ts` + `NotificationBell` (opt familii de semnale
+  calculate din date, fără „marchează ca citit"), `/facturi` + `lib/invoicing.ts`, `/integrari`.
 - **C2** `lib/stock.ts` + ecranele 23–25: coloana centrală e **disponibil** (cantitate − rezervat),
-  bon de consum blocat peste disponibil și fără preț, cele 3 canale de achiziție ca file separate
-  (canalul C cu ceasul de 24h), recepție cu CMP recalculat și angajament stins prin `releaseCommitment`.
+  bon blocat peste disponibil, cele 3 canale ca file, recepție cu CMP și `releaseCommitment`.
 - **B2** `lib/execution.ts` + `/lucrari/[id]/executie`. Două defecte prinse doar pe ecran, nu de
-  `tsc`: etapă încheiată la 98% marcată „Atenție” (ordinea din `stageState`); „fără blocaje ✓” pe o
-  lucrare **fără jurnal** — absența notărilor nu e absența blocajelor.
-- **A2** `lib/deviz.ts` + ecranele 16–21 și T8: mapare N:M cu bară de trasabilitate, aprobare de SL
-  blocată pe depășire, suplimentare atomică, scadențar de garanții.
-- **C** `lib/equipment.ts` (scadențe pe dată **și** pe ore, imobilizare), `lib/pv-templates.ts`,
-  `SignaturePad`, ecranele 26–33 și T7.
+  `tsc`: etapă la 98% marcată „Atenție" (ordinea din `stageState`); „fără blocaje ✓" pe o lucrare
+  **fără jurnal** — absența notărilor nu e absența blocajelor.
+- **A2** `lib/deviz.ts` + ecranele 16–21, T8: mapare N:M, aprobare de SL blocată pe depășire,
+  suplimentare atomică, scadențar de garanții.
+- **C** `lib/equipment.ts` (scadențe pe dată **și** pe ore), `lib/pv-templates.ts`, `SignaturePad`,
+  ecranele 26–33, T7.
 - **Fundația + A + B** Next.js 16 + Tailwind 4, schema într-un fișier, nucleul din `lib/`, design
   system, shell, login, comutator de perspectivă, seed. Ecranele 2–15, 34, 36, T1–T6.
-- **Plimbarea pe A+B:** 31 de rute, 4 roluri. Regula 5 ține — 0 apariții de „lei” pe cele 7 ecrane de
-  teren. Panoul: 15s (N+1) → 0,7s cu `budgetsForMonth`. Marjele din seed: 16,7%–36,5%, media 29,3%.
+- **Plimbarea pe A+B:** 31 de rute, 4 roluri. Regula 5 ține — 0 apariții de „lei" pe ecranele de
+  teren. Panoul: 15s (N+1) → 0,7s cu `budgetsForMonth`. Marje din seed: 16,7%–36,5%, media 29,3%.
 
 **Accidentul care se repetă:** un fișier de client care importă un `lib/` cu `lib/db` în spate dă
 500 pe tot blocul, cu `tsc` curat. De aici vin toate fișierele `lib/*-types.ts`.
