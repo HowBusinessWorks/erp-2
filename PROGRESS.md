@@ -225,17 +225,19 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 ### 2026-08-24 — bara de jos: mai scundă, „Lucrări" în loc de „Locuri", tab nou Mentenanță
 
 `.f-tabs`/`.f-tab` comprimate (padding, iconițe 26→21px, text 11.5→10.5px) — ocupa prea mult
-din ecran. Al doilea tab redenumit „Lucrări" (ruta rămâne `/teren/locuri`, doar eticheta se
-schimbă). Tab nou **Mentenanță** → `/teren/mentenanta`, deține și `/inspectii`, `/interventii`.
-Patru tab-uri acum, nu trei — comentariile din `FieldTabs.tsx`/`teren/layout.tsx` actualizate.
+din ecran. Al doilea tab redenumit „Lucrări" (ruta rămâne `/teren/locuri`). Tab nou
+**Mentenanță** → `/teren/mentenanta`, deține și `/inspectii`, `/interventii`. Patru tab-uri
+acum, nu trei. **Bug separat, tot azi:** fâșie albă sub bară pe iOS instalat — `.f-app` folosea
+`height: 100dvh`, care rămâne uneori mai scurt decât ecranul real în standalone; trecut pe
+`position: fixed; inset: 0`, ancorat direct de marginile viewport-ului.
 
 ### 2026-08-24 — tastatura pe iOS nu mai strică bara de tab-uri
 
 Bug real (poză utilizator): la focus pe un input, tastatura deschidea și `.f-tabs` (fixed)
 sărea la mijlocul ecranului — `body` era cel care se scrola. Fix: `.f-app` e acum un shell
-`height: 100dvh; overflow: hidden; flex column`; doar `.f-main` se scrolează, `.f-tabs` a
-ieșit din `position: fixed` și e ultimul element din coloană. `.f-submit`/`.f-cart` (sticky)
-nu mai au nevoie de offset-ul `84px`. Neplimbat pe device fizic iOS.
+(`overflow: hidden; flex column`, vezi mai jos pt. înălțime); doar `.f-main` se scrolează,
+`.f-tabs` a ieșit din `position: fixed`, e ultimul din coloană. `.f-submit`/`.f-cart` nu mai
+au nevoie de offset-ul `84px`. Neplimbat pe device fizic iOS.
 
 ### 2026-08-24 — coșul de comandă la `/teren/catalog`, cu adăugare pe linii
 
@@ -275,13 +277,12 @@ acolo și rămâne fișa cu **checklist** pentru inspecția planificată de la b
 
 ### 2026-08-21 — aplicația de teren pe 3 tab-uri; concedii (comprimat)
 
-Limbaj vizual propriu (`field.css`, prefix `f-`), bara **Azi · Locuri · Eu**
-(`FieldTabs.tsx`, apartenența pe prefixul căii), `lib/field.ts` ca sursă unică a cifrelor
-(`myPlaces`, `dayState`, `myRequests`). Ecrane: meniul unui **loc** (obiectiv, nu UL),
-cererile mele ca fir peste `purchase_orders` **și** `requests`, inventarul echipei
-(disponibil, nu cantitate), bon de consum, notificări. **Concedii**, nou: `leave_requests`
-+ `users.annual_leave_days`, `lib/leave.ts` pur (zile lucrătoare RO, sold), wizard 3 pași
-pe teren, `/concedii` la birou. 64 de rute, `tsc` și `build` curate.
+Limbaj vizual propriu (`field.css`, prefix `f-`), bara de tab-uri (`FieldTabs.tsx`, apartenența
+pe prefixul căii — a ajuns la patru tab-uri pe 2026-08-24, vezi mai sus), `lib/field.ts` ca sursă
+unică a cifrelor. Ecrane: meniul unui **loc** (obiectiv, nu UL), cererile mele ca fir peste
+`purchase_orders` **și** `requests`, inventarul echipei (disponibil, nu cantitate), bon de
+consum, notificări. **Concedii**, nou: `leave_requests` + `users.annual_leave_days`,
+`lib/leave.ts` pur, wizard 3 pași pe teren, `/concedii` la birou. 64 de rute, `tsc`/`build` curate.
 
 ### 2026-08-21 și mai devreme — restul blocurilor (comprimat)
 
