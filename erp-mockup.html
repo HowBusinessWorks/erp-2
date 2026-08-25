@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light" data-density="normal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Damina ERP — machetă de interfață</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   DAMINA ERP · machetă de interfață pentru birou
+   Fișier unic, fără nicio legătură cu aplicația.
+   ═══════════════════════════════════════════════════════════ */
+
+:root{
+  --bg:#F7F5F1; --surf:#FFFFFF; --surf-2:#FBFAF7; --sunk:#F0EDE7; --sunk-2:#E9E5DD;
+  --line:#E5E0D7; --line-2:#D2CBBE;
+  --tx:#1A1917; --tx-2:#605B53; --tx-3:#918B81;
+  --acc:#1F5B8F; --acc-2:#17456D; --acc-soft:#E7F0F8; --acc-line:#B7D0E7; --acc-tx:#17456D;
+  --ok:#2A7A5F; --ok-soft:#E1F0EA; --ok-line:#B6DBCA;
+  --warn:#95700F; --warn-soft:#F7EFD9; --warn-line:#E4CF9C;
+  --bad:#A03F27; --bad-soft:#F9E7E0; --bad-line:#EBC0AF;
+  --rail:#14171C; --rail-2:#1C2027; --rail-3:#262C35; --rail-tx:#C9CDD3; --rail-tx-2:#79808A;
+  --sh-1:0 1px 2px rgba(20,18,15,.05);
+  --sh-2:0 6px 20px -8px rgba(20,18,15,.20), 0 1px 3px rgba(20,18,15,.06);
+  --sh-3:0 28px 64px -20px rgba(20,18,15,.36), 0 4px 12px rgba(20,18,15,.10);
+  --r:10px; --r-2:7px; --r-3:5px;
+  --fs:"Archivo",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --fn:"Archivo Narrow","Archivo",ui-sans-serif,system-ui,sans-serif;
+  --row-y:9px; --tbl-fs:13px;
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --bg:#101215; --surf:#181B20; --surf-2:#1D2126; --sunk:#212530; --sunk-2:#272C36;
+  --line:#292E36; --line-2:#3A4049;
+  --tx:#E8E5E0; --tx-2:#A39D94; --tx-3:#7B756C;
+  --acc:#5A9BD6; --acc-2:#7FB4E4; --acc-soft:#14283A; --acc-line:#27455F; --acc-tx:#8CBCE6;
+  --ok:#54A98A; --ok-soft:#122B22; --ok-line:#254A3B;
+  --warn:#C9A44A; --warn-soft:#2C2412; --warn-line:#4C3F1D;
+  --bad:#D07257; --bad-soft:#301B14; --bad-line:#553025;
+  --rail:#0C0E11; --rail-2:#14171C; --rail-3:#1E232A; --rail-tx:#BFC4CB; --rail-tx-2:#6E757E;
+  --sh-1:0 1px 2px rgba(0,0,0,.4);
+  --sh-2:0 6px 20px -8px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.4);
+  --sh-3:0 28px 64px -20px rgba(0,0,0,.7), 0 4px 12px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+[data-density="compact"]{--row-y:5px;--tbl-fs:12.5px}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font-family:var(--fs);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;color:inherit}
+a{color:inherit;text-decoration:none}
+table{border-collapse:collapse;width:100%}
+svg{display:block}
+.num,.tnum{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
+::selection{background:var(--acc-soft);color:var(--acc-tx)}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:9px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:var(--tx-3);background-clip:content-box;border:3px solid transparent}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ───────── schelet ───────── */
+.app{display:flex;height:100dvh;overflow:hidden}
+
+/* ───────── rail ───────── */
+.rail{width:244px;flex:0 0 244px;background:var(--rail);color:var(--rail-tx);display:flex;flex-direction:column;
+  transition:flex-basis .2s cubic-bezier(.4,0,.2,1),width .2s cubic-bezier(.4,0,.2,1)}
+.app.mini .rail{width:64px;flex-basis:64px}
+.app.mini .r-tx,.app.mini .r-grp,.app.mini .r-badge,.app.mini .u-meta,.app.mini .r-kbd,.app.mini .brand-tx{display:none}
+.app.mini .r-item{justify-content:center;padding-inline:0;margin-inline:8px}
+.app.mini .r-search{justify-content:center}
+.brand{display:flex;align-items:center;gap:11px;padding:15px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.brand-mk{width:34px;height:34px;flex:0 0 34px;border-radius:9px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(145deg,#3E7FB8,#1B4570);font-family:var(--fn);font-weight:700;font-size:16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+.brand-tx b{display:block;font-family:var(--fn);font-size:15.5px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:#fff;line-height:1.15}
+.brand-tx span{display:block;font-size:10.5px;color:var(--rail-tx-2);letter-spacing:.05em;margin-top:1px}
+.r-search{display:flex;align-items:center;gap:9px;margin:11px 10px 6px;height:34px;padding:0 10px;width:calc(100% - 20px);
+  border-radius:var(--r-2);background:rgba(255,255,255,.055);color:var(--rail-tx-2);font-size:13px;
+  border:1px solid rgba(255,255,255,.05);transition:background .14s,color .14s}
+.r-search:hover{background:rgba(255,255,255,.1);color:var(--rail-tx)}
+.r-kbd{margin-left:auto;font-size:10px;border:1px solid rgba(255,255,255,.14);border-radius:4px;padding:1px 5px}
+.r-scroll{flex:1;overflow-y:auto;padding:6px 0 12px;scrollbar-width:thin}
+.r-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);background-clip:content-box}
+.r-grp{font-family:var(--fn);font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--rail-tx-2);padding:13px 18px 6px}
+.r-item{display:flex;align-items:center;gap:11px;margin:1px 8px;padding:7px 10px;border-radius:var(--r-2);
+  font-size:13px;color:var(--rail-tx);position:relative;transition:background .13s,color .13s}
+.r-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.r-item.on{background:rgba(255,255,255,.1);color:#fff;font-weight:500}
+.r-item.on::before{content:"";position:absolute;left:-8px;top:7px;bottom:7px;width:3px;border-radius:0 3px 3px 0;background:#5A9BD6}
+.r-item svg{flex:0 0 17px;opacity:.75}
+.r-item.on svg{opacity:1;color:#8FBEE8}
+.r-tx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-badge{margin-left:auto;font-size:10px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+  display:grid;place-items:center;background:rgba(255,255,255,.11);color:#fff}
+.r-badge.hot{background:#A64832}
+.r-foot{border-top:1px solid rgba(255,255,255,.06);padding:9px}
+.u-btn{display:flex;align-items:center;gap:10px;width:100%;padding:7px;border-radius:var(--r-2);text-align:left}
+.u-btn:hover{background:rgba(255,255,255,.07)}
+.ava{width:30px;height:30px;flex:0 0 30px;border-radius:50%;display:grid;place-items:center;font-size:12px;
+  font-weight:600;background:linear-gradient(145deg,#3C4855,#2A323C);color:#DDE3EA}
+.u-meta b{display:block;font-size:12.5px;font-weight:500;color:#fff}
+.u-meta span{display:block;font-size:10.5px;color:var(--rail-tx-2)}
+
+/* ───────── topbar ───────── */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{height:56px;flex:0 0 56px;display:flex;align-items:center;gap:10px;padding:0 16px 0 10px;
+  background:var(--surf);border-bottom:1px solid var(--line);position:relative;z-index:30}
+.ico{width:34px;height:34px;border-radius:var(--r-2);display:grid;place-items:center;color:var(--tx-2);position:relative;
+  transition:background .13s,color .13s}
+.ico:hover{background:var(--sunk);color:var(--tx)}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--tx-3);min-width:0;white-space:nowrap}
+.crumbs b{color:var(--tx);font-weight:500}
+.top-search{margin:0 auto;display:flex;align-items:center;gap:9px;height:36px;width:min(430px,38vw);padding:0 12px;
+  border:1px solid var(--line);border-radius:var(--r-2);background:var(--surf-2);color:var(--tx-3);font-size:13px;
+  transition:border-color .13s,background .13s}
+.top-search:hover{border-color:var(--line-2);background:var(--surf)}
+.top-r{display:flex;align-items:center;gap:5px}
+.per{display:flex;align-items:center;gap:8px;height:34px;padding:0 11px;border:1px solid var(--line);
+  border-radius:var(--r-2);font-size:13px;color:var(--tx-2);background:var(--surf-2)}
+.per:hover{border-color:var(--line-2);color:var(--tx)}
+.per b{color:var(--tx);font-weight:500}
+.bdot{position:absolute;top:5px;right:5px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--bad);
+  color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;line-height:1;border:2px solid var(--surf)}
+.role{display:flex;align-items:center;gap:7px;height:32px;padding:0 11px;border-radius:999px;background:var(--acc-soft);
+  color:var(--acc-tx);font-size:12.5px;font-weight:500;border:1px solid var(--acc-line)}
+
+.canvas{flex:1;overflow-y:auto;scroll-behavior:smooth}
+.page{max-width:1560px;margin:0 auto;padding:22px 26px 80px}
+
+/* ───────── titluri ───────── */
+.eyebrow{font-family:var(--fn);font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--tx-3)}
+h1.t{font-family:var(--fn);font-size:26px;font-weight:600;letter-spacing:-.015em;line-height:1.15}
+.phead{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding-bottom:15px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.phead .meta{font-size:13px;color:var(--tx-2);margin-top:6px}
+.phead .acts{margin-left:auto;display:flex;align-items:center;gap:8px}
+.srule{display:flex;align-items:center;gap:13px;margin:26px 0 12px}
+.srule h2{font-family:var(--fn);font-size:14px;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+.srule .ln{flex:1;height:1px;background:var(--line)}
+.srule .rt{font-size:12px;color:var(--tx-2);white-space:nowrap}
+
+/* ───────── butoane ───────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:36px;padding:0 14px;border-radius:var(--r-2);
+  font-size:13px;font-weight:500;white-space:nowrap;border:1px solid transparent;
+  transition:background .13s,border-color .13s,box-shadow .13s,transform .08s}
+.btn:active{transform:translateY(.5px)}
+.btn.p{background:var(--acc);color:#fff;box-shadow:var(--sh-1)}
+.btn.p:hover{background:var(--acc-2)}
+.btn.d{background:var(--surf);border-color:var(--line-2);color:var(--tx)}
+.btn.d:hover{background:var(--sunk);border-color:var(--tx-3)}
+.btn.q{color:var(--tx-2)}
+.btn.q:hover{background:var(--sunk);color:var(--tx)}
+.btn.x{background:var(--bad);color:#fff}
+.btn.s{height:29px;padding:0 10px;font-size:12px;gap:5px;border-radius:var(--r-3)}
+.split{display:inline-flex}
+.split .p{border-radius:var(--r-2) 0 0 var(--r-2)}
+.split .car{background:var(--acc);color:#fff;width:30px;height:36px;border-radius:0 var(--r-2) var(--r-2) 0;
+  display:grid;place-items:center;border-left:1px solid rgba(255,255,255,.2)}
+.split .car:hover{background:var(--acc-2)}
+
+/* ───────── suprafețe ───────── */
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1)}
+.cp{padding:16px 18px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.auto{grid-template-columns:repeat(auto-fit,minmax(400px,1fr))}
+.two{display:grid;grid-template-columns:1fr 316px;gap:20px;align-items:start}
+
+/* ───────── KPI ───────── */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 12px;
+  box-shadow:var(--sh-1);transition:border-color .14s,box-shadow .14s,transform .14s}
+.kpi:hover{border-color:var(--line-2);box-shadow:var(--sh-2);transform:translateY(-1px)}
+.kpi .kl{font-size:11.5px;color:var(--tx-2);display:flex;align-items:center;gap:6px}
+.kpi .kval{font-family:var(--fn);font-size:27px;font-weight:600;letter-spacing:-.02em;line-height:1.25;font-variant-numeric:tabular-nums}
+.kpi .kval small{font-size:13px;font-weight:500;color:var(--tx-3);margin-left:3px}
+.kpi .kf{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px}
+.dlt{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.dlt.u{color:var(--ok)} .dlt.d{color:var(--bad)} .dlt.f{color:var(--tx-3)}
+.dlt em{font-style:normal;font-weight:400;color:var(--tx-3)}
+
+/* ───────── badge ───────── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2.5px 8px;border-radius:999px;font-size:11px;font-weight:500;
+  line-height:1.45;border:1px solid transparent;white-space:nowrap}
+.badge .dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex:0 0 5px}
+.badge.n{background:var(--sunk);color:var(--tx-2);border-color:var(--line)}
+.badge.a{background:var(--acc-soft);color:var(--acc-tx);border-color:var(--acc-line)}
+.badge.o{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+.badge.w{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.badge.b{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+
+/* ───────── gauge ───────── */
+.gg{display:grid;gap:5px;padding:11px 0}
+.gg+.gg{border-top:1px solid var(--line)}
+.gt{display:flex;align-items:baseline;gap:9px;font-size:13px}
+.gt b{font-weight:500}
+.gt .pc{margin-left:auto;font-family:var(--fn);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.gtr{height:8px;border-radius:5px;background:var(--sunk-2);overflow:hidden;position:relative}
+.gtr i{display:block;height:100%;border-radius:5px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.gmk{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--tx);opacity:.4;border-radius:2px}
+.gc{font-size:11px;color:var(--tx-3);font-variant-numeric:tabular-nums;display:flex;gap:11px;flex-wrap:wrap}
+.mbar{height:6px;width:52px;border-radius:4px;background:var(--sunk-2);display:inline-block;vertical-align:middle;overflow:hidden}
+.mbar i{display:block;height:100%;border-radius:4px}
+
+/* ───────── bara de unelte ───────── */
+.tbar{position:sticky;top:0;z-index:18;background:var(--bg);padding:4px 0 11px;margin-bottom:2px}
+.segs{display:inline-flex;gap:2px;padding:3px;background:var(--sunk);border-radius:var(--r-2);margin-bottom:11px}
+.seg{padding:6px 12px;border-radius:var(--r-3);font-size:12.5px;color:var(--tx-2);transition:background .13s,color .13s}
+.seg:hover{color:var(--tx)}
+.seg.on{background:var(--surf);color:var(--tx);font-weight:500;box-shadow:var(--sh-1)}
+.seg .c{margin-left:6px;font-size:11px;color:var(--tx-3);font-variant-numeric:tabular-nums}
+.flt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.srch{display:flex;align-items:center;gap:8px;height:34px;padding:0 11px;background:var(--surf);border:1px solid var(--line-2);
+  border-radius:var(--r-2);min-width:250px;color:var(--tx-3)}
+.srch:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+.srch input{border:0;outline:0;background:none;font-size:13px;width:100%}
+.srch input::placeholder{color:var(--tx-3)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:1px solid var(--line-2);
+  background:var(--surf);font-size:12px;color:var(--tx-2);transition:all .13s}
+.chip:hover{border-color:var(--tx-3);color:var(--tx)}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.tr8{margin-left:auto;display:flex;align-items:center;gap:6px}
+.cnt{font-size:11.5px;color:var(--tx-3);font-variant-numeric:tabular-nums}
+
+/* ───────── tabel ───────── */
+.twrap{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-1)}
+.tscroll{overflow-x:auto}
+.tbl{font-size:var(--tbl-fs)}
+.tbl thead th{font-family:var(--fn);font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--tx-3);text-align:left;padding:10px 13px;background:var(--surf-2);border-bottom:1px solid var(--line-2);
+  position:sticky;top:0;z-index:2;white-space:nowrap}
+.tbl th.n,.tbl td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tbody tr{border-bottom:1px solid var(--line);transition:background .1s}
+.tbl tbody tr:last-child{border-bottom:0}
+.tbl tbody tr.cl:hover{background:var(--surf-2);cursor:pointer}
+.tbl tbody tr.sel{background:var(--acc-soft)}
+.tbl td{padding:var(--row-y) 13px;vertical-align:middle}
+.tbl .code{font-family:var(--fn);font-weight:600;letter-spacing:.01em;white-space:nowrap}
+.tbl .mu{color:var(--tx-3)}
+.tbl .sub{font-size:11.5px;color:var(--tx-3);margin-top:2px}
+.tbl tfoot td{padding:11px 13px;border-top:2px solid var(--line-2);background:var(--surf-2);font-weight:600;
+  font-variant-numeric:tabular-nums}
+.grp td{background:var(--sunk);font-family:var(--fn);font-size:10.5px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--tx-2);padding:7px 13px}
+.racts{display:flex;gap:2px;justify-content:flex-end;opacity:0;transition:opacity .1s}
+tr:hover .racts,tr:focus-within .racts{opacity:1}
+.cbx{width:15px;height:15px;border:1.5px solid var(--line-2);border-radius:4px;display:inline-grid;place-items:center;
+  background:var(--surf);vertical-align:-2px;color:transparent}
+.cbx.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.mini{font-size:11.5px;color:var(--tx-3)}
+
+/* ───────── bara de selecție ───────── */
+.bulk{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(14px);z-index:55;display:flex;align-items:center;
+  gap:12px;padding:10px 12px 10px 16px;background:var(--tx);color:var(--bg);border-radius:12px;box-shadow:var(--sh-3);
+  opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;font-size:13px}
+.bulk.on{opacity:1;pointer-events:auto;transform:translateX(-50%)}
+.bulk .bb{height:29px;padding:0 11px;border-radius:6px;background:rgba(255,255,255,.13);font-size:12.5px;font-weight:500}
+.bulk .bb:hover{background:rgba(255,255,255,.22)}
+
+/* ───────── stări / note ───────── */
+.empty{border:1px dashed var(--line-2);border-radius:var(--r);padding:28px;background:var(--surf-2)}
+.empty h4{font-family:var(--fn);font-size:15.5px;font-weight:600;margin-bottom:6px}
+.empty p{font-size:12.5px;color:var(--tx-2);max-width:52ch;margin-bottom:13px}
+.note{display:flex;gap:11px;padding:12px 15px;border-radius:var(--r-2);font-size:12.5px;line-height:1.55;border:1px solid}
+.note svg{flex:0 0 16px;margin-top:1px}
+.note.a{background:var(--acc-soft);color:var(--acc-tx);border-color:var(--acc-line)}
+.note.w{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.note.b{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.note.o{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+
+/* ───────── detaliu ───────── */
+.dhead{position:sticky;top:0;z-index:19;background:var(--bg);padding:16px 0 13px;border-bottom:1px solid var(--line)}
+.dtop{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.dtitle{font-family:var(--fn);font-size:22px;font-weight:600;letter-spacing:-.012em}
+.dacts{margin-left:auto;display:flex;gap:8px;align-items:center}
+.pipe{display:flex;align-items:center;margin-top:13px;flex-wrap:wrap}
+.stp{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 11px;font-size:12px;color:var(--tx-3);
+  background:var(--surf-2);border:1px solid var(--line);margin-right:-1px}
+.stp:first-child{border-radius:var(--r-2) 0 0 var(--r-2)}
+.stp:last-child{border-radius:0 var(--r-2) var(--r-2) 0;margin-right:0}
+.stp .nm{width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;
+  background:var(--sunk-2);color:var(--tx-3)}
+.stp.dn{color:var(--ok);background:var(--ok-soft);border-color:var(--ok-line)}
+.stp.dn .nm{background:var(--ok);color:#fff}
+.stp.nw{color:var(--acc-tx);background:var(--acc-soft);border-color:var(--acc-line);font-weight:600;z-index:1}
+.stp.nw .nm{background:var(--acc);color:#fff}
+.tabs{display:flex;gap:3px;margin-top:14px;margin-bottom:-13px}
+.tab{padding:9px 13px;font-size:13px;color:var(--tx-2);border-bottom:2px solid transparent;border-radius:var(--r-3) var(--r-3) 0 0}
+.tab:hover{color:var(--tx);background:var(--surf-2)}
+.tab.on{color:var(--tx);font-weight:500;border-bottom-color:var(--acc)}
+.tab .c{color:var(--tx-3);font-size:11.5px;margin-left:5px}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:8px 14px;font-size:13px}
+.kv dt{color:var(--tx-2);font-size:12px}
+.kv dd{font-variant-numeric:tabular-nums}
+.trail{position:relative;padding-left:20px}
+.trail::before{content:"";position:absolute;left:5px;top:7px;bottom:7px;width:1px;background:var(--line)}
+.ti{position:relative;padding-bottom:15px}
+.ti:last-child{padding-bottom:0}
+.ti::before{content:"";position:absolute;left:-18px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--surf);
+  border:2px solid var(--line-2)}
+.ti.dn::before{background:var(--ok);border-color:var(--ok)}
+.ti.nw::before{background:var(--acc);border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+.ti b{font-size:12.5px;font-weight:500;display:block}
+.ti span{font-size:11.5px;color:var(--tx-3)}
+
+/* ───────── overlay-uri ───────── */
+.scrim{position:fixed;inset:0;background:rgba(18,16,14,.42);backdrop-filter:blur(2px);opacity:0;pointer-events:none;
+  transition:opacity .18s;z-index:60}
+.scrim.on{opacity:1;pointer-events:auto}
+.drw{position:fixed;top:0;right:0;bottom:0;width:480px;max-width:94vw;background:var(--surf);border-left:1px solid var(--line);
+  box-shadow:var(--sh-3);transform:translateX(103%);transition:transform .24s cubic-bezier(.32,.72,0,1);z-index:70;
+  display:flex;flex-direction:column}
+.drw.on{transform:none}
+.dh{display:flex;align-items:flex-start;gap:12px;padding:17px 19px;border-bottom:1px solid var(--line)}
+.db{flex:1;overflow-y:auto;padding:17px 19px}
+.df{display:flex;align-items:center;gap:8px;padding:13px 19px;border-top:1px solid var(--line);background:var(--surf-2)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.985);width:660px;max-width:94vw;max-height:88vh;
+  background:var(--surf);border:1px solid var(--line);border-radius:13px;box-shadow:var(--sh-3);z-index:80;opacity:0;
+  pointer-events:none;transition:opacity .16s,transform .16s;display:flex;flex-direction:column}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.mh{display:flex;align-items:center;gap:11px;padding:16px 19px;border-bottom:1px solid var(--line)}
+.mh h3{font-family:var(--fn);font-size:17px;font-weight:600}
+.mb{padding:19px;overflow-y:auto}
+.mf{display:flex;align-items:center;gap:8px;padding:14px 19px;border-top:1px solid var(--line);background:var(--surf-2);
+  border-radius:0 0 13px 13px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.fl{display:block}
+.fl>span{display:block;font-family:var(--fn);font-size:10.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--tx-3);margin-bottom:6px}
+.req{color:var(--bad)}
+.ctl{height:38px;width:100%;padding:0 11px;border:1px solid var(--line-2);border-radius:var(--r-2);background:var(--surf);
+  font-size:13.5px;outline:0;transition:border-color .13s,box-shadow .13s}
+.ctl:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+.hint{font-size:11.5px;color:var(--tx-3);margin-top:6px}
+.full{grid-column:1/-1}
+
+.pal{position:fixed;left:50%;top:12vh;transform:translateX(-50%) translateY(-8px);width:640px;max-width:94vw;background:var(--surf);
+  border:1px solid var(--line);border-radius:13px;box-shadow:var(--sh-3);z-index:90;opacity:0;pointer-events:none;
+  transition:opacity .14s,transform .14s;overflow:hidden}
+.pal.on{opacity:1;pointer-events:auto;transform:translateX(-50%)}
+.pi{display:flex;align-items:center;gap:11px;padding:15px 17px;border-bottom:1px solid var(--line);color:var(--tx-3)}
+.pi input{border:0;outline:0;background:none;font-size:16px;width:100%}
+.pl{max-height:46vh;overflow-y:auto;padding:7px}
+.ps{font-family:var(--fn);font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--tx-3);padding:9px 11px 5px}
+.pit{display:flex;align-items:center;gap:12px;padding:9px 11px;border-radius:var(--r-2);font-size:13.5px;width:100%;text-align:left}
+.pit:hover,.pit.cur{background:var(--acc-soft);color:var(--acc-tx)}
+.pit svg{color:var(--tx-3)}
+.pit:hover svg,.pit.cur svg{color:var(--acc)}
+.pit .w{margin-left:auto;font-size:11px;color:var(--tx-3)}
+.pf{display:flex;gap:17px;padding:9px 15px;border-top:1px solid var(--line);background:var(--surf-2);font-size:11px;color:var(--tx-3)}
+kbd{font-family:var(--fs);font-size:10px;border:1px solid var(--line-2);border-radius:4px;padding:1px 5px;background:var(--surf)}
+
+.pop{position:absolute;top:50px;right:16px;width:390px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--sh-2);z-index:75;opacity:0;pointer-events:none;transform:translateY(-6px);
+  transition:opacity .14s,transform .14s;overflow:hidden}
+.pop.on{opacity:1;pointer-events:auto;transform:none}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--line);background:var(--surf-2)}
+.pr{display:flex;gap:11px;padding:12px 15px;border-bottom:1px solid var(--line)}
+.pr:last-child{border-bottom:0}
+.pr:hover{background:var(--surf-2)}
+.pd{width:7px;height:7px;border-radius:50%;margin-top:5px;flex:0 0 7px}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);z-index:95;display:flex;align-items:center;
+  gap:12px;padding:12px 16px;background:var(--tx);color:var(--bg);border-radius:11px;box-shadow:var(--sh-3);font-size:13px;
+  opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;max-width:min(560px,92vw)}
+.toast.on{opacity:1;pointer-events:auto;transform:translateX(-50%)}
+.toast .ok{color:#6FD3AE;flex:0 0 18px}
+.toast button{color:#8FC0EC;font-weight:500;font-size:12.5px;margin-left:2px;white-space:nowrap}
+
+/* ───────── diagrame ───────── */
+.bars{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:8px}
+.bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+.bcol .stack{width:100%;max-width:54px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:2px}
+.bcol .bseg{border-radius:3px;transition:height .5s cubic-bezier(.4,0,.2,1)}
+.bcol .bl{font-size:11px;color:var(--tx-3)}
+.mtx{display:grid;gap:3px;font-size:12px}
+.mtx .mrow{display:grid;grid-template-columns:170px repeat(6,1fr);gap:3px;align-items:center}
+.mcell{height:34px;border-radius:var(--r-3);display:grid;place-items:center;font-size:11.5px;border:1px solid var(--line);
+  background:var(--surf);font-variant-numeric:tabular-nums}
+.mcell.cl{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok);font-weight:600}
+.mcell.op{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
+.mcell.fu{background:var(--sunk);color:var(--tx-3)}
+.mcell:hover{border-color:var(--acc);cursor:pointer}
+.gantt{display:grid;gap:4px}
+.grow{display:grid;grid-template-columns:180px 1fr;gap:12px;align-items:center;font-size:12.5px}
+.gbar{position:relative;height:26px;background:var(--sunk);border-radius:var(--r-3);overflow:hidden}
+.gseg{position:absolute;top:3px;bottom:3px;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:11px;
+  color:#fff;white-space:nowrap;overflow:hidden}
+.gscale{display:grid;grid-template-columns:180px 1fr;gap:12px;font-size:10.5px;color:var(--tx-3);margin-bottom:2px}
+.gticks{display:flex;justify-content:space-between}
+
+.split-v{display:grid;grid-template-columns:400px 1fr;gap:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  background:var(--surf);box-shadow:var(--sh-1);min-height:560px}
+.sv-l{border-right:1px solid var(--line);overflow-y:auto;max-height:660px}
+.sv-i{padding:13px 15px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s}
+.sv-i:hover{background:var(--surf-2)}
+.sv-i.on{background:var(--acc-soft);box-shadow:inset 3px 0 0 var(--acc)}
+.sv-r{padding:19px 21px;overflow-y:auto;max-height:660px}
+
+.foot-note{max-width:1560px;margin:0 auto;padding:0 26px 46px}
+@media (max-width:1200px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.split-v{grid-template-columns:1fr}
+  .top-search{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <nav class="rail">
+    <div class="brand">
+      <div class="brand-mk">D</div>
+      <div class="brand-tx"><b>Damina</b><span>Damina Construct SRL</span></div>
+    </div>
+    <button class="r-search" onclick="palOpen()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+      <span class="r-tx">Caută sau execută</span><span class="r-kbd">⌘K</span>
+    </button>
+    <div class="r-scroll" id="railNav"></div>
+    <div class="r-foot">
+      <button class="u-btn" onclick="toast('Meniu de cont: profil · perspectivă · setări firmă · ieșire')">
+        <span class="ava">MI</span>
+        <span class="u-meta"><b>Mihai Ionescu</b><span>Administrator</span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <header class="top">
+      <button class="ico" onclick="document.getElementById('app').classList.toggle('mini')" aria-label="Restrânge">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9.5 4v16"/></svg>
+      </button>
+      <nav class="crumbs" id="crumbs"></nav>
+      <button class="top-search" onclick="palOpen()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <span>Caută contract, lucrare, document…</span>
+        <span style="margin-left:auto;display:flex;gap:3px"><kbd>⌘</kbd><kbd>K</kbd></span>
+      </button>
+      <div class="top-r">
+        <button class="per" onclick="toast('Perioada activă schimbă toate cifrele din ecran, nu doar filtrul listei.')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+          <b>august 2026</b>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="ico" onclick="toggleDensity()" id="densBtn" aria-label="Densitate" title="Densitatea tabelelor">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <button class="ico" onclick="toggleTheme()" id="themeBtn" aria-label="Temă"></button>
+        <button class="ico" id="bell" onclick="popToggle(event)" aria-label="Semnale">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="bdot">4</span>
+        </button>
+        <span class="role">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          Administrator
+        </span>
+      </div>
+      <div class="pop" id="pop"></div>
+    </header>
+    <div class="canvas" id="canvas"></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drw" id="drw"></aside>
+<div class="modal" id="modal"></div>
+<div class="pal" id="pal">
+  <div class="pi">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+    <input id="palIn" placeholder="Mergi la ecran, caută un document sau execută o acțiune…" oninput="palFilter(this.value)">
+    <kbd>Esc</kbd>
+  </div>
+  <div class="pl" id="palList"></div>
+  <div class="pf"><span><kbd>↑</kbd><kbd>↓</kbd> navighează</span><span><kbd>↵</kbd> deschide</span><span><kbd>⌘</kbd><kbd>K</kbd> oricând</span></div>
+</div>
+<div class="bulk" id="bulk"></div>
+<div class="toast" id="toast">
+  <svg class="ok" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="m5 13 4 4L19 7"/></svg>
+  <span id="toastMsg"></span><button id="toastAct" onclick="toastHide()">Închide</button>
+</div>
+<script>
+/* ════════ iconuri (un singur set, desenat inline) ════════ */
+const I={
+ panou:'<path d="M3 13h7V3H3zM14 21h7V11h-7zM14 7h7V3h-7zM3 21h7v-4H3z"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>',
+ contract:'<path d="M14 3v5h5M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/>',
+ pin:'<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+ chat:'<path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/>',
+ list:'<path d="M4 6h16M4 12h10M4 18h7"/>',
+ tool:'<path d="M14.5 5.5 18 9l-8.5 8.5H6v-3.5z"/><path d="M4 21h16"/>',
+ coin:'<path d="M12 2v20"/><path d="M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.8 5 3.2 5 1.3 5 3.3-2.2 3.2-5 3.2-5-1.3-5-3.2"/>',
+ swap:'<path d="M17 3l4 4-4 4"/><path d="M21 7H8a4 4 0 0 0-4 4"/><path d="M7 21l-4-4 4-4"/><path d="M3 17h13a4 4 0 0 0 4-4"/>',
+ lock:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 11h18"/><path d="m9 16 2 2 4-4"/>',
+ doc:'<rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+ box:'<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
+ check:'<path d="M14 3v5h5M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="m9 15 2 2 4-4"/>',
+ shield:'<path d="M12 3 4 6.5v5c0 4.6 3.4 8.4 8 9.5 4.6-1.1 8-4.9 8-9.5v-5z"/>',
+ stock:'<path d="M3 8h18v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M2 4h20v4H2zM10 12h4"/>',
+ cart:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.7 12.4a1.5 1.5 0 0 0 1.5 1.1h8.4a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/>',
+ nir:'<path d="m3 9 9-5 9 5v9l-9 5-9-5z"/><path d="m8.5 12 2.5 2.5 4.5-4.5"/>',
+ truckB:'<circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/><path d="M4 18H3v-5l3-5h5v10M12 13h9v5h-1.5"/>',
+ wrench:'<path d="M14.7 6.3a4 4 0 0 0 5.3 5.3l-7.4 7.4a2.4 2.4 0 1 1-3.4-3.4z"/><path d="M4 4l5 5"/>',
+ truck:'<path d="M2 7h11v10H2zM13 10h4l4 4v3h-8z"/><circle cx="6.5" cy="18.5" r="1.6"/><circle cx="17.5" cy="18.5" r="1.6"/>',
+ bag:'<path d="M12 3a5 5 0 0 1 5 5v3h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h1V8a5 5 0 0 1 5-5"/>',
+ file:'<path d="M4 4a2 2 0 0 1 2-2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M13 2v5h5"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ bill:'<path d="M5 3h14v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+ book:'<path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="1.6"/><circle cx="14" cy="12" r="1.6"/><circle cx="10" cy="19" r="1.6"/>',
+ plug:'<path d="M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4"/><rect x="7" y="7" width="10" height="10" rx="2.5"/>',
+ eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.6"/>',
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 16v-4m0-4h.01"/>',
+ warn:'<path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ x:'<path d="M18 6 6 18M6 6l12 12"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8"/>'
+};
+const ic=(n,s)=>'<svg width="'+(s||16)+'" height="'+(s||16)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(I[n]||I.doc)+'</svg>';
+
+/* ════════ helperi de conținut ════════ */
+const bd=(t,x,d)=>`<span class="badge ${t}">${d?'<i class="dot"></i>':''}${x}</span>`;
+const bar=(p,t)=>`<span class="mbar"><i style="width:${Math.max(2,Math.min(p,100))}%;background:var(--${t})"></i></span>`;
+const spark=(pts,c)=>`<svg width="76" height="24" viewBox="0 0 76 24"><polyline points="${pts}" fill="none" stroke="var(--${c})" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function gauge(o){
+  const t=o.tone||'ok';
+  return `<div class="gg"><div class="gt"><b>${o.label}</b>${o.tag||''}<span class="pc" style="color:var(--${t})">${o.pct}%</span></div>
+  <div class="gtr"><i style="width:${Math.min(o.pct,100)}%;background:var(--${t})"></i>${o.mark?`<span class="gmk" style="left:${o.mark}%"></span>`:''}</div>
+  <div class="gc">${(o.cap||[]).map(x=>`<span>${x}</span>`).join('')}</div></div>`;
+}
+function kpi(o){
+  return `<div class="kpi"><div class="kl">${o.label}</div>
+  <div class="kval"${o.tone?` style="color:var(--${o.tone})"`:''}>${o.value}${o.unit?`<small>${o.unit}</small>`:''}</div>
+  <div class="kf"><span class="dlt ${o.dir||'f'}">${o.delta||''}${o.sub?` <em>${o.sub}</em>`:''}</span>${o.spark?spark(o.spark,o.sparkC||'ok'):''}</div></div>`;
+}
+function tbl(cols,rows,foot,opt){
+  opt=opt||{};
+  const th=cols.map(c=>`<th${c.n?' class="n"':''}${c.w?` style="width:${c.w}"`:''}>${c.h||''}</th>`).join('');
+  const body=rows.map(r=>{
+    if(r[0]==='#G') return `<tr class="grp"><td colspan="${cols.length}">${r[1]}</td></tr>`;
+    const click=opt.noclick?'':` class="cl" onclick="${opt.onclick||'drawer()'}"`;
+    return `<tr${click}>${r.map((c,j)=>`<td${cols[j]&&cols[j].n?' class="n"':''}>${c==null?'<span class="mu">—</span>':c}</td>`).join('')}</tr>`;
+  }).join('');
+  let tf='';
+  if(foot){
+    tf='<tfoot><tr>'+foot.map((c,j)=>{
+      if(c&&c.span!==undefined) return `<td colspan="${c.span}"${c.n?' class="n"':''}>${c.v}</td>`;
+      return `<td${cols[j]&&cols[j].n?' class="n"':''}>${c==null?'':c}</td>`;
+    }).join('')+'</tr></tfoot>';
+  }
+  return `<div class="twrap"><div class="tscroll"><table class="tbl"><thead><tr>${th}</tr></thead><tbody>${body}</tbody>${tf}</table></div></div>`;
+}
+const C=(h,w,n)=>({h:h,w:w,n:n});
+function head(o){
+  return `<div class="phead"><div><div class="eyebrow">${o.eyebrow||''}</div><h1 class="t">${o.title}</h1>
+  ${o.meta?`<div class="meta">${o.meta}</div>`:''}</div>${o.acts?`<div class="acts">${o.acts}</div>`:''}</div>`;
+}
+const rule=(t,r)=>`<div class="srule"><h2>${t}</h2><span class="ln"></span>${r?`<span class="rt">${r}</span>`:''}</div>`;
+function toolbar(o){
+  o=o||{};
+  const segs=o.segs?`<div class="segs">${o.segs.map((s,i)=>`<button class="seg${i===0?' on':''}" onclick="seg(this)">${s[0]}${s[1]?`<span class="c">${s[1]}</span>`:''}</button>`).join('')}</div>`:'';
+  const chips=(o.chips||[]).map(c=>`<button class="chip${c[1]?' on':''}" onclick="this.classList.toggle('on')">${c[0]}</button>`).join('');
+  return `<div class="tbar">${segs}<div class="flt">
+    <label class="srch">${ic('search',14)}<input placeholder="${o.ph||'Caută…'}"></label>
+    ${chips}<div class="tr8">${o.right||''}${o.count?`<span class="cnt">${o.count}</span>`:''}
+    <button class="ico" onclick="toast('Coloane: alegi ce se vede și în ce ordine — se ține minte pe utilizator.')" title="Coloane">${ic('list',16)}</button>
+    <button class="ico" onclick="toast('Export CSV / XLSX cu filtrele curente.')" title="Export">${ic('file',16)}</button>
+    </div></div></div>`;
+}
+const btn=(k,t,fn,i2)=>`<button class="btn ${k}" onclick="${fn||''}">${i2?ic(i2,15):''}${t}</button>`;
+const bs=(k,t,fn)=>`<button class="btn ${k} s" onclick="${fn||''}">${t}</button>`;
+const note=(t,x)=>`<div class="note ${t}">${ic(t==='w'||t==='b'?'warn':'info',16)}<div>${x}</div></div>`;
+const empty=(t,p,a)=>`<div class="empty"><h4>${t}</h4><p>${p}</p>${a||''}</div>`;
+const pipeline=steps=>`<div class="pipe">${steps.map((s,i)=>`<span class="stp ${s[1]||''}"><span class="nm">${s[1]==='dn'?'✓':i+1}</span>${s[0]}</span>`).join('')}</div>`;
+const tabs=a=>`<div class="tabs">${a.map((t,i)=>`<button class="tab${i===0?' on':''}" onclick="tab(this)">${t[0]}${t[1]?`<span class="c">${t[1]}</span>`:''}</button>`).join('')}</div>`;
+function dhead(o){
+  return `<div class="dhead"><div class="dtop"><div style="min-width:0">
+  <div class="eyebrow">${o.eyebrow}</div><div class="dtitle">${o.title}</div></div>
+  <div class="dacts">${o.acts||''}</div></div>${o.steps?pipeline(o.steps):''}${o.tabs?tabs(o.tabs):''}</div>`;
+}
+const trail=a=>`<div class="trail">${a.map(x=>`<div class="ti ${x[2]||''}"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('')}</div>`;
+const kv=a=>`<dl class="kv">${a.map(x=>`<dt>${x[0]}</dt><dd>${x[1]}</dd>`).join('')}</dl>`;
+const act=()=>`<div class="racts"><button class="ico" onclick="event.stopPropagation();toast('Meniu de rând: deschide · editează · duplică · arhivează')"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div>`;
+const cb=()=>`<span class="cbx" onclick="event.stopPropagation();pick(this)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="m5 13 4 4L19 7"/></svg></span>`;
+const card=(h,cls)=>`<div class="card cp ${cls||''}">${h}</div>`;
+
+/* ════════ navigație ════════ */
+const NAV=[
+ {g:'Fixate',items:[['panou','panou','Panou'],['lucrari','tool','Unități de lucru','12'],['situatii','check','Situații de lucrări','3','hot']]},
+ {g:'Conducere',items:[['contracte','contract','Contracte'],['contract','contract','Contract C-104'],['ani','chart','Marjă pe ani'],['obiective','pin','Obiective']]},
+ {g:'Operațional',items:[['cereri','chat','Cereri și tichete','8'],['backlog','list','Backlog Delta'],['lucrare','tool','Execuția unei lucrări'],['cost','coin','Registrul de cost'],['realocari','swap','Realocări'],['perioade','lock','Închiderea lunii']]},
+ {g:'Comercial',items:[['devize','doc','Devize'],['deviz','doc','Deviz client / intern'],['articole','book','Articole normate'],['pachete','box','Pachete'],['situatie','check','Situație de lucrări'],['garantii','shield','Suplimentări și garanții']]},
+ {g:'Aprovizionare',items:[['stoc','stock','Gestiuni și stoc','7'],['consum','stock','Bonuri de consum'],['achizitii','cart','Achiziții'],['receptii','nir','Recepții și NIR']]},
+ {g:'Resurse',items:[['utilaje','truckB','Utilaje'],['solicitari','truckB','Solicitări de utilaj','5'],['unelte','wrench','Unelte'],['transporturi','truck','Transporturi'],['concedii','bag','Concedii']]},
+ {g:'Evidență',items:[['documente','file','Documente și PV'],['rapoarte','chart','Rapoarte lunare'],['inspectii','check','Acoperirea inspecțiilor'],['facturi','bill','Facturi'],['nomenclatoare','book','Nomenclatoare'],['integrari','plug','Integrări']]}
+];
+const CRUMB={};
+document.getElementById('railNav').innerHTML=NAV.map(g=>`<div class="r-grp">${g.g}</div>`+
+ g.items.map(it=>`<a class="r-item" href="#" data-id="${it[0]}" onclick="go('${it[0]}');return false">
+   ${ic(it[1],17)}<span class="r-tx">${it[2]}</span>${it[3]?`<span class="r-badge${it[4]?' hot':''}">${it[3]}</span>`:''}</a>`).join('')
+).join('');
+NAV.forEach(g=>g.items.forEach(it=>CRUMB[it[0]]=[g.g==='Fixate'?'Operațional':g.g,it[2]]));
+
+const SCREENS={};
+function go(id){
+  const f=SCREENS[id];
+  if(!f){toast('Ecranul „'+(CRUMB[id]?CRUMB[id][1]:id)+'” nu e reprodus în machetă.');return;}
+  document.getElementById('canvas').innerHTML=`<div class="page">${f()}</div>`;
+  document.querySelectorAll('.r-item').forEach(a=>a.classList.toggle('on',a.dataset.id===id));
+  const c=CRUMB[id]||['Panou'];
+  document.getElementById('crumbs').innerHTML=c.map((p,i)=>i===c.length-1?`<b>${p}</b>`:`${p}<span style="opacity:.45">/</span>`).join(' ');
+  document.getElementById('canvas').scrollTop=0;
+  closeAll();nSel=0;syncBulk();
+}
+
+/* ════════ interacțiuni ════════ */
+function seg(el){el.parentElement.querySelectorAll('.seg').forEach(s=>s.classList.remove('on'));el.classList.add('on');}
+function tab(el){el.parentElement.querySelectorAll('.tab').forEach(s=>s.classList.remove('on'));el.classList.add('on');
+  toast('Tab „'+el.textContent.trim()+'” — conținutul se schimbă, antetul lipit rămâne pe ecran.');}
+function svPick(el){el.parentElement.querySelectorAll('.sv-i').forEach(s=>s.classList.remove('on'));el.classList.add('on');}
+const scrim=document.getElementById('scrim');
+let nSel=0;
+function pick(el){
+  el.classList.toggle('on');
+  el.closest('tr').classList.toggle('sel',el.classList.contains('on'));
+  nSel=document.querySelectorAll('.cbx.on').length;syncBulk();
+}
+function syncBulk(){
+  const b=document.getElementById('bulk');
+  b.classList.toggle('on',nSel>0);
+  if(nSel) b.innerHTML=`<b>${nSel} selectate</b>
+   <button class="bb" onclick="toast('${nSel} unități trimise la aprobare.','Anulează')">Trimite la aprobare</button>
+   <button class="bb" onclick="toast('Realocare în masă pentru ${nSel} unități.','Anulează')">Realocă finanțarea</button>
+   <button class="bb" onclick="toast('Export pentru ${nSel} rânduri.')">Export</button>
+   <button class="bb" onclick="clearSel()">Renunță</button>`;
+}
+function clearSel(){document.querySelectorAll('.cbx.on').forEach(c=>{c.classList.remove('on');c.closest('tr').classList.remove('sel')});nSel=0;syncBulk();}
+function drawer(html){
+  document.getElementById('drw').innerHTML=html||DRW();
+  document.getElementById('drw').classList.add('on');scrim.classList.add('on');popClose();
+}
+function modal(html){
+  document.getElementById('modal').innerHTML=html||MODAL();
+  document.getElementById('modal').classList.add('on');scrim.classList.add('on');popClose();
+}
+function closeAll(){
+  document.getElementById('drw').classList.remove('on');
+  document.getElementById('pal').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+  scrim.classList.remove('on');
+}
+scrim.onclick=()=>{
+  if(document.getElementById('modal').classList.contains('on')){
+    toast('Modalul nu se închide la click în afara lui — folosește „Renunță”.');return;}
+  closeAll();
+};
+function toggleTheme(){
+  const h=document.documentElement,d=h.dataset.theme==='dark';
+  h.dataset.theme=d?'light':'dark';
+  document.getElementById('themeBtn').innerHTML=ic(d?'moon':'sun',17);
+}
+function toggleDensity(){
+  const h=document.documentElement,c=h.dataset.density==='compact';
+  h.dataset.density=c?'normal':'compact';
+  toast('Densitate '+(c?'confortabilă':'compactă')+' — se ține minte pe utilizator.');
+}
+const pop=document.getElementById('pop');
+pop.innerHTML=`<div class="ph"><span class="eyebrow">Semnale · recalculate acum</span><span class="cnt">4 de rezolvat</span></div>`+
+[['bad','Plafon depășit','C-118 · Corectivă la 104% din plafon','Depășire 8.400 lei. Realocare din Preventivă?'],
+ ['warn','Delta neumplută','C-104 · 61% umplut, mai sunt 6 zile','42.800 lei venit care se pierde pe 31.'],
+ ['warn','Situație de aprobat','SL-2026-089 așteaptă de 4 zile','67.320 lei · Apa Nova'],
+ ['tx-3','Contract expiră','C-097 · 34 de zile până la expirare','Fără act adițional început.']]
+ .map(s=>`<div class="pr"><span class="pd" style="background:var(--${s[0]})"></span><div>
+  <div class="eyebrow" style="font-size:9.5px">${s[1]}</div><b style="font-size:12.5px;font-weight:500">${s[2]}</b>
+  <div style="font-size:11.5px;color:var(--tx-2);margin-top:2px">${s[3]}</div></div></div>`).join('');
+function popToggle(e){e.stopPropagation();pop.classList.toggle('on');}
+function popClose(){pop.classList.remove('on');}
+document.addEventListener('click',e=>{if(!pop.contains(e.target)&&!document.getElementById('bell').contains(e.target))popClose();});
+let tt;
+function toast(msg,action){
+  document.getElementById('toastMsg').textContent=msg;
+  document.getElementById('toastAct').textContent=action||'Închide';
+  document.getElementById('toast').classList.add('on');
+  clearTimeout(tt);tt=setTimeout(toastHide,4600);
+}
+function toastHide(){document.getElementById('toast').classList.remove('on');}
+
+/* ════════ paleta de comenzi ════════ */
+const PAL=[];
+NAV.forEach(g=>g.items.forEach(it=>PAL.push({s:'Ecrane',l:it[2],w:g.g,i:it[1],id:it[0]})));
+[['Unitate de lucru nouă','tool','modal()'],['Bon de consum nou','stock',"toast('Bon de consum nou.')"],
+ ['Realocare între componente','swap',"toast('Realocare între componente.')"],
+ ['Închide luna august','lock',"toast('Închiderea lunii blochează scrierile în registru.','Anulează')"],
+ ['Emite factură din raport','bill',"toast('Factura preia valorile din raportul înghețat.')"]]
+ .forEach(a=>PAL.push({s:'Acțiuni',l:a[0],w:'',i:a[1],run:a[2]}));
+[['UL-2431 · Înlocuire tronson DN300','C-104','tool'],['SL-2026-089 · de aprobat','Apa Nova','check'],
+ ['NIR-0338 · recepție materiale','Depozit central','nir']]
+ .forEach(a=>PAL.push({s:'Recente',l:a[0],w:a[1],i:a[2],run:'drawer()'}));
+function palOpen(){popClose();document.getElementById('pal').classList.add('on');scrim.classList.add('on');
+  const i=document.getElementById('palIn');i.value='';palFilter('');setTimeout(()=>i.focus(),40);}
+function palFilter(q){
+  const s=q.trim().toLowerCase();
+  const hits=PAL.filter(p=>!s||p.l.toLowerCase().includes(s)||p.w.toLowerCase().includes(s)).slice(0,15);
+  const L=document.getElementById('palList');
+  if(!hits.length){L.innerHTML=`<div class="ps">Niciun rezultat pentru „${q}”</div>`;return;}
+  let h='',sec='';
+  hits.forEach((p,i)=>{if(p.s!==sec){sec=p.s;h+=`<div class="ps">${sec}</div>`;}
+    h+=`<button class="pit${i===0?' cur':''}" data-i="${PAL.indexOf(p)}">${ic(p.i,16)}<span>${p.l}</span>${p.w?`<span class="w">${p.w}</span>`:''}</button>`;});
+  L.innerHTML=h;
+  L.querySelectorAll('.pit').forEach(b=>b.onclick=()=>{
+    const p=PAL[+b.dataset.i];closeAll();
+    if(p.id)go(p.id);else eval(p.run);
+  });
+}
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();palOpen();return;}
+  if(e.key==='Escape'){popClose();closeAll();toastHide();return;}
+  const p=document.getElementById('pal');if(!p.classList.contains('on'))return;
+  const items=[...p.querySelectorAll('.pit')];if(!items.length)return;
+  let idx=items.findIndex(b=>b.classList.contains('cur'));
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();
+    items[Math.max(idx,0)].classList.remove('cur');
+    idx=(idx+(e.key==='ArrowDown'?1:items.length-1))%items.length;
+    items[idx].classList.add('cur');items[idx].scrollIntoView({block:'nearest'});}
+  if(e.key==='Enter'&&idx>-1){e.preventDefault();items[idx].click();}
+});
+
+/* ════════════════ PANOU ════════════════ */
+SCREENS.panou=()=>{
+  const q=[
+   ['b','C-104 · Delta neumplută pe „Reparații curente”',bd('w','6 zile',1),'61% umplut din plafonul de 110.000 lei. Ritmul de acum nu ajunge la 100% până pe 31.','42.800 lei','bad',
+    bs('d','Vezi lucrări',"go('lucrari')")+bs('p','Propune umplere',"toast('Am deschis propunerea de umplere a Deltei pentru C-104.','Anulează')")],
+   ['b','C-118 · Corectivă peste plafon',bd('b','104%',1),'Depășire de 8.400 lei. Preventiva are 21.300 lei liberi — realocarea acoperă tot.','8.400 lei','bad',
+    bs('d','Registrul de cost',"go('cost')")+bs('p','Realocă',"toast('Realocare 8.400 lei: Preventivă → Corectivă. Se scrie în registru.','Anulează')")],
+   ['w','SL-2026-089 · Situație de lucrări de aprobat','','Trimisă de Andrei Popa acum 4 zile · C-104 / OB-12 Stație Chitila','67.320 lei','tx',
+    bs('d','Deschide',"go('situatie')")+bs('p','Aprobă',"toast('SL-2026-089 aprobată. A intrat în facturabilul lunii august.','Retrage')")],
+   ['a','C-097 · Contract expiră pe 28 septembrie','','Fără act adițional început. Termenul de notificare a clientului e 30 de zile.','—','tx-3',
+    bs('d','Deschide contractul',"go('contract')")+bs('p','Începe act adițional',"toast('Am pornit actul adițional pe C-097.','Anulează')")]
+  ];
+  const ctr=(code,client,name,ab,gs,marja,tone)=>`<article class="card cp">
+    <header style="display:flex;align-items:flex-start;gap:14px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+      <div style="min-width:0"><a href="#" onclick="go('contract');return false" style="font-family:var(--fn);font-size:16px;font-weight:600">${code} · ${client}</a>
+      <div style="font-size:12.5px;color:var(--tx-2)">${name}</div></div>
+      <div style="margin-left:auto;text-align:right"><div class="eyebrow">Abonament</div>
+      <div class="tnum" style="font-family:var(--fn);font-size:16.5px;font-weight:600">${ab}</div></div>
+    </header>${gs.map(gauge).join('')}
+    <footer style="display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:6px;border-top:1px solid var(--line-2);font-size:13px">
+      <span style="color:var(--tx-2)">Marjă lună</span><span class="tnum" style="font-weight:600;color:var(--${tone})">${marja}</span></footer></article>`;
+  return head({eyebrow:'Conducere · august 2026, ziua 25 din 31',title:'Bună, Mihai',
+    meta:'6 contracte de mentenanță · 4 lucruri au nevoie de o decizie azi',
+    acts:btn('d','Export lună',"toast('Raportul lunii se generează în fundal și apare la Rapoarte.')",'file')+
+      `<span class="split">${btn('p','Adaugă','modal()','plus')}<button class="car" onclick="toast('Contract · Unitate de lucru · Deviz · Recepție · Solicitare de utilaj')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="m6 9 6 6 6-6"/></svg></button></span>`})
+  +`<div class="kpis">
+    ${kpi({label:'Venit facturabil luna asta',value:'1.284',unit:'k lei',delta:'▲ 11,4%',dir:'u',sub:'vs iulie',spark:'0,18 11,16 22,19 33,13 44,14 55,9 66,7 76,4',sparkC:'ok'})}
+    ${kpi({label:'Cost angajat + consumat',value:'947',unit:'k lei',delta:'▲ 6,1%',dir:'d',sub:'peste ritm',spark:'0,20 11,17 22,17 33,12 44,13 55,10 66,8 76,6',sparkC:'bad'})}
+    ${kpi({label:'Marjă lună · 26,2%',value:'337',unit:'k lei',delta:'▲ 2,3 pp',dir:'u',spark:'0,15 11,17 22,14 33,15 44,11 55,12 66,9 76,8',sparkC:'ok'})}
+    ${kpi({label:'Delta neumplută · 3 contracte',value:'128',unit:'k lei',tone:'bad',delta:'6 zile rămase',dir:'d',spark:'0,4 11,6 22,7 33,10 44,11 55,15 66,17 76,19',sparkC:'warn'})}
+  </div>`
+  +rule('Are nevoie de tine','rezolvate azi: 3 din 7')
+  +`<div class="card" style="overflow:hidden">
+     <div style="display:flex;align-items:center;gap:10px;padding:12px 17px;border-bottom:1px solid var(--line);background:var(--surf-2)">
+       <span style="color:var(--bad)">${ic('warn',16)}</span>
+       <b style="font-family:var(--fn);font-size:14px">4 decizii · ordonate după banii în joc</b>
+       ${bs('q','Doar ale mele',"toast('Filtru: doar ce e atribuit ție.')")}
+     </div>
+     ${q.map(r=>`<div style="display:flex;align-items:center;gap:14px;padding:12px 17px;border-bottom:1px solid var(--line)" onmouseover="this.style.background='var(--surf-2)'" onmouseout="this.style.background=''">
+       <span style="width:3px;align-self:stretch;border-radius:2px;flex:0 0 3px;background:var(--${r[0]==='b'?'bad':r[0]==='w'?'warn':'acc'})"></span>
+       <div style="min-width:0;flex:1"><div style="font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:9px">${r[1]}${r[2]}</div>
+       <div style="font-size:12px;color:var(--tx-2);margin-top:3px">${r[3]}</div></div>
+       <div class="tnum" style="font-family:var(--fn);font-size:17px;font-weight:600;white-space:nowrap;color:var(--${r[5]})">${r[4]}</div>
+       <div style="display:flex;gap:6px">${r[6]}</div></div>`).join('')}
+   </div>`
+  +rule('Contracte de mentenanță','linia verticală de pe fiecare bară = ritmul așteptat la ziua 25')
+  +`<div class="grid auto">
+    ${ctr('C-104','Apa Nova București','Mentenanță rețea de canalizare, sector 6','186.000 lei',[
+      {label:'Delta — de umplut',pct:61,tone:'warn',mark:81,tag:bd('w','rămân 42.800',1),cap:['plafon venit 110.000','umplut 67.200','liber 42.800']},
+      {label:'Preventivă — de consumat',pct:54,tone:'ok',mark:81,cap:['venit 48.000','plafon cost 40.000','rest 18.400']},
+      {label:'Corectivă — de consumat',pct:72,tone:'ok',mark:81,cap:['venit 28.000','plafon cost 24.000','rest 6.720']}],'54.180 lei · 29,1%','ok')}
+    ${ctr('C-118','Distrigaz Sud Rețele','Mentenanță rețea presiune redusă, zona nord','142.500 lei',[
+      {label:'Delta — de umplut',pct:97,tone:'ok',mark:81,tag:bd('o','umplut',1),cap:['plafon venit 82.000','umplut 79.540','liber 2.460']},
+      {label:'Corectivă — de consumat',pct:104,tone:'bad',mark:81,tag:bd('b','depășire 8.400',1),cap:['venit 36.000','plafon cost 30.000','peste plafon 8.400']},
+      {label:'Preventivă — de consumat',pct:29,tone:'ok',mark:81,cap:['venit 30.000','plafon cost 30.000','rest 21.300']}],'31.740 lei · 22,3%','tx')}
+  </div>`;
+};
+
+/* ════════════════ CONTRACTE ════════════════ */
+SCREENS.contracte=()=>{
+  const mini=(a,b,c)=>`<span style="display:flex;gap:3px;width:130px">
+    <span class="mbar" style="flex:1;width:auto"><i style="width:${a[0]}%;background:var(--${a[1]})"></i></span>
+    <span class="mbar" style="flex:1;width:auto"><i style="width:${b[0]}%;background:var(--${b[1]})"></i></span>
+    <span class="mbar" style="flex:1;width:auto"><i style="width:${c[0]}%;background:var(--${c[1]})"></i></span></span>`;
+  const cols=[C('Cod','86px'),C('Client'),C('Firmă','130px'),C('Proprietar','130px'),C('Abonament','110px',1),C('Indexare','92px'),C('Plafoane luna curentă','150px'),C('Marjă','92px',1),C('Expiră','110px')];
+  const rows=[
+   ['<span class="code">C-104</span>','Apa Nova București<div class="sub">Mentenanță canalizare, sector 6</div>','Damina Construct','Mihai Ionescu','186.000','IPC anual',mini([61,'warn'],[54,'ok'],[72,'ok']),'<b style="color:var(--ok)">29,1%</b>','28.02.2029'],
+   ['<span class="code">C-118</span>','Distrigaz Sud Rețele<div class="sub">Presiune redusă, zona nord</div>','Damina Construct','Elena Radu','142.500','fixă',mini([97,'ok'],[104,'bad'],[29,'ok']),'22,3%','31.12.2027'],
+   ['<span class="code">C-097</span>','Termoenergetica<div class="sub">Rețea termică primară</div>','Damina Instal','Mihai Ionescu','98.400','IPC anual',mini([88,'ok'],[63,'ok'],[41,'ok']),'18,7%','<span style="color:var(--warn)">28.09.2026 · 34 zile</span>'],
+   ['<span class="code">C-131</span>','Enel Distribuție Muntenia','Damina Construct','Cristian Dobre','76.000','fixă',mini([44,'warn'],[38,'ok'],[57,'ok']),'25,4%','30.06.2028'],
+   ['<span class="code">C-142</span>','Compania de Apă Ilfov','Damina Construct','Elena Radu','54.200','IPC anual',mini([72,'ok'],[66,'ok'],[80,'ok']),'21,0%','31.03.2029'],
+   ['<span class="code">C-088</span>','Apa Nova București<div class="sub">Lot 2 — sector 3</div>','Damina Instal','Cristian Dobre','62.900','fixă',mini([100,'ok'],[71,'ok'],[52,'ok']),'27,8%','31.01.2028']
+  ];
+  return head({eyebrow:'Conducere',title:'Contracte',meta:'6 de mentenanță · 4 individuale · abonament total 620.000 lei/lună',
+    acts:btn('d','Import din Saga',"toast('Import de contracte — nu se construiește în prototip.')")+btn('p','Contract nou','modal()','plus')})
+  +toolbar({segs:[['Mentenanță','6'],['Individuale','4'],['Expiră în 90 de zile','2'],['Arhivate','11']],ph:'Cod, client, obiectiv…',
+    chips:[['Damina Construct',1],['＋ Proprietar'],['＋ Indexare']],count:'6 contracte'})
+  +tbl(cols,rows,[{span:4,v:'<span style="color:var(--tx-2)">Total mentenanță</span>'},'620.000','',{v:''},'24,1%',''],{onclick:"go('contract')"})
+  +rule('Contracte individuale')
+  +tbl([C('Cod','86px'),C('Denumire'),C('Client','180px'),C('Tip','130px'),C('Valoare','110px',1),C('Perioadă','170px'),C('Stare','120px')],[
+   ['<span class="code">CI-2026-04</span>','Extindere rețea canalizare Bragadiru','Primăria Bragadiru','Investiție','1.284.000','01.04.2026 → 30.11.2026',bd('w','În execuție',1)],
+   ['<span class="code">CI-2026-02</span>','Branșamente gaze — lot Otopeni','Distrigaz Sud','Investiție','486.200','15.02.2026 → 15.09.2026',bd('w','În execuție',1)],
+   ['<span class="code">CI-2025-11</span>','Reabilitare stație pompare Chiajna','ANB','Reparație capitală','912.500','01.09.2025 → 30.04.2026',bd('o','Recepționat',1)],
+   ['<span class="code">CI-2026-06</span>','Rețea apă potabilă Corbeanca','Compania de Apă Ilfov','Investiție','338.900','01.07.2026 → 31.12.2026',bd('a','Contractat',1)]
+  ]);
+};
+
+/* ════════════════ CONTRACT (detaliu) ════════════════ */
+SCREENS.contract=()=>
+  dhead({eyebrow:'Contract de mentenanță · Apa Nova București',title:'C-104 — Mentenanță rețea de canalizare, sector 6',
+    acts:bd('o','Activ · anul 2 din 4',1)+bs('d','⋯',"toast('Act adițional · Suspendă · Duplică · Arhivează')")+bs('p','Emite situație',"go('situatie')"),
+    steps:[['Semnat','dn'],['Obiective alocate','dn'],['În execuție · luna 8','nw'],['Situație emisă'],['Facturat']],
+    tabs:[['Sinteză'],['Obiective','14'],['Ani și plafoane','4'],['Unități finanțate','32'],['Documente','61']]})
+  +`<div class="two">
+    <div>
+      ${rule('Plafoanele lunii august','ziua 25 din 31')}
+      ${card(
+        gauge({label:'Delta — de umplut',pct:61,tone:'warn',mark:81,tag:bd('w','rămân 42.800 lei',1),cap:['plafon venit 110.000','umplut 67.200','liber 42.800','sub ritm cu 20 pp']})+
+        gauge({label:'Preventivă — de consumat',pct:54,tone:'ok',mark:81,cap:['venit 48.000','plafon cost 40.000','angajat 12.400','consumat 9.200','rest 18.400']})+
+        gauge({label:'Corectivă — de consumat',pct:72,tone:'ok',mark:81,cap:['venit 28.000','plafon cost 24.000','rest 6.720']}))}
+      ${rule('Obiective pe contract','14 amplasamente')}
+      ${tbl([C('Cod','80px'),C('Denumire'),C('Tip','120px'),C('Perioadă pe contract','170px'),C('Inspecție','110px'),C('Checklist','170px')],[
+        ['<span class="code">OB-12</span>','Stație Chitila','Stație pompare','01.03.2025 → 28.02.2029','lunară','Inspecție canalizare v3'],
+        ['<span class="code">OB-14</span>','Colector Militari','Colector principal','01.03.2025 → 28.02.2029','trimestrială','Inspecție colector v2'],
+        ['<span class="code">OB-19</span>','Rețea secundară Drumul Taberei','Rețea','01.09.2025 → 28.02.2029','lunară','Inspecție canalizare v3'],
+        ['<span class="code">OB-23</span>','Bazin retenție Ghencea','Bazin','01.03.2025 → 28.02.2029','semestrială','Inspecție bazin v1']])}
+      ${rule('Unități finanțate luna asta','<a href="#" onclick="go(\'lucrari\');return false" style="color:var(--acc-tx);font-weight:500">Vezi toate 32 →</a>')}
+      ${tbl([C('Cod','92px'),C('Denumire'),C('Componentă','120px'),C('Stare','120px'),C('Alocat','100px',1),C('Cost','100px',1)],[
+        ['<span class="code">UL-2431</span>','Înlocuire tronson DN300, str. Brașov','Delta',bd('w','În lucru',1),'38.400','26.180'],
+        ['<span class="code">UL-2438</span>','Refacere carosabil după intervenție','Delta',bd('a','Planificată',1),'14.200','<span class="mu">0</span>'],
+        ['<span class="code">UL-2427</span>','Inspecție video colector principal','Preventivă',bd('o','Finalizată',1),'8.600','6.940'],
+        ['<span class="code">UL-2419</span>','Desfundare cămine — lot 2','Corectivă',bd('o','Finalizată',1),'11.400','9.180']],
+        [{span:4,v:'<span style="color:var(--tx-2)">32 de unități · august 2026</span>'},'186.000','131.820'])}
+    </div>
+    <aside style="display:flex;flex-direction:column;gap:14px">
+      ${card('<div class="eyebrow" style="margin-bottom:11px">Datele contractului</div>'+kv([
+        ['Client','Apa Nova București'],['Perioadă','01.03.2025 → 28.02.2029'],['Abonament','186.000 lei / lună'],
+        ['Indexare','IPC anual, la 1 martie'],['Valoare an 2','2.232.000 lei'],['Responsabil','Mihai Ionescu'],
+        ['Obiective','14 amplasamente'],['Checklist','Inspecție canalizare v3']])+
+        bs('d','Editează datele','modal()').replace('class="btn d s"','class="btn d s" style="width:100%;margin-top:14px"'))}
+      ${card('<div class="eyebrow" style="margin-bottom:12px">Traseul lunii</div>'+trail([
+        ['Pontaje închise','21 aug · 148 de zile-om','dn'],['Consumuri validate','23 aug · 41 de bonuri','dn'],
+        ['Situație de emis','termen 31 aug · 6 zile','nw'],['Factură','după aprobarea clientului'],
+        ['Închiderea lunii','blochează scrierile în registru']]))}
+      ${note('w','<b>Delta sub ritm.</b> La 25 august ar trebui umplută 81%. Este 61% — 42.800 lei se pierd dacă nu intră lucrări până pe 31.')}
+    </aside></div>`;
+
+/* ════════════════ MARJĂ PE ANI ════════════════ */
+SCREENS.ani=()=>{
+  const ys=[['An 1','2025','1.984','1.502','24,3%',88],['An 2','2026','2.232','1.679','24,8%',100],
+            ['An 3','2027','2.344','1.821','22,3%',105],['An 4','2028','2.461','1.976','19,7%',110]];
+  return head({eyebrow:'Contract · Apa Nova București',title:'C-104 — marjă pe an contractual',
+    meta:'Indexare IPC anuală la venit · ipoteză de creștere a costurilor 4,5% pe an',
+    acts:btn('d','Schimbă ipoteza',"toast('Creșterea anuală a costurilor e o ipoteză, nu un dat. 4,5% e valoarea implicită.')")+btn('p','Deschide contractul',"go('contract')")})
+  +rule('Cum arată contractul pe toată durata','ipoteză: costurile cresc cu 4,5% pe an')
+  +card(`<div class="bars">${ys.map(y=>{
+      const v=+y[2].replace('.',''),c=+y[3].replace('.',''),h=(v/2600)*100,hc=(c/2600)*100;
+      return `<div class="bcol"><div class="stack">
+        <div class="bseg" style="height:${h-hc}%;background:var(--ok)" title="marjă"></div>
+        <div class="bseg" style="height:${hc}%;background:var(--acc);opacity:.75" title="cost"></div></div>
+        <div class="bl">${y[0]} · <b style="color:var(--tx-2)">${y[4]}</b></div></div>`}).join('')}</div>
+    <div style="display:flex;gap:18px;margin-top:14px;font-size:11.5px;color:var(--tx-2)">
+      <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--ok);margin-right:6px;vertical-align:-1px"></i>marjă</span>
+      <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--acc);opacity:.75;margin-right:6px;vertical-align:-1px"></i>cost</span>
+      <span style="margin-left:auto">marja scade pentru că indexarea venitului e sub creșterea costurilor</span></div>`)
+  +rule('Detaliu pe ani')
+  +tbl([C('An','70px'),C('Perioadă','190px'),C('Abonament','110px',1),C('Venit an','120px',1),C('Cost','120px',1),C('Marjă','120px',1),C('Marjă %','90px',1),C('Sursă','150px')],
+    ys.map((y,i)=>[`<span class="code">${y[0]}</span>`,`01.03.${2024+i+1} → 28.02.${2024+i+2}`,
+      (i===0?'165.300':i===1?'186.000':i===2?'195.300':'205.100'),y[2]+'.000',y[3]+'.000',
+      ((+y[2].replace('.',''))-(+y[3].replace('.','')))+'.000',
+      `<b style="color:var(--${i>2?'warn':'ok'})">${y[4]}</b>`,
+      i<2?bd('o','realizat'):bd('n','proiecție')]),
+    [{span:3,v:'<span style="color:var(--tx-2)">Total 4 ani</span>'},'9.021.000','6.978.000','2.043.000','22,6%','']);
+};
+
+/* ════════════════ OBIECTIVE ════════════════ */
+SCREENS.obiective=()=>
+  head({eyebrow:'Conducere',title:'Obiective',meta:'86 de amplasamente · 14 fără contract activ',
+    acts:btn('d','Hartă',"toast('Vederea pe hartă: obiectivele cu activitate în luna curentă, colorate după stare.')")+btn('p','Obiectiv nou','modal()','plus')})
+  +toolbar({segs:[['Toate','86'],['Cu activitate luna asta','31'],['Fără contract','14'],['Inspecție restantă','9']],
+    ph:'Cod, denumire, adresă…',chips:[['C-104',1],['＋ Tip'],['＋ Localitate']],count:'31 de obiective'})
+  +tbl([C('Cod','80px'),C('Denumire'),C('Tip','140px'),C('Adresă','230px'),C('Contracte','120px'),C('Activitate','110px',1),C('Cost total','110px',1),C('','44px')],[
+   ['<span class="code">OB-12</span>','Stație Chitila','Stație pompare','Str. Banu Manta 14, Chitila','C-104','12 lucrări','184.200',act()],
+   ['<span class="code">OB-14</span>','Colector Militari','Colector principal','Bd. Iuliu Maniu 220, sector 6','C-104','8 lucrări','96.400',act()],
+   ['<span class="code">OB-31</span>','SRM Nord','Stație reglare','Șos. București-Ploiești km 12','C-118','19 lucrări','241.900',act()],
+   ['<span class="code">OB-33</span>','Rețea Străulești','Rețea distribuție','Zona Străulești, sector 1','C-118','6 lucrări','58.700',act()],
+   ['<span class="code">OB-19</span>','Rețea secundară Drumul Taberei','Rețea','Sector 6, zona Valea Ialomiței','C-104','4 lucrări','41.300',act()],
+   ['<span class="code">OB-47</span>','Punct termic PT-22','Punct termic','Str. Aleea Callatis 3, sector 6','<span class="mu">niciunul</span>','<span class="mu">—</span>','<span class="mu">0</span>',act()]
+  ]);
+
+/* ════════════════ CERERI ȘI TICHETE (split view) ════════════════ */
+SCREENS.cereri=()=>{
+  const it=(cod,t,sub,tone,st,on)=>`<div class="sv-i${on?' on':''}" onclick="svPick(this)">
+    <div style="display:flex;align-items:center;gap:8px"><span class="code" style="font-size:12px">${cod}</span>${bd(tone,st,1)}
+    <span class="mini" style="margin-left:auto">acum 2 zile</span></div>
+    <div style="font-size:13px;font-weight:500;margin-top:5px">${t}</div>
+    <div class="mini" style="margin-top:2px">${sub}</div></div>`;
+  return head({eyebrow:'Operațional',title:'Cereri și tichete',meta:'8 în așteptare · timp mediu de triaj 6 ore',
+    acts:btn('d','Reguli de rutare',"toast('Rutare automată: tipul cererii + obiectivul decid cine o primește.')")+btn('p','Cerere nouă','modal()','plus')})
+  +toolbar({segs:[['De triat','8'],['Rutate','23'],['Devenite lucrare','41'],['Respinse','6']],ph:'Cod, titlu, obiectiv…',
+    chips:[['Avarie',1],['＋ Contract'],['＋ Sursă']],count:'8 cereri'})
+  +`<div class="split-v">
+    <div class="sv-l">
+      ${it('CR-0912','Miros puternic la căminul din intersecție','OB-14 Colector Militari · C-104 · de la client','b','Avarie',1)}
+      ${it('CR-0911','Capac spart pe trotuar','OB-19 Drumul Taberei · C-104 · de la cetățean','w','Sesizare')}
+      ${it('CR-0908','Cerere de mutare a unui branșament','OB-31 SRM Nord · C-118 · de la client','a','Cerere')}
+      ${it('CR-0907','Verificare presiune după reclamație','OB-33 Străulești · C-118 · de la teren','a','Cerere')}
+      ${it('CR-0905','Infiltrații în subsol, bloc 14','OB-12 Stație Chitila · C-104 · de la client','b','Avarie')}
+      ${it('CR-0903','Solicitare de aviz pentru săpătură','OB-14 · C-104 · de la terț','n','Aviz')}
+    </div>
+    <div class="sv-r">
+      <div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap">
+        <span class="code" style="font-family:var(--fn);font-size:19px;font-weight:600">CR-0912</span>
+        ${bd('b','Avarie',1)}${bd('n','de la client')}
+        <span style="margin-left:auto;display:flex;gap:7px">${bs('d','Respinge',"toast('Cerere respinsă. Clientul primește motivul.','Anulează')")}${bs('p','Transformă în lucrare',"toast('UL-2442 creată din CR-0912, finanțată din Corectivă C-104.','Anulează')")}</span>
+      </div>
+      <h3 style="font-family:var(--fn);font-size:18px;font-weight:600;margin:13px 0 6px">Miros puternic la căminul din intersecție</h3>
+      <div class="mini">Primită pe 23 august, 08:41 · Apa Nova București · dispecerat · OB-14 Colector Militari</div>
+      ${note('a','„La intersecția Iuliu Maniu cu Valea Cascadelor, căminul din mijlocul carosabilului degajă miros puternic de gaz de canal de aproximativ trei zile. Trafic intens, se cere intervenție urgentă.”')}
+      <div style="margin-top:19px">${rule('Triaj')}</div>
+      <div class="fg">
+        <label class="fl"><span>Tipul lucrării</span><select class="ctl"><option>Avarie</option><option>Reparație</option><option>Verificare</option></select></label>
+        <label class="fl"><span>Obiectiv</span><select class="ctl"><option>OB-14 — Colector Militari</option><option>OB-12 — Stație Chitila</option></select></label>
+        <label class="fl"><span>Finanțare</span><select class="ctl"><option>C-104 · Corectivă — rest 6.720 lei</option><option>C-104 · Delta — liber 42.800 lei</option></select></label>
+        <label class="fl"><span>Șef de șantier</span><select class="ctl"><option>Andrei Popa</option><option>Ionuț Marin</option></select></label>
+        <label class="fl full"><span>Estimat</span><input class="ctl tnum" value="4.500,00" style="text-align:right">
+          <div class="hint">Estimarea intră în „angajat” pe componenta aleasă până apare devizul.</div></label>
+      </div>
+      <div style="margin-top:19px">${rule('Istoric')}</div>
+      ${trail([['Primită prin dispecerat','23 aug, 08:41','dn'],['Alocată către Elena Radu','23 aug, 09:02','dn'],['Așteaptă triaj','de 2 zile','nw']])}
+    </div></div>`;
+};
+
+/* ════════════════ BACKLOG DELTA ════════════════ */
+SCREENS.backlog=()=>
+  head({eyebrow:'Operațional',title:'Backlog Delta',
+    meta:'Propuneri care pot umple Delta lunii · 128.000 lei de umplut pe 3 contracte',
+    acts:btn('d','Reevaluează',"toast('Recalculez estimările față de Delta liberă de acum.')")+btn('p','Propunere nouă','modal()','plus')})
+  +note('a','<b>Delta se umple, nu se consumă.</b> Fiecare propunere de aici are estimat și componentă. Cât timp Delta liberă e mai mare decât estimatul, propunerea se poate promova în unitate de lucru cu un click — și venitul lunii crește.')
+  +`<div class="kpis" style="margin-top:16px">
+    ${kpi({label:'Delta liberă · C-104',value:'42.800',unit:'lei',tone:'warn',delta:'6 zile rămase',dir:'d'})}
+    ${kpi({label:'Delta liberă · C-131',value:'61.400',unit:'lei',tone:'bad',delta:'44% umplut',dir:'d'})}
+    ${kpi({label:'Delta liberă · C-142',value:'23.800',unit:'lei',delta:'72% umplut',dir:'f'})}
+    ${kpi({label:'Propuneri evaluate',value:'17',delta:'acoperă 89% din golul lunii',dir:'u'})}
+  </div>`
+  +toolbar({segs:[['Toate','17'],['Se încadrează în Delta','12'],['Expiră luna asta','5'],['Respinse','3']],
+    ph:'Cod, propunere, obiectiv…',chips:[['C-104',1],['＋ Obiectiv']],count:'12 propuneri'})
+  +tbl([C('Cod','86px'),C('Propunere'),C('Obiectiv','180px'),C('Contract','86px'),C('Estimat','100px',1),C('Delta liberă','110px',1),C('Expiră','110px'),C('','160px')],[
+   ['<span class="code">BL-0231</span>','Înlocuire capace carosabile — 12 buc<div class="sub">propusă de Andrei Popa, 12 aug</div>','OB-14 Colector Militari','C-104','14.400','42.800','31.08.2026',bs('p','Promovează',"toast('BL-0231 → UL-2442, finanțată din Delta C-104 cu 14.400 lei.','Anulează')")],
+   ['<span class="code">BL-0228</span>','Curățare mecanizată colector, tronson 3','OB-14 Colector Militari','C-104','18.900','42.800','31.08.2026',bs('p','Promovează',"toast('BL-0228 promovată în unitate de lucru.','Anulează')")],
+   ['<span class="code">BL-0224</span>','Refacere trepte acces cămin vizitabil','OB-12 Stație Chitila','C-104','7.200','42.800','30.09.2026',bs('p','Promovează',"toast('BL-0224 promovată.','Anulează')")],
+   ['<span class="code">BL-0219</span>','Inspecție video preventivă — 800 ml','OB-19 Drumul Taberei','C-104','9.600','42.800','31.08.2026',bs('p','Promovează',"toast('BL-0219 promovată.','Anulează')")],
+   ['<span class="code">BL-0236</span>','Reparație rigolă pluvială, 40 ml','OB-23 Bazin Ghencea','C-104','<span style="color:var(--bad)">51.300</span>','42.800','31.10.2026','<span class="mini">nu încape în Delta liberă</span>']
+  ],[{span:4,v:'<span style="color:var(--tx-2)">Primele 4 propuneri acoperă</span>'},'50.100','42.800','','']);
+
+/* ════════════════ UNITĂȚI DE LUCRU ════════════════ */
+SCREENS.lucrari=()=>{
+  const r=(cod,tit,sub,tip,ob,fin,st,stt,al,co,mj,mt)=>[cb()+' <span class="code">'+cod+'</span>',
+    tit+(sub?`<div class="sub">${sub}</div>`:''),bd('n',tip),`<span class="mu">${ob}</span>`,fin,bd(stt,st,1),al,co,
+    mj===null?'<span class="mu">—</span>':`${bar(Math.abs(mt),mt<0?'bad':'ok')} <b style="color:var(--${mt<0?'bad':'ok'})">${mj}</b>`,act()];
+  const cols=[C('Cod','126px'),C('Titlu'),C('Tip','116px'),C('Obiectiv','170px'),C('Finanțare','140px'),C('Stare','126px'),
+              C('Alocat','96px',1),C('Cost','96px',1),C('Marjă','132px',1),C('','44px')];
+  return head({eyebrow:'Operațional',title:'Unități de lucru',meta:'148 în perioada activă · 12 fără finanțare alocată · 5 peste alocat',
+    acts:btn('d','Salvează vederea',"toast('Vedere salvată: apare ca segment propriu în bara de sus.')")+btn('p','Unitate de lucru','modal()','plus')})
+  +toolbar({segs:[['Toate','148'],['În lucru','47'],['Fără finanțare','12'],['Peste alocat','5'],['Închise luna asta','31']],
+    ph:'Cod, titlu, obiectiv, șef de șantier…',chips:[['C-104',1],['＋ Contract'],['＋ Tip'],['＋ Executant'],['＋ Obiectiv']],
+    count:'32 rezultate'})
+  +tbl(cols,[
+   ['#G','C-104 · Apa Nova · Delta'],
+   r('UL-2431','Înlocuire tronson DN300, str. Brașov','Andrei Popa · 3 oameni · început 12 aug','Reparație','OB-12 Stație Chitila','Delta · 100%','În lucru','w','38.400','26.180','31,8%',68),
+   r('UL-2438','Refacere carosabil după intervenție','Subcontractant: Viacon SRL','Refacere','OB-12 Stație Chitila','Delta · 100%','Planificată','a','14.200','<span class="mu">0</span>',null,0),
+   r('UL-2440','Curățare cămine, sector 6 — lot 2','','Mentenanță','OB-14 Colector Militari','<span style="color:var(--bad)">nealocată</span>','Propusă','n','<span class="mu">—</span>','<span class="mu">0</span>',null,0),
+   ['#G','C-104 · Apa Nova · Preventivă'],
+   r('UL-2427','Inspecție video colector principal','Elena Radu · închisă 22 aug','Inspecție','OB-14 Colector Militari','Preventivă · 100%','Finalizată','o','8.600','6.940','19,3%',81),
+   r('UL-2444','Verificare capace și rame — 40 buc','finanțare împărțită între două componente','Verificare','OB-19 Drumul Taberei','Delta 60% · Prev. 40%','Planificată','a','6.200','<span class="mu">0</span>',null,0),
+   ['#G','C-118 · Distrigaz · Corectivă'],
+   r('UL-2402','Remediere avarie PR, Bd. Bucureștii Noi','Ionuț Marin · urgență · închisă 19 aug','Avarie','OB-31 SRM Nord','Corectivă · 100%','Finalizată','o','22.000','<span style="color:var(--bad)">24.910</span>','−13,2%',-100),
+   r('UL-2419','Verificare etanșeitate branșamente — lot 4','','Verificare','OB-33 Rețea Străulești','Preventivă · 100%','În lucru','w','9.800','4.120','57,9%',82)
+  ],[{span:6,v:'<span style="color:var(--tx-2)">8 unități afișate · total pe filtrele curente</span>'},'99.200','62.150','34,6%',''])
+  +note('a','<b>Selectează mai multe rânduri</b> (pătratul din stânga codului) ca să apară bara de acțiuni în masă: trimitere la aprobare, realocare de finanțare, export. Click pe rând deschide previzualizarea laterală — nu pierzi filtrele.');
+};
+
+/* ════════════════ EXECUȚIA UNEI LUCRĂRI ════════════════ */
+SCREENS.lucrare=()=>{
+  const st=(n,nume,per,pct,mat,man,bug,cons,cpct,der,stt,stone)=>[
+    `<span class="code">${n}</span>`,nume+`<div class="sub">${per}</div>`,pct,mat,man,bug,cons,
+    `${bar(cpct,cpct>100?'bad':'ok')} ${cpct}%`,
+    `<b style="color:var(--${der>8?'bad':der>0?'warn':'ok'})">${der>0?'+':''}${der} pp</b>`,bd(stone,stt,1)];
+  return dhead({eyebrow:'Unitate de lucru · C-104 · Delta · OB-12 Stație Chitila',title:'UL-2431 — Înlocuire tronson DN300, str. Brașov',
+    acts:bd('w','În lucru · ziua 14 din 18',1)+bs('d','⋯',"toast('Închide lucrarea · Realocă finanțarea · Duplică · Tipărește')")+bs('p','Emite situație',"go('situatie')"),
+    steps:[['Propusă','dn'],['Finanțată','dn'],['Deviz aprobat','dn'],['În execuție','nw'],['Recepționată'],['Facturată']],
+    tabs:[['Execuție pe etape'],['Deviz','8'],['Cost','23'],['Pontaj','42'],['Consumuri','11'],['Jurnal de șantier'],['Foto','12']]})
+  +`<div class="two"><div>
+    ${rule('Etape','deriva = consumat % − timp trecut %')}
+    ${tbl([C('#','48px'),C('Etapă'),C('% din lucrare','98px',1),C('Material','96px',1),C('Manoperă','96px',1),C('Buget','96px',1),
+      C('Consumat','96px',1),C('Consumat %','120px',1),C('Derivă','86px',1),C('Stare','120px')],[
+      st(1,'Organizare de șantier și semnalizare','12–13 aug','8%','1.200','1.860','3.060','3.060',100,0,'Închisă','o'),
+      st(2,'Săpătură și sprijiniri','13–17 aug','24%','2.400','6.820','9.220','9.640',105,'+7','Închisă','o'),
+      st(3,'Montaj conductă și racorduri','18–24 aug','38%','9.860','4.720','14.580','11.140',76,'+4','În lucru','w'),
+      st(4,'Umplutură și compactare','25–27 aug','16%','3.180','2.960','6.140','2.340',38,'+2','În lucru','w'),
+      st(5,'Refacere carosabil','28–29 aug','14%','4.100','1.300','5.400','<span class="mu">0</span>',0,0,'Neîncepută','n')],
+      [{span:5,v:'<span style="color:var(--tx-2)">Total lucrare</span>'},'38.400','26.180','68%','+3 pp',''])}
+    ${note('w','<b>Etapa 2 a depășit bugetul cu 420 lei</b> și etapa 3 merge cu 4 puncte peste ritm. Dacă etapa 5 se execută la buget, lucrarea se închide la 31,8% marjă — sub cei 34% din deviz.')}
+    ${rule('Materiale comandate pentru lucrare')}
+    ${tbl([C('Comandă','108px'),C('Produs'),C('Etapă','90px'),C('Cerut','86px',1),C('Recepționat','106px',1),C('Valoare','100px',1),C('Stare','130px')],[
+      ['<span class="code">CMD-0764</span>','Conductă PVC-KG DN300, SN8','3','86 ml','86 ml','12.480',bd('o','Recepționat integral',1)],
+      ['<span class="code">CMD-0764</span>','Cot 45° DN300','3','8 buc','8 buc','1.640',bd('o','Recepționat integral',1)],
+      ['<span class="code">CMD-0771</span>','Mixtură asfaltică BA16','5','12 to','<span class="mu">0</span>','4.944',bd('w','Livrare 27 aug',1)],
+      ['<span class="code">CMD-0771</span>','Nisip sortat 0–4','4','24 to','18 to','2.208',bd('w','Parțial recepționat',1)]])}
+    ${rule('Jurnal de șantier','ultimele 3 zile')}
+    ${card(trail([
+      ['25 aug · Andrei Popa','Montaj finalizat pe 62 din 86 ml. Sprijinirile de pe tronsonul 3 rămân încă două zile.','dn'],
+      ['24 aug · Andrei Popa','Oprire 3 ore — conductă de gaz neidentificată în planuri. Anunțat Distrigaz, marcat pe plan.','dn'],
+      ['23 aug · Elena Radu (birou)','Aprobat suplimentul de 5 racorduri față de deviz. Intră în suplimentări, nu în situația de bază.','dn']]))}
+  </div>
+  <aside style="display:flex;flex-direction:column;gap:14px">
+    ${card('<div class="eyebrow" style="margin-bottom:11px">Bani</div>'+
+      gauge({label:'Consumat din alocat',pct:68,tone:'ok',mark:78,cap:['alocat 38.400','cost 26.180','rest 12.220']})+
+      gauge({label:'Timp trecut',pct:78,tone:'acc',cap:['14 zile din 18','termen 29 august']}))}
+    ${card('<div class="eyebrow" style="margin-bottom:11px">Detalii</div>'+kv([
+      ['Obiectiv','OB-12 Stație Chitila'],['Șef de șantier','Andrei Popa'],['Echipă','3 oameni · 42 zile-om'],
+      ['Început','12 august 2026'],['Termen','29 august 2026'],['Deviz','DV-0331 · 8 articole'],
+      ['Marjă din deviz','34,0%'],['Marjă acum','31,8%']]))}
+    ${card('<div class="eyebrow" style="margin-bottom:11px">Finanțare</div>'+
+      '<div style="font-size:13px;line-height:1.7">C-104 · componenta <b>Delta</b> — 100%<div class="mini">38.400 lei alocați din 42.800 lei liberi</div></div>'+
+      bs('d','Adaugă a doua sursă',"toast('O unitate poate fi finanțată din mai multe componente sau contracte.')").replace('class="btn d s"','class="btn d s" style="width:100%;margin-top:12px"'))}
+  </aside></div>`;
+};
+
+/* ════════════════ REGISTRUL DE COST ════════════════ */
+SCREENS.cost=()=>{
+  const e=(d,doc,ct,cp,ob,ul,tip,st,stt,val,mu)=>[`<span class="mu">${d}</span>`,`<span class="code">${doc}</span>`,ct,cp,
+    `<span class="mu">${ob}</span>`,ul,bd('n',tip),bd(stt,st),(mu?`<span style="color:var(--${mu})">${val}</span>`:val)];
+  return head({eyebrow:'Operațional · august 2026',title:'Registrul de cost',
+    meta:'Fiecare leu are un rând aici. Nimic nu se șterge — se stornează.',
+    acts:btn('d','Export',"toast('Export cu filtrele curente (CSV / XLSX).')")+btn('d','Realocări',"go('realocari')")})
+  +`<div class="kpis">
+    ${kpi({label:'Angajat',value:'312',unit:'k lei',delta:'168 de documente',dir:'f'})}
+    ${kpi({label:'Consumat',value:'635',unit:'k lei',delta:'▲ 4,2%',dir:'u',sub:'vs iulie'})}
+    ${kpi({label:'Stornat',value:'18',unit:'k lei',tone:'tx-3',delta:'7 documente',dir:'f'})}
+    ${kpi({label:'Peste plafon',value:'8,4',unit:'k lei',tone:'bad',delta:'1 componentă · C-118',dir:'d'})}
+  </div><div style="height:16px"></div>`
+  +toolbar({ph:'Document, unitate, furnizor…',chips:[['august 2026',1],['＋ Contract'],['＋ Tip de cost'],['＋ Stadiu'],['＋ Componentă']],count:'1.284 de rânduri'})
+  +tbl([C('Data','82px'),C('Document','126px'),C('Contract','82px'),C('Componentă','112px'),C('Obiectiv','150px'),C('Unitate de lucru'),
+        C('Tip','118px'),C('Stadiu','104px'),C('Valoare','116px',1)],[
+   ['#G','25 august 2026'],
+   e('25.08','BC-0412','C-104','Delta','OB-12 Chitila','UL-2431 Înlocuire tronson DN300','Materiale','consumat','o','12.480,00'),
+   e('25.08','PT-08-25','C-104','Delta','OB-12 Chitila','UL-2431 Înlocuire tronson DN300','Manoperă','consumat','o','3.640,00'),
+   e('25.08','UTJ-1189','C-118','Corectivă','OB-31 SRM Nord','UL-2402 Remediere avarie PR','Utilaj','consumat','o','2.150,00'),
+   ['#G','24 august 2026'],
+   e('24.08','CMD-0771','C-118','Corectivă','OB-31 SRM Nord','UL-2402 Remediere avarie PR','Achiziție','angajat','a','18.900,00'),
+   e('24.08','NIR-0338','C-104','Preventivă','—','<span class="mu">pe gestiune, nealocat</span>','Recepție','angajat','a','7.310,00'),
+   e('24.08','ST-0044','C-104','Delta','OB-14 Militari','UL-2427 Inspecție video colector','Stornare','stornat','n','−1.820,00','tx-3'),
+   ['#G','23 august 2026'],
+   e('23.08','SUB-0219','C-104','Delta','OB-12 Chitila','UL-2438 Refacere carosabil','Subcontract','angajat','a','14.200,00'),
+   e('23.08','TRP-0902','C-118','Preventivă','OB-33 Străulești','UL-2419 Verificare etanșeitate','Transport','consumat','o','980,00'),
+   e('23.08','REAL-0071','C-118','Corectivă','—','<span class="mu">realocare de plafon</span>','Realocare','consumat','w','8.400,00','warn')
+  ],[{span:8,v:'<span style="color:var(--tx-2)">Total pe filtrele curente · 1.284 de rânduri</span>'},'947.420,00'])
+  +note('a','<b>De ce contează un singur registru:</b> pontajul, bonul de consum, NIR-ul, factura de subcontractant și realocarea scriu toate aici, cu aceeași structură. Marja unei lucrări e o sumă din tabelul ăsta, nu un câmp scris de mână.');
+};
+
+/* ════════════════ REALOCĂRI ════════════════ */
+SCREENS.realocari=()=>
+  head({eyebrow:'Operațional',title:'Realocări',meta:'Mutări de plafon între componente · 11 luna asta · 63.400 lei',
+    acts:btn('p','Realocare nouă','modal()','plus')})
+  +note('w','<b>O realocare nu creează bani.</b> Mută plafon de la o componentă cu rest la una depășită, în aceeași lună și pe același contract. Rămâne în registru cu motiv și cu cine a decis — nu se poate șterge.')
+  +`<div style="height:16px"></div>`
+  +toolbar({segs:[['Luna curentă','11'],['Toate','86'],['Respinse','4']],ph:'Unitate, motiv, cine…',
+    chips:[['C-118',1],['＋ Contract']],count:'11 realocări'})
+  +tbl([C('Data','88px'),C('Unitate de lucru'),C('Din','170px'),C('În','170px'),C('Valoare','110px',1),C('Cine','140px'),C('Motiv')],[
+   ['<span class="mu">23.08</span>','UL-2402 Remediere avarie PR','C-118 · Preventivă','C-118 · Corectivă','8.400,00','Mihai Ionescu','Avarie neprevăzută pe SRM Nord; preventiva are rest'],
+   ['<span class="mu">19.08</span>','UL-2419 Verificare etanșeitate','C-118 · Corectivă','C-118 · Preventivă','3.200,00','Elena Radu','Lucrarea e preventivă, fusese încadrată greșit'],
+   ['<span class="mu">14.08</span>','UL-2427 Inspecție video colector','C-104 · Delta','C-104 · Preventivă','6.800,00','Mihai Ionescu','Inspecția intră în plafonul preventiv al lunii'],
+   ['<span class="mu">08.08</span>','UL-2388 Reparație rigolă','C-131 · Corectivă','C-131 · Delta','11.500,00','Cristian Dobre','Reclasificare după recepția clientului'],
+   ['<span class="mu">05.08</span>','UL-2371 Curățare cămine lot 1','C-104 · Preventivă','C-104 · Delta','4.900,00','Elena Radu','Lucrare facturabilă, nu preventivă']
+  ],[{span:4,v:'<span style="color:var(--tx-2)">Total luna august</span>'},'63.400,00','','']);
+
+/* ════════════════ ÎNCHIDEREA LUNII ════════════════ */
+SCREENS.perioade=()=>{
+  const M=['martie','aprilie','mai','iunie','iulie','august'];
+  const firme=[['Damina Construct',['cl','cl','cl','cl','cl','op']],['Damina Instal',['cl','cl','cl','cl','op','op']],
+               ['Damina Utilaje',['cl','cl','cl','cl','cl','op']]];
+  const val={cl:'închisă',op:'deschisă'};
+  return head({eyebrow:'Evidență',title:'Închiderea de perioadă',
+    meta:'Luna închisă nu mai primește scrieri în registrul de cost. Redeschiderea e posibilă, dar se vede.',
+    acts:btn('d','Ce se verifică la închidere',"toast('Pontaje închise · consumuri validate · NIR-uri operate · situații aprobate · fără cost pe unități anulate.')")+
+      btn('p','Închide august','modal()','lock')})
+  +rule('Stare pe firmă și lună','ultimele 6 luni')
+  +card(`<div class="mtx">
+    <div class="mrow"><span></span>${M.map(m=>`<span class="eyebrow" style="text-align:center">${m}</span>`).join('')}</div>
+    ${firme.map(f=>`<div class="mrow"><span style="font-size:13px;font-weight:500">${f[0]}</span>
+      ${f[1].map((s,i)=>`<span class="mcell ${s}" title="${M[i]} — ${val[s]}" onclick="toast('${f[0]} · ${M[i]} 2026 — ${val[s]}. ${s==='cl'?'Redeschiderea cere motiv și rămâne în jurnal.':'Închiderea blochează scrierile.'}')">${s==='cl'?'închisă':'deschisă'}</span>`).join('')}
+    </div>`).join('')}</div>
+    <div style="display:flex;gap:18px;margin-top:15px;font-size:11.5px;color:var(--tx-2)">
+      <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--ok);margin-right:6px;vertical-align:-1px"></i>închisă — registrul e blocat</span>
+      <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--warn);margin-right:6px;vertical-align:-1px"></i>deschisă — se mai poate scrie</span></div>`)
+  +rule('Ce blochează închiderea lunii august')
+  +tbl([C('Verificare'),C('Firmă','180px'),C('Rezultat','160px'),C('','200px')],[
+   ['Pontaje nevalidate','Damina Construct',bd('b','3 zile deschise',1),bs('d','Vezi pontajele',"toast('Pontajele deschise: 24, 25 și 26 august pe două echipe.')")],
+   ['Bonuri de consum în lucru','Damina Construct',bd('w','2 bonuri',1),bs('d','Deschide',"go('consum')")],
+   ['NIR-uri neoperate','Damina Instal',bd('o','niciunul',1),''],
+   ['Situații de aprobat','Damina Construct',bd('w','1 situație',1),bs('d','Deschide',"go('situatie')")],
+   ['Cost pe unități anulate','toate',bd('o','curat',1),''],
+   ['Realocări în așteptare','toate',bd('o','niciuna',1),'']
+  ],null,{noclick:true})
+  +note('b','<b>Trei verificări nu trec.</b> Închiderea rămâne blocată până se rezolvă. E singurul loc din aplicație unde butonul principal e dezactivat prin lipsa condițiilor, nu prin permisiuni.');
+};
+
+/* ════════════════ DEVIZE ════════════════ */
+SCREENS.devize=()=>
+  head({eyebrow:'Comercial',title:'Devize',meta:'41 de devize · 12 în lucru · marjă medie planificată 31,4%',
+    acts:btn('d','Articole normate',"go('articole')")+btn('p','Deviz nou','modal()','plus')})
+  +toolbar({segs:[['Toate','41'],['În lucru','12'],['Aprobate','24'],['Respinse','5']],ph:'Unitate de lucru, obiectiv…',
+    chips:[['C-104',1],['＋ Tip'],['＋ Întocmit de']],count:'12 devize'})
+  +tbl([C('Unitate de lucru'),C('Obiectiv','180px'),C('Tip','110px'),C('Versiune','80px',1),C('Stare','126px'),C('Întocmit','150px'),
+        C('Subtotal','106px',1),C('Indirecte + profit','130px',1),C('Total','106px',1)],[
+   ['<span class="code">UL-2431</span> Înlocuire tronson DN300','OB-12 Stație Chitila','Reparație','v3',bd('o','Aprobat',1),'Elena Radu · 10 aug','48.900','14.240','63.140'],
+   ['<span class="code">UL-2438</span> Refacere carosabil','OB-12 Stație Chitila','Refacere','v1',bd('a','Trimis spre aprobare',1),'Elena Radu · 21 aug','11.400','2.800','14.200'],
+   ['<span class="code">UL-2444</span> Verificare capace și rame','OB-19 Drumul Taberei','Verificare','v2',bd('w','În lucru',1),'Cristian Dobre · 24 aug','4.900','1.300','6.200'],
+   ['<span class="code">UL-2440</span> Curățare cămine lot 2','OB-14 Colector Militari','Mentenanță','v1',bd('w','În lucru',1),'Elena Radu · 25 aug','7.100','1.980','9.080'],
+   ['<span class="code">UL-2402</span> Remediere avarie PR','OB-31 SRM Nord','Avarie','v2',bd('o','Aprobat',1),'Ionuț Marin · 12 aug','17.600','4.400','22.000']
+  ],[{span:6,v:'<span style="color:var(--tx-2)">5 devize afișate</span>'},'89.900','24.720','114.620'],{onclick:"go('deviz')"});
+
+/* ════════════════ DEVIZ (client / intern / mapare) ════════════════ */
+SCREENS.deviz=()=>
+  dhead({eyebrow:'Deviz · UL-2431 · C-104 Apa Nova · OB-12 Stație Chitila',title:'Înlocuire tronson DN300, str. Brașov — v3',
+    acts:bd('o','Aprobat · 10 august',1)+bs('d','Versiune nouă',"toast('Versiunea v4 pornește de la v3. Vechile versiuni rămân vizibile.')")+
+      bs('p','Trimite la client',"toast('Devizul client a fost trimis către Apa Nova.','Retrage')"),
+    steps:[['Întocmit','dn'],['Verificat','dn'],['Aprobat intern','dn'],['La client','nw'],['Comandat']],
+    tabs:[['Deviz client','8'],['Deviz intern','14'],['Mapare'],['Versiuni','3']]})
+  +`<div class="two"><div>
+    ${rule('Deviz client','ce vede beneficiarul: poziții, cantități, preț la comun')}
+    ${tbl([C('#','44px',1),C('Poziție'),C('UM','54px'),C('Cantitate','96px',1),C('Preț unitar','104px',1),C('Valoare','106px',1),C('Mapare','130px')],[
+      ['1','Săpătură mecanizată în teren mijlociu','mc','120,00','42,00','5.040,00',bd('o','2 articole')],
+      ['2','Montaj conductă PVC-KG DN300','ml','86,00','168,00','14.448,00',bd('o','4 articole')],
+      ['3','Racord la cămin existent','buc','4,00','1.240,00','4.960,00',bd('o','3 articole')],
+      ['4','Umplutură compactată în strat de 20 cm','mc','110,00','58,00','6.380,00',bd('o','2 articole')],
+      ['5','Refacere sistem rutier asfaltic','mp','210,00','124,00','26.040,00',bd('o','3 articole')],
+      ['6','Semnalizare rutieră temporară','zi','12,00','310,00','3.720,00',bd('w','nemapat')],
+      ['7','Transport pământ excedentar','to','92,00','28,00','2.576,00',bd('o','1 articol')],
+      ['8','Probe de etanșeitate','buc','2,00','295,50','591,00',bd('o','1 articol')]],
+      [{span:5,v:'<span style="color:var(--tx-2)">Total deviz client · fără TVA</span>'},'63.755,00',''])}
+    ${rule('Deviz intern','material și manoperă sunt ÎNTOTDEAUNA separate — din separarea asta ies pachetele')}
+    ${tbl([C('#','44px',1),C('Articol'),C('Categorie','116px'),C('Cant.','76px',1),C('Material','92px',1),C('Manoperă','92px',1),
+      C('Utilaj','86px',1),C('Transport','92px',1),C('Total','96px',1),C('Pachet','124px')],[
+      ['1','Săpătură mecanizată teren mijlociu','Terasamente','120,00','<span class="mu">0</span>','980,00','2.640,00','<span class="mu">0</span>','3.620,00',bd('n','—')],
+      ['2','Sprijiniri metalice, montaj-demontaj','Terasamente','48,00','1.180,00','1.920,00','<span class="mu">0</span>','340,00','3.440,00',bd('n','—')],
+      ['3','Conductă PVC-KG DN300, SN8','Rețele','86,00','12.480,00','<span class="mu">0</span>','<span class="mu">0</span>','620,00','13.100,00',bd('n','—')],
+      ['4','Montaj conductă gravitațională','Rețele','86,00','<span class="mu">0</span>','4.128,00','<span class="mu">0</span>','<span class="mu">0</span>','4.128,00',bd('a','PK-018 Rețele')],
+      ['5','Racord la cămin, etanșare','Rețele','4,00','860,00','1.640,00','<span class="mu">0</span>','<span class="mu">0</span>','2.500,00',bd('a','PK-018 Rețele')],
+      ['6','Mixtură asfaltică BA16','Drumuri','12,00','4.944,00','<span class="mu">0</span>','<span class="mu">0</span>','480,00','5.424,00',bd('n','—')],
+      ['7','Așternere și compactare asfalt','Drumuri','210,00','<span class="mu">0</span>','6.300,00','2.940,00','<span class="mu">0</span>','9.240,00',bd('a','PK-021 Drumuri')]],
+      [{span:4,v:'<span style="color:var(--tx-2)">Total deviz intern</span>'},'19.464,00','14.968,00','5.580,00','1.440,00','41.452,00',''])}
+    ${note('a','<b>Maparea leagă cele două devize.</b> O poziție de client poate consuma mai multe articole interne. Poziția 6 „Semnalizare rutieră” nu e mapată încă — până se mapează, marja pe ea nu se poate calcula.')}
+  </div>
+  <aside style="display:flex;flex-direction:column;gap:14px">
+    ${card('<div class="eyebrow" style="margin-bottom:11px">Marja planificată</div>'+
+      gauge({label:'Cost din venit',pct:65,tone:'ok',cap:['venit 63.755','cost intern 41.452','marjă 22.303']})+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:10px;border-top:1px solid var(--line-2)">'+
+      '<span style="font-size:12.5px;color:var(--tx-2)">Marjă planificată</span>'+
+      '<b class="tnum" style="font-family:var(--fn);font-size:20px;font-weight:600;color:var(--ok)">35,0%</b></div>'+
+      '<div class="hint">Realizat până acum pe lucrare: 31,8%</div>')}
+    ${card('<div class="eyebrow" style="margin-bottom:11px">Indirecte și profit</div>'+kv([
+      ['Subtotal intern','41.452,00'],['Indirecte 14%','5.803,00'],['Profit 12%','5.646,00'],['Total ofertat','63.755,00']])+
+      note('a','Clientul vede un singur preț pe poziție. Indirectele și profitul nu apar niciodată defalcate în devizul client.').replace('class="note a"','class="note a" style="margin-top:12px"'))}
+    ${card('<div class="eyebrow" style="margin-bottom:12px">Versiuni</div>'+trail([
+      ['v3 · aprobat','10 aug · Elena Radu · +5 racorduri','dn'],['v2 · respins','07 aug · marjă sub 30%','dn'],
+      ['v1 · întocmit','04 aug · Elena Radu','dn']]))}
+  </aside></div>`;
+
+/* ════════════════ ARTICOLE NORMATE ════════════════ */
+SCREENS.articole=()=>
+  head({eyebrow:'Comercial · biblioteca de norme',title:'Articole normate',
+    meta:'412 articole · normele de manoperă vin din indicatoarele republicane, prețurile de material din ultima recepție',
+    acts:btn('d','Import indicator',"toast('Import de articole din indicator — nu se construiește în prototip.')")+btn('p','Articol nou','modal()','plus')})
+  +toolbar({segs:[['Toate','412'],['Terasamente','78'],['Rețele','134'],['Drumuri','96'],['Instalații','104']],
+    ph:'Cod, denumire…',chips:[['Folosite luna asta',1],['＋ Calificare']],count:'134 de articole'})
+  +tbl([C('Cod','96px'),C('Denumire'),C('Categorie','120px'),C('UM','54px'),C('Ore manoperă','110px',1),C('Calificare','150px'),
+        C('Cost material','116px',1),C('Folosit','86px',1)],[
+   ['<span class="code">A-1102</span>','Săpătură mecanizată în teren mijlociu','Terasamente','mc','0,08','Mecanic utilaj','<span class="mu">0,00</span>','214×'],
+   ['<span class="code">A-2041</span>','Montaj conductă PVC-KG DN300','Rețele','ml','0,42','Instalator rețele','145,12','88×'],
+   ['<span class="code">A-2044</span>','Racord la cămin existent, etanșare','Rețele','buc','1,80','Instalator rețele','215,00','41×'],
+   ['<span class="code">A-3310</span>','Umplutură compactată, strat 20 cm','Terasamente','mc','0,14','Muncitor necalificat','12,40','167×'],
+   ['<span class="code">A-4120</span>','Refacere sistem rutier asfaltic','Drumuri','mp','0,22','Asfaltator','61,80','96×'],
+   ['<span class="code">A-5008</span>','Semnalizare rutieră temporară','Organizare','zi','1,20','Muncitor necalificat','48,00','128×'],
+   ['<span class="code">A-7003</span>','Probe de etanșeitate','Rețele','buc','2,40','Instalator rețele','35,50','52×']
+  ]);
+
+/* ════════════════ PACHETE ════════════════ */
+SCREENS.pachete=()=>
+  head({eyebrow:'Comercial',title:'Pachete de subcontractare',
+    meta:'Un pachet e manoperă scoasă din devizul intern și dată unui subcontractant. Materialul rămâne la noi.',
+    acts:btn('d','Subcontractanți',"go('nomenclatoare')")+btn('p','Pachet nou','modal()','plus')})
+  +note('a','<b>Regula pachetelor iese din devizul intern.</b> Fiindcă material și manoperă sunt separate acolo, un pachet poate lua doar liniile de manoperă. De aceea situațiile subcontractanților se pot verifica automat: cantitatea declarată nu poate depăși cantitatea din pachet.')
+  +`<div style="height:16px"></div>`
+  +toolbar({segs:[['Active','9'],['În negociere','3'],['Închise','22']],ph:'Cod, pachet, subcontractant…',
+    chips:[['C-104',1],['＋ Specialitate']],count:'9 pachete'})
+  +tbl([C('Cod','88px'),C('Pachet'),C('Specialitate','130px'),C('Subcontractant','160px'),C('Obiectiv','160px'),C('Poziții','80px',1),
+        C('SL emise','86px',1),C('Garanție','96px',1),C('Stare','120px'),C('Valoare','106px',1)],[
+   ['<span class="code">PK-018</span>','Manoperă rețele — tronson str. Brașov','Rețele','Hidroterm Instal SRL','OB-12 Stație Chitila','6','2','5%',bd('w','În execuție',1),'42.800'],
+   ['<span class="code">PK-021</span>','Refacere sistem rutier','Drumuri','Viacon SRL','OB-12 Stație Chitila','4','1','10%',bd('w','În execuție',1),'26.040'],
+   ['<span class="code">PK-014</span>','Manoperă rețele — lot Militari','Rețele','Hidroterm Instal SRL','OB-14 Colector Militari','8','4','5%',bd('o','Închis',1),'68.400'],
+   ['<span class="code">PK-023</span>','Semnalizare și dirijare trafic','Organizare','SafeRoad Grup SRL','multiple','2','0','—',bd('a','În negociere',1),'12.600']
+  ],[{span:9,v:'<span style="color:var(--tx-2)">4 pachete afișate</span>'},'149.840'],{onclick:"go('situatii')"});
+
+/* ════════════════ SITUAȚII DE LUCRĂRI ════════════════ */
+SCREENS.situatii=()=>
+  head({eyebrow:'Comercial',title:'Situații de lucrări',meta:'3 de aprobat · 8 emise luna asta · 214.900 lei declarați',
+    acts:btn('d','Verificare în masă',"toast('Verific toate situațiile față de cantitățile din pachete.')")+btn('p','Situație nouă','modal()','plus')})
+  +toolbar({segs:[['De aprobat','3'],['Toate luna asta','8'],['Facturate','24'],['Respinse','2']],ph:'Cod, pachet, subcontractant…',
+    chips:[['august 2026',1],['＋ Subcontractant'],['＋ Obiectiv']],count:'8 situații'})
+  +tbl([C('Cod','120px'),C('Luna','96px'),C('Pachet','170px'),C('Subcontractant','170px'),C('Obiectiv','170px'),C('Stare','132px'),
+        C('Verificare','150px'),C('Valoare','106px',1),C('Garanție','96px',1)],[
+   ['<span class="code">SL-2026-089</span>','august','PK-018 Manoperă rețele','Hidroterm Instal SRL','OB-12 Stație Chitila',bd('w','De aprobat',1),bd('o','trece verificarea',1),'67.320','3.366'],
+   ['<span class="code">SL-2026-091</span>','august','PK-021 Refacere rutier','Viacon SRL','OB-12 Stație Chitila',bd('w','De aprobat',1),bd('b','cantitate peste pachet',1),'26.040','2.604'],
+   ['<span class="code">SL-2026-090</span>','august','PK-023 Semnalizare','SafeRoad Grup SRL','multiple',bd('w','De aprobat',1),bd('w','fără verificare în teren',1),'8.400','—'],
+   ['<span class="code">SL-2026-084</span>','august','PK-014 Manoperă rețele','Hidroterm Instal SRL','OB-14 Colector Militari',bd('o','Aprobată',1),bd('o','trece verificarea',1),'41.900','2.095'],
+   ['<span class="code">SL-2026-078</span>','iulie','PK-014 Manoperă rețele','Hidroterm Instal SRL','OB-14 Colector Militari',bd('a','Facturată',1),bd('o','trece verificarea',1),'52.600','2.630'],
+   ['<span class="code">SL-2026-071</span>','iulie','PK-021 Refacere rutier','Viacon SRL','OB-12 Stație Chitila',bd('n','Respinsă',1),bd('b','cantitate nefondată',1),'18.640','—']
+  ],[{span:7,v:'<span style="color:var(--tx-2)">6 situații afișate</span>'},'214.900','10.695'],{onclick:"go('situatie')"});
+
+/* ════════════════ SITUAȚIE (detaliu) ════════════════ */
+SCREENS.situatie=()=>{
+  const l=(poz,um,ctr,exe,apr,fac,luna,rest,pret,val,verd,vt)=>[poz,um,ctr,exe,apr,fac,`<b>${luna}</b>`,rest,pret,val,bd(vt,verd,1)];
+  return dhead({eyebrow:'Situație de lucrări · PK-018 · Hidroterm Instal SRL · august 2026',title:'SL-2026-089',
+    acts:bd('w','Așteaptă aprobarea ta · de 4 zile',1)+bs('d','Tipărește',"toast('PDF cu antetul firmei și semnăturile.')")+
+      bs('d','Trimite înapoi',"toast('Trimisă înapoi cu observații către Hidroterm Instal.','Anulează')")+
+      bs('p','Aprobă 67.320 lei',"toast('SL-2026-089 aprobată. Garanția de 3.366 lei a fost reținută.','Retrage')"),
+    steps:[['Declarată de subcontractant','dn'],['Verificată în teren','dn'],['De aprobat','nw'],['Facturată de subcontractant'],['Plătită']],
+    tabs:[['Poziții','6'],['Verificare în teren','4'],['Garanție'],['Istoric']]})
+  +`<div class="two"><div>
+    ${rule('Poziții din pachet','cumulat de la începutul pachetului, în afară de coloana „luna asta”')}
+    ${tbl([C('Poziție'),C('UM','52px'),C('Contractat','92px',1),C('Executat','90px',1),C('Aprobat','88px',1),C('Facturat','90px',1),
+      C('Luna asta','96px',1),C('Rest','84px',1),C('Preț','88px',1),C('Valoare','100px',1),C('Verdict','132px')],[
+      l('Montaj conductă gravitațională DN300','ml','86,00','86,00','62,00','52,00','24,00','0,00','48,00','1.152,00','confirmat','o'),
+      l('Racord la cămin existent','buc','5,00','5,00','4,00','4,00','1,00','0,00','410,00','410,00','confirmat','o'),
+      l('Sprijiniri metalice montaj-demontaj','mp','48,00','48,00','32,00','20,00','16,00','0,00','40,00','640,00','confirmat','o'),
+      l('Săpătură manuală în jurul rețelelor','mc','24,00','28,00','24,00','18,00','6,00','0,00','96,00','576,00','peste contractat','w'),
+      l('Probe de etanșeitate','buc','2,00','2,00','2,00','0,00','2,00','0,00','295,50','591,00','confirmat','o'),
+      l('Umplutură compactată în strat','mc','110,00','96,00','96,00','62,00','34,00','14,00','58,00','1.972,00','confirmat','o')],
+      [{span:9,v:'<span style="color:var(--tx-2)">Total declarat luna asta</span>'},'67.320,00',''])}
+    ${note('w','<b>O poziție e peste contractat.</b> „Săpătură manuală” are 28 mc executați față de 24 mc din pachet. Cei 4 mc în plus nu intră automat — merg la suplimentări, cu decizie separată, dacă verificarea în teren îi confirmă.')}
+    ${rule('Verificare în teren','4 puncte verificate de Andrei Popa, 20 august')}
+    ${tbl([C('Ce s-a verificat'),C('Cantitate declarată','150px',1),C('Cantitate găsită','140px',1),C('Foto','90px'),C('Verdict','130px')],[
+      ['Lungime tronson montat','24,00 ml','24,00 ml','3 poze',bd('o','confirmat',1)],
+      ['Racord cămin K12','1,00 buc','1,00 buc','2 poze',bd('o','confirmat',1)],
+      ['Săpătură manuală zona branșament','6,00 mc','6,00 mc','1 poză',bd('o','confirmat',1)],
+      ['Umplutură strat 2','34,00 mc','34,00 mc','2 poze',bd('o','confirmat',1)]],null,{noclick:true})}
+  </div>
+  <aside style="display:flex;flex-direction:column;gap:14px">
+    ${card('<div class="eyebrow" style="margin-bottom:11px">Decontare</div>'+
+      `<dl class="kv" style="grid-template-columns:1fr auto">
+        <dt>Valoare declarată</dt><dd>67.320,00</dd>
+        <dt>Garanție reținută 5%</dt><dd>−3.366,00</dd>
+        <dt style="color:var(--tx)">De plată acum</dt><dd style="font-weight:600">63.954,00</dd>
+        <dt>TVA 21%</dt><dd>13.430,34</dd></dl>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:12px;border-top:1px solid var(--line-2)">
+        <span style="font-size:12.5px;color:var(--tx-2)">Total factură subcontractant</span>
+        <b class="tnum" style="font-family:var(--fn);font-size:19px;font-weight:600">77.384,34</b></div>
+      <div class="hint">Costul intră pe UL-2431, componenta Delta a contractului C-104.</div>`)}
+    ${card('<div class="eyebrow" style="margin-bottom:12px">Cine a atins documentul</div>'+trail([
+      ['Hidroterm Instal · declarat','19 aug, 17:42 · prin portalul de subcontractanți','dn'],
+      ['Andrei Popa · verificat în teren','20 aug, 09:15 · 4 puncte, 8 poze','dn'],
+      ['Mihai Ionescu · de aprobat','așteaptă de 4 zile','nw'],
+      ['Factură subcontractant','după aprobare']]))}
+    ${card('<div class="eyebrow" style="margin-bottom:11px">Garanția pe pachet</div>'+kv([
+      ['Procent','5%'],['Reținut cumulat','7.842,00'],['Eliberare','la recepția finală'],['Scadență','30.11.2026']]))}
+  </aside></div>`;
+};
+
+/* ════════════════ SUPLIMENTĂRI ȘI GARANȚII ════════════════ */
+SCREENS.garantii=()=>
+  head({eyebrow:'Comercial',title:'Suplimentări și garanții',
+    meta:'7 suplimentări de decis · 18.400 lei · 9 garanții active, 64.200 lei reținuți',
+    acts:btn('d','Scadențar garanții',"toast('Garanțiile scadente în următoarele 90 de zile.')")+btn('p','Suplimentare nouă','modal()','plus')})
+  +rule('Suplimentări de decis','ce s-a executat peste cantitatea din pachet')
+  +tbl([C('Ce s-a executat în plus'),C('Pachet','150px'),C('Subcontractant','160px'),C('UM','52px'),C('Cantitate','92px',1),
+        C('Preț','88px',1),C('Valoare','96px',1),C('Verificare teren','150px'),C('Motiv','200px'),C('Decizie','190px')],[
+   ['Săpătură manuală lângă conductă gaz','PK-018','Hidroterm Instal','mc','4,00','96,00','384,00',bd('o','confirmat cu foto',1),'Conductă de gaz neidentificată în planuri',
+    bs('d','Respinge',"toast('Suplimentare respinsă. Subcontractantul primește motivul.','Anulează')")+' '+bs('p','Aprobă',"toast('Suplimentare aprobată — 384 lei intră pe UL-2431.','Anulează')")],
+   ['Racord suplimentar la cămin K14','PK-018','Hidroterm Instal','buc','1,00','410,00','410,00',bd('o','confirmat cu foto',1),'Cămin descoperit la săpătură, nu era în plan',
+    bs('d','Respinge',"toast('Respinsă.','Anulează')")+' '+bs('p','Aprobă',"toast('Aprobată.','Anulează')")],
+   ['Suprafață asfaltată peste proiect','PK-021','Viacon SRL','mp','38,00','124,00','4.712,00',bd('b','fără verificare',1),'Declarat de subcontractant, nefotografiat',
+    bs('d','Respinge',"toast('Respinsă — fără verificare în teren nu se aprobă.','Anulează')")+' '+bs('q','Cere verificare',"toast('Cerere de verificare trimisă lui Andrei Popa.')")],
+   ['Zile suplimentare de semnalizare','PK-023','SafeRoad Grup','zi','2,00','310,00','620,00',bd('w','parțial',1),'Prelungirea lucrării cu 2 zile',
+    bs('d','Respinge',"toast('Respinsă.','Anulează')")+' '+bs('p','Aprobă',"toast('Aprobată.','Anulează')")]
+  ],[{span:6,v:'<span style="color:var(--tx-2)">4 suplimentări afișate</span>'},'6.126,00','','',''],{noclick:true})
+  +rule('Garanții','reținute de la subcontractanți și reținute nouă de clienți')
+  +tbl([C('Sens','150px'),C('Partener','190px'),C('Din','170px'),C('Procent','88px',1),C('Valoare','106px',1),C('Scadență','120px'),C('Stare','130px'),C('','150px')],[
+   [bd('a','reținem noi'),'Hidroterm Instal SRL','PK-018 Manoperă rețele','5%','7.842,00','30.11.2026',bd('w','activă',1),bs('d','Eliberează',"toast('Eliberarea garanției se face la recepția finală.')")],
+   [bd('a','reținem noi'),'Viacon SRL','PK-021 Refacere rutier','10%','2.604,00','15.02.2027',bd('w','activă',1),bs('d','Eliberează',"toast('Eliberare garanție.')")],
+   [bd('n','ne reține clientul'),'Apa Nova București','C-104 · situații 2026','5%','38.200,00','28.02.2027',bd('w','activă',1),bs('d','Urmărește',"toast('Scadențar garanție client.')")],
+   [bd('n','ne reține clientul'),'Primăria Bragadiru','CI-2026-04','10%','15.554,00','30.11.2027',bd('w','activă',1),bs('d','Urmărește',"toast('Scadențar.')")],
+   [bd('a','reținem noi'),'SafeRoad Grup SRL','PK-011 · încheiat','5%','1.240,00','12.08.2026',bd('o','de eliberat',1),bs('p','Eliberează acum',"toast('Garanție eliberată — 1.240 lei de plată către SafeRoad.','Anulează')")]
+  ],null,{noclick:true});
+
+/* ════════════════ GESTIUNI ȘI STOC ════════════════ */
+SCREENS.stoc=()=>
+  head({eyebrow:'Aprovizionare',title:'Gestiuni și stoc',meta:'4 gestiuni · 312 articole · 7 sub minim · valoare totală 418.240 lei',
+    acts:btn('d','Transfer între gestiuni',"toast('Transferul mută cantitate, nu creează cost. Registrul nu se atinge.')")+
+      btn('d','Bon de consum',"go('consum')")+btn('p','Recepție / NIR',"go('receptii')",'plus')})
+  +toolbar({segs:[['Depozit central','248'],['Șantier Chitila','41'],['Șantier Militari','23'],['Sub minim','7']],
+    ph:'Denumire, cod, furnizor…',chips:[['＋ Categorie'],['＋ Furnizor'],['Sub minim',1]],count:'valoare stoc 418.240 lei'})
+  +tbl([C('Produs'),C('Gestiune','150px'),C('Cantitate','92px',1),C('Rezervat','88px',1),C('Disponibil','96px',1),C('Min / max','104px',1),
+        C('CMP','92px',1),C('Valoare','104px',1),C('Semnal','150px'),C('','44px')],[
+   ['Conductă PVC-KG DN300, SN8<div class="sub">MAT-0142 · consum mediu 84 ml/lună</div>','Depozit central','18,0','0,0','<b style="color:var(--bad)">18,0</b>','60 / 240','148,00','2.664,00',bar(22,'bad')+' '+bd('b','sub minim',1),act()],
+   ['Capac fontă carosabil D400<div class="sub">MAT-0388</div>','Depozit central','6','2','<b style="color:var(--warn)">4</b>','10 / 40','640,00','3.840,00',bar(40,'warn')+' '+bd('w','aproape',1),act()],
+   ['Nisip sortat 0–4 mm<div class="sub">MAT-0210</div>','Depozit central','86,4','12,0','74,4','40 / 160','92,00','7.948,80',bar(72,'ok')+' '+bd('o','confortabil',1),act()],
+   ['Mixtură asfaltică BA16<div class="sub">MAT-0501</div>','Șantier Chitila','24,0','24,0','<span class="mu">0,0</span>','0 / 40','412,00','9.888,00',bar(60,'ok')+' '+bd('a','rezervat integral',1),act()],
+   ['Cot 45° DN300<div class="sub">MAT-0148</div>','Depozit central','22','8','14','8 / 40','205,00','4.510,00',bar(55,'ok')+' '+bd('o','confortabil',1),act()],
+   ['Ciment CEM II 42,5R, sac 40 kg<div class="sub">MAT-0092</div>','Șantier Militari','48','0','48','20 / 120','29,50','1.416,00',bar(40,'ok')+' '+bd('o','confortabil',1),act()]
+  ])
+  +rule('Mișcări recente','ultimele 24 de ore')
+  +tbl([C('Zi','88px'),C('Tip','130px'),C('Produs'),C('Cantitate','96px',1),C('Din','170px'),C('În','170px'),C('Document','120px')],[
+   ['25.08',bd('b','ieșire'),'Conductă PVC-KG DN300','−24,0 ml','Depozit central','UL-2431','<span class="code">BC-0412</span>'],
+   ['25.08',bd('o','intrare'),'Nisip sortat 0–4 mm','+32,0 to','Sortex Agregate SRL','Depozit central','<span class="code">NIR-0339</span>'],
+   ['24.08',bd('a','transfer'),'Mixtură asfaltică BA16','24,0 to','Depozit central','Șantier Chitila','<span class="code">TR-0088</span>'],
+   ['24.08',bd('o','intrare'),'Capac fontă carosabil D400','+4 buc','Fontexim SRL','Depozit central','<span class="code">NIR-0338</span>']
+  ])
+  +rule('Gestiuni')
+  +tbl([C('Cod','92px'),C('Denumire'),C('Tip','150px'),C('Articole','92px',1),C('Valoare','116px',1),C('Responsabil','170px')],[
+   ['<span class="code">GS-01</span>','Depozit central Chiajna','Depozit','248','361.420,00','Marius Enache'],
+   ['<span class="code">GS-04</span>','Șantier Chitila','Gestiune de șantier','41','38.190,00','Andrei Popa'],
+   ['<span class="code">GS-05</span>','Șantier Militari','Gestiune de șantier','23','14.980,00','Ionuț Marin'],
+   ['<span class="code">GS-02</span>','Atelier utilaje','Consumabile','36','3.650,00','Marius Enache']
+  ]);
+
+/* ════════════════ BONURI DE CONSUM ════════════════ */
+SCREENS.consum=()=>
+  head({eyebrow:'Aprovizionare',title:'Bonuri de consum',
+    meta:'Ieșirea din gestiune care scrie în registrul de cost · 41 de bonuri luna asta · 128.400 lei',
+    acts:btn('d','Din pontaj',"toast('Bon generat automat din consumurile declarate în teren.')")+btn('p','Bon nou','modal()','plus')})
+  +note('a','<b>Bonul de consum e singura ieșire de material spre o lucrare.</b> Scade din gestiune și scrie o linie în registrul de cost, pe unitatea și componenta unității. Fără bon, materialul rămâne pe stoc și marja lucrării e falsă.')
+  +`<div style="height:16px"></div>`
+  +toolbar({segs:[['Luna curentă','41'],['În lucru','2'],['Din teren','18'],['Toate','386']],ph:'Bon, produs, unitate…',
+    chips:[['Depozit central',1],['＋ Unitate de lucru']],count:'41 de bonuri'})
+  +tbl([C('Bon','110px'),C('Zi','86px'),C('Gestiune','160px'),C('Unitatea de lucru'),C('Ce a ieșit'),C('Sursă','120px'),C('Valoare','106px',1)],[
+   ['<span class="code">BC-0412</span>','25.08','Depozit central','UL-2431 Înlocuire tronson DN300','24 ml conductă PVC-KG DN300, 4 buc cot 45°',bd('a','din teren'),'12.480,00'],
+   ['<span class="code">BC-0411</span>','25.08','Șantier Chitila','UL-2438 Refacere carosabil','8 to mixtură asfaltică BA16',bd('a','din teren'),'3.296,00'],
+   ['<span class="code">BC-0409</span>','24.08','Depozit central','UL-2419 Verificare etanșeitate','12 buc garnitură, 2 buc manometru',bd('n','din birou'),'1.840,00'],
+   ['<span class="code">BC-0408</span>','24.08','Șantier Militari','UL-2402 Remediere avarie PR','36 sac ciment, 2,4 to nisip',bd('a','din teren'),'1.283,00'],
+   ['<span class="code">BC-0406</span>','23.08','Depozit central','UL-2431 Înlocuire tronson DN300','62 ml conductă PVC-KG DN300',bd('a','din teren'),'9.176,00']
+  ],[{span:6,v:'<span style="color:var(--tx-2)">41 de bonuri în august</span>'},'128.400,00']);
+
+/* ════════════════ ACHIZIȚII ════════════════ */
+SCREENS.achizitii=()=>
+  head({eyebrow:'Aprovizionare',title:'Achiziții',meta:'7 articole sub minim · 4 comenzi lansate · 61.300 lei angajați',
+    acts:btn('d','Furnizori',"go('nomenclatoare')")+btn('p','Comandă nouă','modal()','plus')})
+  +rule('Necesarul de acoperit','calculat din stoc, minim, lead time și cererile din teren')
+  +tbl([C('Iau','62px'),C('Produs'),C('Furnizor propus','170px'),C('Disponibil','96px',1),C('Min / max','98px',1),C('Lead time','96px',1),
+        C('Comand','92px',1),C('Preț ultim','100px',1),C('Valoare','100px',1)],[
+   [cb(),'Conductă PVC-KG DN300, SN8<div class="sub">cerut și de UL-2444, livrare până pe 29 aug</div>','Pipeline Distribution','<b style="color:var(--bad)">18,0 ml</b>','60 / 240','5 zile','<b>222,0</b>','148,00','32.856,00'],
+   [cb(),'Capac fontă carosabil D400','Fontexim SRL','<b style="color:var(--warn)">4 buc</b>','10 / 40','12 zile','<b>36</b>','640,00','23.040,00'],
+   [cb(),'Garnitură etanșare DN300','Pipeline Distribution','6 buc','15 / 60','5 zile','<b>54</b>','32,00','1.728,00'],
+   [cb(),'Ciment CEM II 42,5R, sac','Materom SRL','48 sac','20 / 120','3 zile','<b>72</b>','29,50','2.124,00'],
+   [cb(),'Bandă avertizare rețea, rolă','SafeRoad Grup SRL','2 rolă','5 / 20','7 zile','<b>18</b>','86,00','1.548,00']
+  ],[{span:8,v:'<span style="color:var(--tx-2)">Selectează rândurile și lansează comanda pe furnizor</span>'},'61.296,00'],{noclick:true})
+  +rule('Comenzi lansate')
+  +tbl([C('Comandă','116px'),C('Furnizor','180px'),C('Livrare la','130px'),C('Lansată','100px'),C('Confirmată','120px'),
+        C('Linii','72px',1),C('Valoare','106px',1),C('Stare','140px')],[
+   ['<span class="code">CMD-0771</span>','Materom SRL','Șantier Chitila','24.08.2026','24.08.2026','4','18.900,00',bd('w','livrare 27 aug',1)],
+   ['<span class="code">CMD-0768</span>','Fontexim SRL','Depozit central','21.08.2026','22.08.2026','2','23.040,00',bd('a','confirmată',1)],
+   ['<span class="code">CMD-0764</span>','Pipeline Distribution','Depozit central','18.08.2026','18.08.2026','5','14.120,00',bd('o','recepționată',1)],
+   ['<span class="code">CMD-0759</span>','SafeRoad Grup SRL','Depozit central','15.08.2026','<span class="mu">—</span>','3','5.240,00',bd('b','neconfirmată de 10 zile',1)]
+  ],[{span:6,v:'<span style="color:var(--tx-2)">4 comenzi lansate</span>'},'61.300,00','']);
+
+/* ════════════════ RECEPȚII ȘI NIR (wizard) ════════════════ */
+SCREENS.receptii=()=>
+  head({eyebrow:'Aprovizionare',title:'Recepții și NIR',meta:'2 comenzi așteaptă recepția · 38 de NIR-uri luna asta',
+    acts:btn('d','Recepție liberă',"toast('Recepție fără comandă în spate — cere justificare.')")+btn('p','Recepție din comandă','modal()','plus')})
+  +card(pipeline([['Alege comanda','dn'],['Confirmă cantitățile','nw'],['Preț facturat'],['Gestiune și lot'],['Semnează NIR']])+
+    `<div style="margin-top:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div><div class="eyebrow">Comanda</div><b style="font-family:var(--fn);font-size:16px">CMD-0771 · Materom SRL</b></div>
+      <div><div class="eyebrow">Aviz</div><b style="font-family:var(--fn);font-size:16px">AV-88214 / 25.08.2026</b></div>
+      <div><div class="eyebrow">Gestiune</div><b style="font-family:var(--fn);font-size:16px">Șantier Chitila</b></div>
+      <div style="margin-left:auto;display:flex;gap:8px">${bs('d','Renunță',"toast('Recepție abandonată.')")}${bs('p','Continuă la preț facturat',"toast('Pasul 3 din 5 — prețul facturat poate diferi de cel comandat.')")}</div>
+    </div>`)
+  +`<div style="height:14px"></div>`
+  +tbl([C('Produs'),C('Pentru','170px'),C('Comandat','98px',1),C('Primit deja','106px',1),C('Primesc acum','130px',1),
+        C('Preț facturat','116px',1),C('Lot','130px'),C('Valoare','104px',1)],[
+   ['Mixtură asfaltică BA16','UL-2438 · etapa 5','12,00 to','0,00','<input class="ctl tnum" value="12,00" style="height:32px;text-align:right;width:100px">','412,00','L-2608-A','4.944,00'],
+   ['Nisip sortat 0–4 mm','UL-2431 · etapa 4','24,00 to','18,00','<input class="ctl tnum" value="6,00" style="height:32px;text-align:right;width:100px">','92,00','L-2608-B','552,00'],
+   ['Ciment CEM II 42,5R','stoc gestiune','72 sac','0','<input class="ctl tnum" value="72" style="height:32px;text-align:right;width:100px">','29,50','L-2608-C','2.124,00'],
+   ['Bandă avertizare rețea','stoc gestiune','18 rolă','0','<input class="ctl tnum" value="0" style="height:32px;text-align:right;width:100px">','86,00','<span class="mu">—</span>','<span class="mu">0,00</span>']
+  ],[{span:7,v:'<span style="color:var(--tx-2)">Valoare recepționată acum · NIR în lucru</span>'},'7.620,00'],{noclick:true})
+  +note('w','<b>Bandă de avertizare: 0 recepționați din 18.</b> Dacă închizi NIR-ul așa, comanda rămâne parțial deschisă și linia reapare la următoarea recepție. Nimic nu se pierde, dar comanda nu se închide.')
+  +rule('NIR-uri emise')
+  +tbl([C('NIR','110px'),C('Zi','86px'),C('Gestiune','160px'),C('Furnizor','180px'),C('Aviz','140px'),C('Linii','72px',1),C('Valoare','106px',1),C('Stare','120px')],[
+   ['<span class="code">NIR-0339</span>','25.08','Depozit central','Sortex Agregate SRL','AV-11902','1','2.944,00',bd('o','operat',1)],
+   ['<span class="code">NIR-0338</span>','24.08','Depozit central','Fontexim SRL','AV-4471','2','7.310,00',bd('o','operat',1)],
+   ['<span class="code">NIR-0336</span>','21.08','Șantier Chitila','Materom SRL','AV-88109','3','5.180,00',bd('o','operat',1)],
+   ['<span class="code">NIR-0334</span>','18.08','Depozit central','Pipeline Distribution','AV-2214','5','14.120,00',bd('o','operat',1)]
+  ]);
+
+/* ════════════════ UTILAJE ════════════════ */
+SCREENS.utilaje=()=>{
+  const seg=(l,w,c,t)=>`<span class="gseg" style="left:${l}%;width:${w}%;background:var(--${c})">${t}</span>`;
+  return head({eyebrow:'Resurse',title:'Flota',meta:'18 utilaje · 3 în reparație · 2 cu ITP scadent în 30 de zile',
+    acts:btn('d','Solicitări',"go('solicitari')")+btn('d','Alimentări',"toast('Alimentările intră pe utilaj și devin cost pe lucrarea unde era planificat.')")+btn('p','Planificare nouă','modal()','plus')})
+  +rule('Planificarea săptămânii','24–30 august · click pe o bandă pentru detalii')
+  +card(`<div class="gscale"><span></span><div class="gticks">${['lu 24','ma 25','mi 26','jo 27','vi 28','sâ 29','du 30'].map(d=>`<span>${d}</span>`).join('')}</div></div>
+    <div class="gantt">
+    ${[['EX-04 Excavator Cat 320','', [[0,42,'acc','UL-2431 · Chitila · cu operator'],[57,28,'ok','UL-2440 · Militari']]],
+       ['BC-02 Buldoexcavator JCB','',[[14,28,'acc','UL-2438 · Chitila'],[71,14,'warn','revizie 500 ore']]],
+       ['CM-01 Autobetonieră','',[[28,14,'acc','UL-2402 · SRM Nord']]],
+       ['AS-03 Repartizator asfalt','',[[57,28,'ok','UL-2438 · refacere carosabil']]],
+       ['MC-07 Motocompresor','',[[0,100,'ok','UL-2431 · toată săptămâna']]],
+       ['EX-09 Miniexcavator','',[[0,0,'','']]]].map(r=>`<div class="grow"><span>${r[0]}</span>
+        <div class="gbar">${r[2].map(s=>s[1]?seg(s[0],s[1],s[2],s[3]):'<span style="position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:var(--tx-3)">liber toată săptămâna</span>').join('')}</div></div>`).join('')}
+    </div>`)
+  +rule('Utilaje')
+  +toolbar({segs:[['Toate','18'],['Disponibile','9'],['În reparație','3'],['Scadențe apropiate','2']],ph:'Cod, denumire…',
+    chips:[['＋ Categorie'],['＋ Locație']],count:'18 utilaje'})
+  +tbl([C('Cod','86px'),C('Denumire'),C('Categorie','140px'),C('Unde e','170px'),C('Stare','140px'),C('Contor','106px',1),
+        C('Scadențe','180px'),C('Rată internă','116px',1)],[
+   ['<span class="code">EX-04</span>','Excavator Caterpillar 320','Excavator','OB-12 Stație Chitila',bd('w','în lucru',1),'8.412 h','ITP 12.11.2026','185,00 lei/h'],
+   ['<span class="code">BC-02</span>','Buldoexcavator JCB 3CX','Buldoexcavator','OB-12 Stație Chitila',bd('w','în lucru',1),'6.108 h','<span style="color:var(--warn)">revizie la 6.150 h</span>','142,00 lei/h'],
+   ['<span class="code">CM-01</span>','Autobetonieră MAN 8 mc','Transport beton','OB-31 SRM Nord',bd('w','în lucru',1),'214.880 km','<span style="color:var(--bad)">ITP 09.09.2026</span>','96,00 lei/h'],
+   ['<span class="code">AS-03</span>','Repartizator asfalt Vögele','Asfaltare','Bază Chiajna',bd('o','disponibil',1),'3.290 h','ITP 04.03.2027','240,00 lei/h'],
+   ['<span class="code">EX-09</span>','Miniexcavator Kubota U27','Excavator','Bază Chiajna',bd('o','disponibil',1),'2.740 h','ITP 22.01.2027','78,00 lei/h'],
+   ['<span class="code">CP-05</span>','Compactor Bomag BW120','Compactare','Atelier',bd('b','în reparație',1),'1.980 h','<span class="mu">—</span>','64,00 lei/h']
+  ]);
+};
+
+/* ════════════════ SOLICITĂRI DE UTILAJ ════════════════ */
+SCREENS.solicitari=()=>
+  head({eyebrow:'Resurse',title:'Solicitări de utilaj',meta:'5 în așteptare · terenul cere o categorie, biroul alege bucata concretă',
+    acts:btn('d','Vezi planificarea',"go('utilaje')")+btn('p','Solicitare nouă','modal()','plus')})
+  +note('a','<b>Terenul nu alege utilajul.</b> Șeful de șantier cere „un excavator, joi, la Chitila”. Biroul vede planificarea și alege bucata liberă. Așa nu se dublează rezervările și nu se cere niciodată un utilaj care e în reparație.')
+  +`<div style="height:16px"></div>`
+  +toolbar({segs:[['În așteptare','5'],['Planificate','12'],['Refuzate','3'],['Observații utilaj','4']],ph:'Cod, obiectiv, solicitant…',
+    chips:[['C-104',1],['＋ Categorie']],count:'5 solicitări'})
+  +tbl([C('Cod','96px'),C('Ce se cere'),C('Obiectiv','180px'),C('Perioadă','170px'),C('Solicitant','150px'),C('Primită','110px'),
+        C('Stare','130px'),C('','200px')],[
+   ['<span class="code">SU-0188</span>','Excavator pe șenile, cu operator','OB-12 Stație Chitila','27–29 august','Andrei Popa','25.08, 07:12',bd('w','în așteptare',1),
+    bs('d','Refuză',"toast('Solicitare refuzată — terenul primește motivul.','Anulează')")+' '+bs('p','Alege utilaj',"toast('EX-09 Miniexcavator e liber 27–29 august. Planificare creată.','Anulează')")],
+   ['<span class="code">SU-0187</span>','Compactor placă, fără operator','OB-19 Drumul Taberei','27 august','Ionuț Marin','24.08, 16:40',bd('w','în așteptare',1),
+    bs('d','Refuză',"toast('Refuzată.','Anulează')")+' '+bs('p','Alege utilaj',"toast('Planificare creată.','Anulează')")],
+   ['<span class="code">SU-0186</span>','Autobasculantă 8 to','OB-12 Stație Chitila','26–28 august','Andrei Popa','24.08, 11:05',bd('w','în așteptare',1),
+    bs('d','Refuză',"toast('Refuzată.','Anulează')")+' '+bs('p','Alege utilaj',"toast('Nu e nicio autobasculantă liberă — se propune transport extern.','Anulează')")],
+   ['<span class="code">SU-0182</span>','Excavator, cu operator','OB-31 SRM Nord','24–26 august','Ionuț Marin','21.08, 09:30',bd('o','planificată · EX-04',1),bs('d','Vezi planificarea',"go('utilaje')")],
+   ['<span class="code">OU-0044</span>','Observație: pierdere ulei hidraulic','—','—','Andrei Popa (EX-04)','23.08, 18:12',bd('b','de programat',1),bs('p','Programează reparația',"toast('Reparație programată — utilajul iese din planificare pe perioada ei.','Anulează')")]
+  ],null,{noclick:true});
+
+/* ════════════════ UNELTE ════════════════ */
+SCREENS.unelte=()=>
+  head({eyebrow:'Resurse',title:'Unelte',meta:'214 unelte · 38 predate în teren · 4 nereturnate peste termen',
+    acts:btn('d','PV de predare',"toast('PV-ul de predare-primire se semnează pe ecran și se tipărește.')")+btn('p','Unealtă nouă','modal()','plus')})
+  +toolbar({segs:[['Toate','214'],['În depozit','172'],['Predate','38'],['Nereturnate','4'],['Casate','12']],
+    ph:'Cod, denumire, cine o are…',chips:[['＋ Categorie'],['Nereturnate',1]],count:'38 predate'})
+  +tbl([C('Cod','96px'),C('Denumire'),C('Categorie','150px'),C('Unde e','190px'),C('Stare','140px'),C('Valoare','100px',1),C('Predare / retur','200px')],[
+   ['<span class="code">SC-0142</span>','Mașină de tăiat asfalt Husqvarna','Tăiere','Andrei Popa · OB-12',bd('w','predată de 14 zile',1),'6.840,00',bs('d','Retur',"toast('Retur înregistrat. PV semnat electronic.','Anulează')")],
+   ['<span class="code">PL-0088</span>','Placă compactoare 90 kg','Compactare','Ionuț Marin · OB-31',bd('b','nereturnată · 34 zile',1),'4.200,00',bs('p','Cere returul',"toast('Notificare trimisă lui Ionuț Marin.')")],
+   ['<span class="code">GN-0031</span>','Generator 5 kVA','Energie','Andrei Popa · OB-12',bd('w','predată de 6 zile',1),'3.900,00',bs('d','Retur',"toast('Retur înregistrat.','Anulează')")],
+   ['<span class="code">PM-0219</span>','Pompă submersibilă 2”','Evacuare apă','Depozit central',bd('o','în depozit',1),'1.480,00',bs('d','Predă',"toast('PV de predare nou.')")],
+   ['<span class="code">DT-0074</span>','Detector rețele subterane','Măsurare','Elena Radu · birou',bd('w','predată de 3 zile',1),'11.200,00',bs('d','Retur',"toast('Retur înregistrat.','Anulează')")]
+  ])
+  +rule('PV-uri de predare-primire')
+  +tbl([C('PV','120px'),C('Predat','110px'),C('Către','180px'),C('Unelte','80px',1),C('Primit înapoi','130px'),C('Stare','140px')],[
+   ['<span class="code">PVU-0311</span>','11.08.2026','Andrei Popa','3','<span class="mu">—</span>',bd('w','deschis',1)],
+   ['<span class="code">PVU-0308</span>','22.07.2026','Ionuț Marin','2','<span class="mu">—</span>',bd('b','peste termen',1)],
+   ['<span class="code">PVU-0304</span>','14.07.2026','Cristian Dobre','5','02.08.2026',bd('o','închis',1)]
+  ]);
+
+/* ════════════════ TRANSPORTURI ════════════════ */
+SCREENS.transporturi=()=>
+  head({eyebrow:'Resurse',title:'Transporturi',meta:'9 în coadă azi · 4 cu mașină proprie, 5 externalizate',
+    acts:btn('d','Rute recurente',"toast('Rutele care se repetă zilnic se planifică o dată.')")+btn('p','Transport nou','modal()','plus')})
+  +toolbar({segs:[['Azi','9'],['Săptămâna asta','34'],['De confirmat','3'],['Toate','412']],ph:'Cod, de la, către…',
+    chips:[['＋ Tip'],['＋ Sursă'],['Externalizate',1]],count:'9 transporturi'})
+  +tbl([C('Cod','96px'),C('Tip','130px'),C('Ziua','96px'),C('De la','180px'),C('Către','180px'),C('Unitate de lucru','190px'),
+        C('Sursă','130px'),C('Stare','130px'),C('Cost','96px',1)],[
+   ['<span class="code">TR-0904</span>',bd('n','materiale'),'25.08','Depozit central','OB-12 Stație Chitila','UL-2431',bd('a','mașină proprie'),bd('o','efectuat',1),'320,00'],
+   ['<span class="code">TR-0905</span>',bd('n','pământ excedentar'),'25.08','OB-12 Stație Chitila','Depozit ecologic Glina','UL-2431',bd('n','externalizat'),bd('w','în cursă',1),'1.240,00'],
+   ['<span class="code">TR-0906</span>',bd('n','utilaj'),'26.08','Bază Chiajna','OB-19 Drumul Taberei','UL-2444',bd('a','mașină proprie'),bd('a','planificat',1),'480,00'],
+   ['<span class="code">TR-0907</span>',bd('n','materiale'),'26.08','Materom SRL','Șantier Chitila','UL-2438',bd('n','al furnizorului'),bd('a','planificat',1),'<span class="mu">0,00</span>'],
+   ['<span class="code">TR-0908</span>',bd('n','beton'),'27.08','Stație betoane Militari','OB-31 SRM Nord','UL-2402',bd('n','externalizat'),bd('b','de confirmat',1),'890,00']
+  ],[{span:8,v:'<span style="color:var(--tx-2)">9 transporturi azi</span>'},'4.180,00']);
+
+/* ════════════════ CONCEDII ════════════════ */
+SCREENS.concedii=()=>
+  head({eyebrow:'Resurse',title:'Concedii',meta:'3 cereri de decis · 6 persoane în concediu săptămâna viitoare',
+    acts:btn('d','Planificare anuală',"toast('Planificarea anuală: cine, când, cu ce acoperire.')")+btn('p','Înregistrează concediu','modal()','plus')})
+  +rule('De decis','3 cereri')
+  +tbl([C('Persoana','190px'),C('Perioada','190px'),C('Fel','140px'),C('Zile','72px',1),C('Înlocuitor','180px'),C('Acoperire','200px'),C('Decizie','200px')],[
+   ['Andrei Popa<div class="sub">Șef de șantier</div>','07.09 → 18.09.2026',bd('n','odihnă'),'10','Ionuț Marin',bd('w','2 lucrări fără șef',1),
+    bs('d','Respinge',"toast('Cerere respinsă — persoana primește motivul.','Anulează')")+' '+bs('p','Aprobă',"toast('Concediu aprobat. Pontajul se completează automat.','Anulează')")],
+   ['Marius Enache<div class="sub">Gestionar depozit</div>','01.09 → 05.09.2026',bd('n','odihnă'),'5','Elena Radu',bd('o','acoperit',1),
+    bs('d','Respinge',"toast('Respinsă.','Anulează')")+' '+bs('p','Aprobă',"toast('Aprobat.','Anulează')")],
+   ['Vasile Toma<div class="sub">Instalator rețele</div>','26.08 → 28.08.2026',bd('w','fără plată'),'3','<span class="mu">—</span>',bd('b','echipa scade la 2 oameni',1),
+    bs('d','Respinge',"toast('Respinsă.','Anulează')")+' '+bs('p','Aprobă',"toast('Aprobat.','Anulează')")]
+  ],null,{noclick:true})
+  +rule('Istoric')
+  +tbl([C('Persoana','190px'),C('Perioada','190px'),C('Fel','140px'),C('Zile','72px',1),C('Stare','130px'),C('Decis de','170px')],[
+   ['Ionuț Marin','03.08 → 14.08.2026',bd('n','odihnă'),'10',bd('o','efectuat',1),'Mihai Ionescu'],
+   ['Elena Radu','20.07 → 24.07.2026',bd('n','odihnă'),'5',bd('o','efectuat',1),'Mihai Ionescu'],
+   ['Cristian Dobre','12.08 → 13.08.2026',bd('w','medical'),'2',bd('o','efectuat',1),'automat'],
+   ['Andrei Popa','01.07 → 15.07.2026',bd('n','odihnă'),'11',bd('o','efectuat',1),'Mihai Ionescu']
+  ]);
+
+/* ════════════════ DOCUMENTE ȘI PV ════════════════ */
+SCREENS.documente=()=>
+  head({eyebrow:'Evidență',title:'Documente și PV',meta:'2.418 fișiere · 61 pe C-104 · 8 PV-uri de semnat',
+    acts:btn('d','Șabloane de PV',"toast('Un șablon e un PDF existent plus lista de câmpuri poziționate pe el.')")+btn('p','Încarcă','modal()','plus')})
+  +toolbar({segs:[['Toate','2.418'],['PV-uri','186'],['Foto din teren','1.204'],['De semnat','8']],ph:'Nume, legat de, încărcat de…',
+    chips:[['C-104',1],['＋ Tip'],['＋ Perioadă']],count:'61 de documente'})
+  +tbl([C('Nume'),C('Legat de','210px'),C('Tip','140px'),C('Mărime','92px',1),C('Încărcat de','160px'),C('Data','110px'),C('','44px')],[
+   ['PV recepție parțială tronson 1.pdf','UL-2431 Înlocuire tronson',bd('n','PV'),'412 kB','Andrei Popa','25.08.2026',act()],
+   ['Foto înainte-după str. Brașov (12).zip','UL-2431 Înlocuire tronson',bd('a','foto cu geotag'),'18,4 MB','Andrei Popa','25.08.2026',act()],
+   ['Atașament cantități SL-089.pdf','SL-2026-089',bd('n','anexă'),'286 kB','Hidroterm Instal','19.08.2026',act()],
+   ['Aviz săpătură Distrigaz.pdf','OB-12 Stație Chitila',bd('n','aviz'),'1,2 MB','Elena Radu','08.08.2026',act()],
+   ['Contract C-104 semnat.pdf','C-104',bd('n','contract'),'3,8 MB','Mihai Ionescu','01.03.2025',act()],
+   ['PV predare unelte PVU-0311.pdf','PVU-0311',bd('w','de semnat'),'198 kB','Marius Enache','11.08.2026',act()]
+  ])
+  +rule('PV-uri de semnat','8 în așteptare')
+  +tbl([C('PV','130px'),C('Tip','170px'),C('Legat de','230px'),C('Întocmit','130px'),C('Semnături','180px'),C('','170px')],[
+   ['<span class="code">PV-0412</span>','Recepție parțială','UL-2431 · tronson 1','25.08.2026','1 din 3',bs('p','Semnează',"toast('Semnătura ta a fost aplicată. Mai lipsesc 1 din 3.','Retrage')")],
+   ['<span class="code">PVU-0311</span>','Predare unelte','Andrei Popa · 3 unelte','11.08.2026','1 din 2',bs('p','Semnează',"toast('Semnat.','Retrage')")],
+   ['<span class="code">PV-0409</span>','Predare amplasament','OB-19 Drumul Taberei','22.08.2026','2 din 3',bs('p','Semnează',"toast('Semnat.','Retrage')")]
+  ],null,{noclick:true});
+
+/* ════════════════ RAPOARTE LUNARE ════════════════ */
+SCREENS.rapoarte=()=>
+  head({eyebrow:'Evidență',title:'Raport lunar către client',meta:'C-104 Apa Nova · august 2026 · versiunea 2, în lucru',
+    acts:btn('d','Versiuni',"toast('Fiecare versiune trimisă rămâne. Raportul înghețat e baza facturii.')")+
+      btn('d','Previzualizare PDF',"toast('PDF cu antetul firmei, logo-ul clientului și anexele foto.')")+
+      btn('p','Îngheață și trimite',"toast('Raportul a fost înghețat și trimis către Apa Nova. Din el se poate emite factura.','Retrage')")})
+  +`<div class="kpis">
+    ${kpi({label:'Obiective raportate',value:'14',delta:'din 14 contractate',dir:'u'})}
+    ${kpi({label:'Lucrări executate',value:'32',delta:'▲ 6 vs iulie',dir:'u'})}
+    ${kpi({label:'Ore lucrate',value:'1.284',delta:'148 de zile-om',dir:'f'})}
+    ${kpi({label:'Puncte NOK din inspecții',value:'11',tone:'warn',delta:'din 428 verificate',dir:'f'})}
+  </div><div style="height:6px"></div>`
+  +rule('Conținutul raportului','14 obiective')
+  +tbl([C('Obiectiv','210px'),C('Cod','80px'),C('Tip','130px'),C('Lucrare'),C('Ore','78px',1),C('Stare','130px')],[
+   ['Stație Chitila','<span class="code">OB-12</span>','Stație pompare','Înlocuire tronson DN300, str. Brașov','312',bd('w','în execuție',1)],
+   ['Stație Chitila','<span class="code">OB-12</span>','Stație pompare','Refacere carosabil după intervenție','—',bd('a','planificată',1)],
+   ['Colector Militari','<span class="code">OB-14</span>','Colector','Inspecție video colector principal','86',bd('o','finalizată',1)],
+   ['Colector Militari','<span class="code">OB-14</span>','Colector','Desfundare cămine — lot 2','124',bd('o','finalizată',1)],
+   ['Drumul Taberei','<span class="code">OB-19</span>','Rețea','Verificare capace și rame — 40 buc','—',bd('a','planificată',1)],
+   ['Bazin Ghencea','<span class="code">OB-23</span>','Bazin','Inspecție semestrială','48',bd('o','finalizată',1)]
+  ],[{span:4,v:'<span style="color:var(--tx-2)">32 de lucrări în august</span>'},'1.284',''])
+  +rule('Puncte NOK din inspecții','11 puncte, dintre care 3 cu risc')
+  +tbl([C('Obiectiv','210px'),C('Punct verificat'),C('Constatare'),C('Risc','120px'),C('Propunere','230px')],[
+   ['OB-14 Colector Militari','Capac cămin K12','Fisurat pe toată lățimea',bd('b','ridicat',1),'Înlocuire — propusă în backlog BL-0231'],
+   ['OB-12 Stație Chitila','Trepte acces cămin vizitabil','Corodate, 2 din 6 lipsă',bd('b','ridicat',1),'Refacere — propusă în backlog BL-0224'],
+   ['OB-19 Drumul Taberei','Rigolă pluvială km 1+200','Colmatată pe 12 ml',bd('w','mediu',1),'Curățare mecanizată'],
+   ['OB-23 Bazin Ghencea','Sistem de preaplin','Depuneri, funcțional',bd('n','scăzut',1),'Monitorizare la următoarea inspecție']
+  ])
+  +rule('Versiuni')
+  +card(trail([['v2 · în lucru','25 aug · Elena Radu · adăugate 4 lucrări','nw'],
+    ['v1 · trimisă','20 aug · Mihai Ionescu · raport intermediar','dn'],
+    ['iulie · înghețată și facturată','05 aug · a stat la baza facturii F-2026-0184','dn']]));
+
+/* ════════════════ ACOPERIREA INSPECȚIILOR ════════════════ */
+SCREENS.inspectii=()=>
+  head({eyebrow:'Evidență',title:'Acoperirea inspecțiilor',
+    meta:'Contractul cere o frecvență. Ecranul arată dacă a fost respectată — nu dacă cineva a bifat ceva.',
+    acts:btn('d','Export pentru client',"toast('Anexă de raport: frecvență cerută vs. realizată, pe obiectiv.')")})
+  +`<div class="kpis">
+    ${kpi({label:'Acoperire august',value:'79',unit:'%',tone:'warn',delta:'11 din 14 obiective',dir:'d'})}
+    ${kpi({label:'Restante',value:'3',tone:'bad',delta:'6 zile până la sfârșitul lunii',dir:'d'})}
+    ${kpi({label:'Puncte verificate',value:'428',delta:'▲ 12% vs iulie',dir:'u'})}
+    ${kpi({label:'Puncte NOK',value:'11',tone:'warn',delta:'2,6% din verificări',dir:'f'})}
+  </div><div style="height:6px"></div>`
+  +toolbar({segs:[['Toate','14'],['Restante','3'],['La zi','11']],ph:'Cod, obiectiv…',chips:[['C-104',1],['＋ Frecvență']],count:'14 obiective'})
+  +tbl([C('Cod','80px'),C('Obiectiv'),C('Tip','150px'),C('Frecvență','110px',1),C('Luna asta','110px',1),C('Ultima inspecție','150px'),
+        C('Stare','160px'),C('','160px')],[
+   ['<span class="code">OB-12</span>','Stație Chitila','Stație pompare','lunară','1 / 1','12.08.2026',bd('o','la zi',1),''],
+   ['<span class="code">OB-14</span>','Colector Militari','Colector principal','trimestrială','1 / 1','04.08.2026',bd('o','la zi',1),''],
+   ['<span class="code">OB-19</span>','Rețea secundară Drumul Taberei','Rețea','lunară','0 / 1','18.07.2026',bd('b','restantă · 38 zile',1),bs('p','Planifică',"toast('Inspecție planificată pentru 27 august, alocată lui Ionuț Marin.','Anulează')")],
+   ['<span class="code">OB-23</span>','Bazin retenție Ghencea','Bazin','semestrială','1 / 1','06.08.2026',bd('o','la zi',1),''],
+   ['<span class="code">OB-27</span>','Rețea Prelungirea Ghencea','Rețea','lunară','0 / 1','22.07.2026',bd('b','restantă · 34 zile',1),bs('p','Planifică',"toast('Inspecție planificată.','Anulează')")],
+   ['<span class="code">OB-31</span>','Deversor Ciurel','Deversor','lunară','0 / 1','29.07.2026',bd('w','restantă · 27 zile',1),bs('p','Planifică',"toast('Inspecție planificată.','Anulează')")]
+  ],null,{noclick:true})
+  +note('w','<b>Trei obiective sunt restante.</b> Frecvența e obligație contractuală: dacă luna se închide fără inspecție, apare în raportul către client ca neîndeplinire. De aici se planifică direct, fără să treci prin ecranul de teren.');
+
+/* ════════════════ FACTURI ════════════════ */
+SCREENS.facturi=()=>{
+  const ag=(l,v,c,w)=>`<div style="display:flex;align-items:center;gap:12px;font-size:12.5px;padding:7px 0">
+    <span style="width:130px;color:var(--tx-2)">${l}</span>
+    <span class="mbar" style="flex:1;width:auto;height:9px"><i style="width:${w}%;background:var(--${c})"></i></span>
+    <span class="tnum" style="width:96px;text-align:right;font-weight:600">${v}</span></div>`;
+  return head({eyebrow:'Evidență',title:'Facturi',meta:'3 rapoarte înghețate fără factură · creanțe 684.200 lei, din care 92.400 restante',
+    acts:btn('d','Trimite la e-Factura',"toast('e-Factura nu se construiește în prototip — vezi Integrări.')")+btn('p','Factură nouă','modal()','plus')})
+  +rule('Rapoarte înghețate fără factură','factura preia valorile din raport, nu se recalculează')
+  +tbl([C('Contract','120px'),C('Client','200px'),C('Luna','120px'),C('Trimis','130px'),C('Valoare','120px',1),C('','200px')],[
+   ['<span class="code">C-118</span>','Distrigaz Sud Rețele','iulie 2026','05.08.2026','142.500,00',bs('p','Emite factura',"toast('Factura F-2026-0192 emisă din raportul lunii iulie.','Retrage')")],
+   ['<span class="code">C-097</span>','Termoenergetica','iulie 2026','06.08.2026','98.400,00',bs('p','Emite factura',"toast('Factură emisă.','Retrage')")],
+   ['<span class="code">C-131</span>','Enel Distribuție Muntenia','iulie 2026','07.08.2026','76.000,00',bs('p','Emite factura',"toast('Factură emisă.','Retrage')")]
+  ],null,{noclick:true})
+  +rule('Facturi emise')
+  +toolbar({segs:[['Toate','48'],['Neîncasate','12'],['Restante','5'],['Storno','2']],ph:'Număr, client, contract…',
+    chips:[['2026',1],['＋ Client']],count:'12 neîncasate'})
+  +tbl([C('Număr','120px'),C('Client','180px'),C('Contract','92px'),C('Emisă','100px'),C('Scadentă','116px'),C('Net','106px',1),
+        C('TVA','96px',1),C('Total','110px',1),C('Stare','130px'),C('e-Factura','120px')],[
+   ['<span class="code">F-2026-0184</span>','Apa Nova București','C-104','05.08.2026','04.09.2026','186.000,00','39.060,00','225.060,00',bd('a','trimisă',1),bd('o','acceptată')],
+   ['<span class="code">F-2026-0179</span>','Distrigaz Sud Rețele','C-118','05.07.2026','04.08.2026','142.500,00','29.925,00','172.425,00',bd('b','restantă · 21 zile',1),bd('o','acceptată')],
+   ['<span class="code">F-2026-0177</span>','Termoenergetica','C-097','05.07.2026','04.08.2026','98.400,00','20.664,00','119.064,00',bd('b','restantă · 21 zile',1),bd('o','acceptată')],
+   ['<span class="code">F-2026-0172</span>','Primăria Bragadiru','CI-2026-04','28.06.2026','28.07.2026','214.000,00','44.940,00','258.940,00',bd('o','încasată',1),bd('o','acceptată')],
+   ['<span class="code">F-2026-0168</span>','Compania de Apă Ilfov','C-142','05.06.2026','05.07.2026','54.200,00','11.382,00','65.582,00',bd('o','încasată',1),bd('o','acceptată')]
+  ],[{span:5,v:'<span style="color:var(--tx-2)">Total afișat</span>'},'695.100,00','145.971,00','841.071,00','',''])
+  +rule('Vechimea creanței')
+  +card(ag('În termen','591.800',  'ok',86)+ag('1–30 de zile','42.900','warn',30)+ag('31–60 de zile','38.100','bad',26)+
+        ag('61–90 de zile','11.400','bad',12)+ag('peste 90 de zile','<span style="color:var(--bad)">0</span>','bad',1)+
+        `<div style="display:flex;justify-content:space-between;padding-top:12px;margin-top:8px;border-top:1px solid var(--line-2);font-size:13px">
+          <span style="color:var(--tx-2)">Total creanțe</span><b class="tnum">684.200,00 lei</b></div>`);
+};
+
+/* ════════════════ NOMENCLATOARE ════════════════ */
+SCREENS.nomenclatoare=()=>
+  head({eyebrow:'Evidență',title:'Nomenclatoare',meta:'Firme, parteneri, produse, calificări, tipuri de obiectiv, checklist-uri',
+    acts:btn('p','Adaugă','modal()','plus')})
+  +toolbar({segs:[['Firme','3'],['Parteneri','86'],['Produse','312'],['Calificări','14'],['Checklist-uri','9']],
+    ph:'Denumire, CUI, cod…',chips:[['Active',1]],count:'86 de parteneri'})
+  +rule('Firme')
+  +tbl([C('Denumire','230px'),C('CUI','140px'),C('Reg. com.','160px'),C('Prefix','100px'),C('Stare','120px'),C('','44px')],[
+   ['Damina Construct SRL','RO14829371','J40/2183/2002','DC',bd('o','activă',1),act()],
+   ['Damina Instal SRL','RO28471902','J40/8821/2011','DI',bd('o','activă',1),act()],
+   ['Damina Utilaje SRL','RO41028873','J23/1904/2019','DU',bd('o','activă',1),act()]
+  ])
+  +rule('Parteneri')
+  +tbl([C('Denumire','230px'),C('Roluri','200px'),C('CUI','140px'),C('Contact','200px'),C('Garanție','96px',1),C('Stare','110px'),C('','44px')],[
+   ['Apa Nova București SA',bd('a','client'),'RO12276949','contracte@apanovabucuresti.ro','5%',bd('o','activ',1),act()],
+   ['Hidroterm Instal SRL',bd('n','subcontractant'),'RO31882014','office@hidroterm.ro','5%',bd('o','activ',1),act()],
+   ['Viacon SRL',bd('n','subcontractant'),'RO19827441','contact@viacon.ro','10%',bd('o','activ',1),act()],
+   ['Materom SRL',bd('w','furnizor'),'RO8827194','comenzi@materom.ro','—',bd('o','activ',1),act()],
+   ['Pipeline Distribution SRL',bd('w','furnizor'),'RO34119827','vanzari@pipeline.ro','—',bd('o','activ',1),act()],
+   ['SafeRoad Grup SRL',bd('n','subcontractant')+' '+bd('w','furnizor'),'RO40218873','office@saferoad.ro','5%',bd('o','activ',1),act()]
+  ]);
+
+/* ════════════════ INTEGRĂRI ȘI SCHELETE ════════════════ */
+SCREENS.integrari=()=>
+  head({eyebrow:'Evidență',title:'Integrări și schelete',
+    meta:'Ce e prototip și ce ar însemna în producție. Ecranul ăsta e o hartă, nu o funcție.',
+    acts:btn('d','Vezi PLAN.md §7',"toast('Lista completă cu motive stă în PLAN.md §0 și §7.')")})
+  +note('a','<b>Prototipul e cinstit despre limitele lui.</b> Fiecare rând de mai jos e un loc unde aplicația se oprește la marginea ei — și unde un programator trebuie să continue. Volumul de azi arată cât de des se lovește cineva de fiecare cusătură.')
+  +`<div style="height:16px"></div>`
+  +tbl([C('Zonă','200px'),C('În prototip','300px'),C('În producție','300px'),C('Volum de azi','150px'),C('Efort','120px')],[
+   ['e-Factura / ANAF','Factura se emite și se tipărește; câmpul „e-Factura” e informativ','Conector SPV: trimitere XML, primire răspuns, tratarea erorilor','12 facturi / lună',bd('w','mediu')],
+   ['Contabilitate Saga','Export CSV manual din facturi și registrul de cost','Sincronizare pe note contabile, cu reconciliere','~1.400 rânduri / lună',bd('b','mare')],
+   ['Portal subcontractanți','Situațiile apar direct în listă, ca și cum ar fi venit din portal','Există deja ca aplicație separată — se leagă prin API','8 situații / lună',bd('o','mic')],
+   ['Import Excel devize','Devizele se scriu în aplicație','Import de deviz din formatele uzuale (DDE, Excel)','3 devize / săptămână',bd('w','mediu')],
+   ['Upload fișiere mari','Fișierele se atașează, fără reluare la întrerupere','Upload multipart, cu reluare — șantierele au semnal prost','18 MB / zi',bd('w','mediu')],
+   ['Teren offline','Aplicația de teren cere semnal','Cozi locale și sincronizare la revenirea semnalului','6 șefi de șantier',bd('b','mare')],
+   ['Roluri și permisiuni','O poartă unică în cod (lib/permissions.ts)','Aceeași poartă, plus audit pe fiecare decizie','6 roluri',bd('o','mic')],
+   ['Notificări','Semnalele se recalculează la fiecare încărcare','Push la evenimente, cu preferințe pe utilizator','4 semnale acum',bd('w','mediu')]
+  ],null,{noclick:true});
+
+/* ════════════════ DRAWER ȘI MODAL IMPLICITE ════════════════ */
+function DRW(){
+  return `<div class="dh"><div style="min-width:0">
+    <div class="eyebrow">Unitate de lucru · C-104 · Delta</div>
+    <div style="font-family:var(--fn);font-size:19px;font-weight:600;margin-top:3px">UL-2431</div>
+    <div style="font-size:13px;color:var(--tx-2)">Înlocuire tronson DN300, str. Brașov</div></div>
+    <button class="ico" style="margin-left:auto" onclick="closeAll()" aria-label="Închide">${ic('x',17)}</button></div>
+  <div class="db">
+    <div style="display:flex;gap:8px;margin-bottom:17px;flex-wrap:wrap">${bd('w','În lucru',1)}${bd('n','Reparație')}${bd('a','Finanțată 100% din Delta')}</div>
+    <div class="eyebrow" style="margin-bottom:8px">Bani</div>
+    ${gauge({label:'Consumat din alocat',pct:68,tone:'ok',mark:78,cap:['alocat 38.400','cost 26.180','marjă 31,8%']})}
+    <div class="eyebrow" style="margin:19px 0 9px">Detalii</div>
+    ${kv([['Obiectiv','OB-12 Stație Chitila'],['Șef de șantier','Andrei Popa'],['Echipă','3 oameni · 42 zile-om'],
+      ['Început','12 august 2026'],['Termen','29 august 2026'],['Deviz','DV-0331 · 8 articole']])}
+    <div class="eyebrow" style="margin:19px 0 9px">Ultimele mișcări de cost</div>
+    ${trail([['BC-0412 · Materiale 12.480 lei','25 aug · consumat','dn'],['PT-08-25 · Manoperă 3.640 lei','25 aug · consumat','dn'],
+      ['SUB-0219 · Subcontract 14.200 lei','23 aug · angajat','dn']])}
+  </div>
+  <div class="df">${bs('p','Deschide complet',"closeAll();go('lucrare')")}${bs('d','Realocă',"toast('Realocare de finanțare pentru UL-2431.')")}
+    <span style="margin-left:auto">${bs('q','Închide','closeAll()')}</span></div>`;
+}
+function MODAL(){
+  return `<div class="mh"><div><div class="eyebrow">Nou</div><h3>Unitate de lucru</h3></div>
+    <button class="ico" style="margin-left:auto" onclick="closeAll()" aria-label="Închide">${ic('x',17)}</button></div>
+  <div class="mb"><div class="fg">
+    <label class="fl full"><span>Titlu <i class="req">•</i></span><input class="ctl" placeholder="Ce se execută, pe scurt"></label>
+    <label class="fl"><span>Tip <i class="req">•</i></span><select class="ctl"><option>Reparație</option><option>Mentenanță</option><option>Avarie</option><option>Verificare</option><option>Refacere</option></select></label>
+    <label class="fl"><span>Obiectiv <i class="req">•</i></span><select class="ctl"><option>OB-12 — Stație Chitila</option><option>OB-14 — Colector Militari</option><option>OB-31 — SRM Nord</option></select></label>
+    <div class="fl full"><span>Finanțare</span>
+      ${note('a','Finanțarea e o legătură, nu un câmp: o unitate poate fi plătită din mai multe componente sau contracte. Aici alegi prima alocare — restul se adaugă după salvare.')}
+      <div style="display:grid;grid-template-columns:1fr 1fr 110px;gap:10px;margin-top:11px">
+        <select class="ctl"><option>C-104 · Apa Nova</option><option>C-118 · Distrigaz Sud</option></select>
+        <select class="ctl"><option>Delta — liber 42.800 lei</option><option>Preventivă — rest 18.400 lei</option><option>Corectivă — rest 6.720 lei</option></select>
+        <input class="ctl tnum" value="100%" style="text-align:right"></div></div>
+    <label class="fl"><span>Valoare alocată</span><input class="ctl tnum" placeholder="0,00" style="text-align:right"><div class="hint">lei, fără TVA</div></label>
+    <label class="fl"><span>Șef de șantier</span><select class="ctl"><option>Andrei Popa</option><option>Ionuț Marin</option><option>Cristian Dobre</option></select></label>
+  </div></div>
+  <div class="mf"><span style="font-size:11.5px;color:var(--tx-3)">Modalul nu se închide la click în afara lui.</span>
+    <span style="margin-left:auto;display:flex;gap:8px">
+    ${bs('q','Renunță','closeAll()')}
+    ${bs('d','Salvează ca propunere',"closeAll();toast('Salvată ca propunere, fără finanțare.','Anulează')")}
+    ${bs('p','Creează',"closeAll();toast('UL-2441 creată și finanțată din Delta C-104.','Anulează')")}</span></div>`;
+}
+
+/* ════════════════ pornire ════════════════ */
+document.getElementById('themeBtn').innerHTML=ic('moon',17);
+go('panou');
+
+</script>
+</body>
+</html>

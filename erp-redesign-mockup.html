@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Damina ERP — Registru II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   DAMINA ERP · „REGISTRU II" — propunere de redesign pentru birou
+   Fișier unic, detașat de aplicație. Nimic din el nu e importat nicăieri.
+
+   Ce păstrează din sistemul actual: hârtia caldă, albastrul de planșă,
+   cifrele tabulare, densitatea de registru.
+   Ce schimbă:
+     1. Navigația — 27 de intrări plate devin 6 grupuri cu iconuri,
+        favorite fixate sus și paletă de comenzi (Ctrl+K).
+     2. Panoul — de la „ce există" la „ce are nevoie de tine azi".
+     3. Listele — bară de unelte cu segmente + filtre, previzualizare în
+        panou lateral în loc de navigare dus-întors.
+     4. Detaliile — antet lipit, stare ca traseu, o singură acțiune primară.
+     5. Feedback — toast, stări goale utile, scurtături vizibile.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  --paper:#F4F1EB; --sheet:#FFFDF9; --sunk:#EBE7DE; --sunk-2:#F3F0E9;
+  --rule:#E3DDD1; --rule-2:#CEC6B6;
+  --ink:#211E1A; --ink-2:#6A6459; --ink-3:#9A9287;
+  --rail:#1B222C; --rail-2:#232B37; --rail-ink:#C6CCD4; --rail-ink-2:#7C8794;
+  --blue:#2C5D8F; --blue-ink:#22496F; --blue-soft:#E7EEF6; --blue-line:#B9CFE4;
+  --fill:#2D7A62; --fill-soft:#E3F0EA;
+  --warn:#9E7519; --warn-soft:#F7EEDA;
+  --over:#A5432B; --over-soft:#F8E8E2;
+  --r:6px; --r-sm:4px;
+  --shadow-1:0 1px 2px rgba(33,30,26,.05), 0 1px 1px rgba(33,30,26,.04);
+  --shadow-2:0 12px 32px -12px rgba(33,30,26,.28), 0 2px 6px rgba(33,30,26,.06);
+  --shadow-3:0 32px 64px -24px rgba(33,30,26,.38);
+  --f-sans:"Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --f-narrow:"Archivo Narrow","Archivo", ui-sans-serif, system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--f-sans); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+table{border-collapse:collapse;width:100%}
+.tab-num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:3px}
+::selection{background:var(--blue-soft);color:var(--blue-ink)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--rule-2);border-radius:8px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ───────────────────────── schelet ───────────────────────── */
+.app{display:flex;height:100dvh;overflow:hidden}
+
+/* ───────────────────────── rail ───────────────────────── */
+.rail{
+  width:236px;flex:0 0 236px;background:var(--rail);color:var(--rail-ink);
+  display:flex;flex-direction:column;transition:flex-basis .18s ease,width .18s ease;
+}
+.app.rail-mini .rail{width:60px;flex-basis:60px}
+.app.rail-mini .rail-label,.app.rail-mini .rail-group-title,
+.app.rail-mini .brand-sub,.app.rail-mini .brand-name,
+.app.rail-mini .rail-badge,.app.rail-mini .user-meta{display:none}
+.app.rail-mini .rail-item{justify-content:center;padding-inline:0}
+.app.rail-mini .rail-kbd{display:none}
+
+.brand{display:flex;align-items:center;gap:10px;padding:14px 14px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.brand-mark{width:32px;height:32px;flex:0 0 32px;border-radius:7px;background:linear-gradient(150deg,#3C7AB4,#22496F);
+  display:grid;place-items:center;color:#fff;font-family:var(--f-narrow);font-weight:700;font-size:15px;letter-spacing:.02em}
+.brand-name{font-family:var(--f-narrow);font-weight:700;font-size:15px;letter-spacing:.13em;text-transform:uppercase;color:#fff;line-height:1.1}
+.brand-sub{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--rail-ink-2);margin-top:1px}
+
+.rail-search{margin:10px 10px 4px;display:flex;align-items:center;gap:8px;height:32px;padding:0 9px;
+  border-radius:var(--r-sm);background:rgba(255,255,255,.06);color:var(--rail-ink-2);font-size:12.5px;width:calc(100% - 20px)}
+.rail-search:hover{background:rgba(255,255,255,.1);color:var(--rail-ink)}
+.app.rail-mini .rail-search{justify-content:center;padding:0}
+.rail-kbd{margin-left:auto;font-size:10px;letter-spacing:.04em;border:1px solid rgba(255,255,255,.16);
+  border-radius:3px;padding:1px 4px;color:var(--rail-ink-2)}
+
+.rail-scroll{flex:1;overflow-y:auto;padding:6px 0 10px;scrollbar-width:thin}
+.rail-group{margin-bottom:10px}
+.rail-group-title{font-family:var(--f-narrow);font-size:10px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--rail-ink-2);padding:8px 16px 5px}
+.rail-item{display:flex;align-items:center;gap:10px;padding:6px 14px;font-size:13px;color:var(--rail-ink);
+  border-left:2px solid transparent;position:relative;transition:background .12s,color .12s}
+.rail-item:hover{background:rgba(255,255,255,.055);color:#fff}
+.rail-item.is-active{background:rgba(255,255,255,.1);color:#fff;border-left-color:#6FA3D6;font-weight:500}
+.rail-item svg{flex:0 0 16px;opacity:.82}
+.rail-item.is-active svg{opacity:1;color:#8FBBE4}
+.rail-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rail-badge{margin-left:auto;font-size:10px;font-weight:600;min-width:17px;height:17px;padding:0 5px;
+  border-radius:9px;display:grid;place-items:center;background:rgba(255,255,255,.12);color:#fff}
+.rail-badge.is-hot{background:#B2543A;color:#fff}
+.rail-item.is-soon{opacity:.45;cursor:default}
+.rail-item.is-soon:hover{background:none;color:var(--rail-ink)}
+.soon-tag{margin-left:auto;font-size:9px;letter-spacing:.07em;text-transform:uppercase;
+  border:1px solid rgba(255,255,255,.18);border-radius:3px;padding:0 4px}
+
+.rail-foot{border-top:1px solid rgba(255,255,255,.07);padding:8px}
+.user-btn{display:flex;align-items:center;gap:9px;width:100%;padding:6px 6px;border-radius:var(--r-sm);text-align:left}
+.user-btn:hover{background:rgba(255,255,255,.07)}
+.avatar{width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:#3A4756;color:#DCE4EC;
+  display:grid;place-items:center;font-size:11.5px;font-weight:600;letter-spacing:.02em}
+.user-meta{min-width:0}
+.user-meta b{display:block;font-size:12.5px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-meta span{display:block;font-size:10.5px;color:var(--rail-ink-2)}
+
+/* ───────────────────────── zona principală ───────────────────────── */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:52px;flex:0 0 52px;display:flex;align-items:center;gap:12px;padding:0 18px 0 10px;
+  background:var(--sheet);border-bottom:1px solid var(--rule)}
+.icon-btn{width:32px;height:32px;border-radius:var(--r-sm);display:grid;place-items:center;color:var(--ink-2);position:relative}
+.icon-btn:hover{background:var(--sunk);color:var(--ink)}
+.crumbs{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-3);min-width:0}
+.crumbs b{color:var(--ink);font-weight:500}
+.crumbs .sep{color:var(--rule-2)}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+.period{display:flex;align-items:center;gap:7px;height:30px;padding:0 10px;border:1px solid var(--rule);
+  border-radius:var(--r-sm);background:var(--sheet);font-size:12.5px;color:var(--ink-2)}
+.period:hover{border-color:var(--rule-2);color:var(--ink)}
+.period b{color:var(--ink);font-weight:500}
+.bell-dot{position:absolute;top:5px;right:5px;min-width:15px;height:15px;padding:0 4px;border-radius:8px;
+  background:var(--over);color:#fff;font-size:9.5px;font-weight:700;display:grid;place-items:center;line-height:1}
+.role-pill{display:flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:999px;
+  background:var(--blue-soft);color:var(--blue-ink);font-size:12px;font-weight:500}
+
+.canvas{flex:1;overflow-y:auto;scroll-behavior:smooth}
+.page{max-width:1500px;margin:0 auto;padding:22px 26px 64px}
+.screen{display:none}
+.screen.is-on{display:block}
+
+/* ───────────────────────── tipografie / titluri ───────────────────────── */
+.eyebrow{font-family:var(--f-narrow);font-size:10.5px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3)}
+h1.title{font-family:var(--f-narrow);font-size:25px;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.page-head{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--rule);margin-bottom:20px}
+.page-head .meta{font-size:12.5px;color:var(--ink-2);margin-top:5px}
+.page-head .acts{margin-left:auto;display:flex;align-items:center;gap:8px}
+.section-rule{display:flex;align-items:center;gap:12px;margin:26px 0 11px}
+.section-rule .line{flex:1;height:1px;background:var(--rule)}
+.section-rule .right{font-size:12px;color:var(--ink-2)}
+.section-rule h2{font-family:var(--f-narrow);font-size:13.5px;font-weight:600;letter-spacing:.02em;color:var(--ink)}
+
+/* ───────────────────────── butoane ───────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 13px;
+  border-radius:var(--r-sm);font-size:13px;font-weight:500;white-space:nowrap;
+  border:1px solid transparent;transition:background .12s,border-color .12s,box-shadow .12s}
+.btn svg{flex:0 0 auto}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:var(--shadow-1)}
+.btn-primary:hover{background:var(--blue-ink)}
+.btn-default{background:var(--sheet);border-color:var(--rule-2);color:var(--ink)}
+.btn-default:hover{background:var(--sunk-2);border-color:var(--ink-3)}
+.btn-quiet{color:var(--ink-2)}
+.btn-quiet:hover{background:var(--sunk);color:var(--ink)}
+.btn-danger{background:var(--over);color:#fff}
+.btn-sm{height:28px;padding:0 9px;font-size:12px;gap:5px}
+.btn-split{display:inline-flex}
+.btn-split .btn-primary{border-top-right-radius:0;border-bottom-right-radius:0}
+.btn-split .btn-caret{background:var(--blue);color:#fff;height:34px;width:28px;border-radius:0 var(--r-sm) var(--r-sm) 0;
+  display:grid;place-items:center;border-left:1px solid rgba(255,255,255,.22)}
+.btn-split .btn-caret:hover{background:var(--blue-ink)}
+
+/* ───────────────────────── suprafețe ───────────────────────── */
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);box-shadow:var(--shadow-1)}
+.card-pad{padding:16px 18px}
+.grid{display:grid;gap:14px}
+
+/* ───────────────────────── KPI ───────────────────────── */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:13px 15px 11px;box-shadow:var(--shadow-1);
+  display:flex;flex-direction:column;gap:2px;transition:border-color .12s,box-shadow .12s}
+.kpi:hover{border-color:var(--rule-2);box-shadow:var(--shadow-2)}
+.kpi .k-label{font-size:11.5px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.kpi .k-value{font-family:var(--f-narrow);font-size:26px;font-weight:600;letter-spacing:-.015em;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi .k-value small{font-size:13px;font-weight:500;color:var(--ink-3);margin-left:3px}
+.kpi .k-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.delta{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta.up{color:var(--fill)} .delta.down{color:var(--over)} .delta.flat{color:var(--ink-3)}
+.spark{display:block}
+
+/* ───────────────────────── coada de acțiuni ───────────────────────── */
+.queue{border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;background:var(--sheet);box-shadow:var(--shadow-1)}
+.queue-head{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--rule);background:var(--sunk-2)}
+.queue-head h2{font-family:var(--f-narrow);font-size:14px;font-weight:600}
+.queue-row{display:flex;align-items:center;gap:14px;padding:11px 16px;border-bottom:1px solid var(--rule);transition:background .12s}
+.queue-row:last-child{border-bottom:0}
+.queue-row:hover{background:var(--sunk-2)}
+.q-flag{width:3px;align-self:stretch;border-radius:2px;flex:0 0 3px}
+.q-flag.over{background:var(--over)} .q-flag.warn{background:var(--warn)} .q-flag.info{background:var(--blue)}
+.q-body{min-width:0;flex:1}
+.q-title{font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:8px}
+.q-sub{font-size:12px;color:var(--ink-2);margin-top:2px}
+.q-num{font-family:var(--f-narrow);font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.q-acts{display:flex;gap:6px;opacity:0;transition:opacity .12s}
+.queue-row:hover .q-acts,.queue-row:focus-within .q-acts{opacity:1}
+
+/* ───────────────────────── badge / pill ───────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:999px;font-size:11px;
+  font-weight:500;line-height:1.5;border:1px solid transparent;white-space:nowrap}
+.badge .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.badge.neutral{background:var(--sunk);color:var(--ink-2);border-color:var(--rule)}
+.badge.blue{background:var(--blue-soft);color:var(--blue-ink);border-color:var(--blue-line)}
+.badge.fill{background:var(--fill-soft);color:var(--fill);border-color:#BFDDD0}
+.badge.warn{background:var(--warn-soft);color:var(--warn);border-color:#E7D2A3}
+.badge.over{background:var(--over-soft);color:var(--over);border-color:#EBC3B6}
+
+/* ───────────────────────── gauge de buget ───────────────────────── */
+.gauge{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:9px 0}
+.gauge + .gauge{border-top:1px solid var(--rule)}
+.g-top{display:flex;align-items:baseline;gap:8px;font-size:13px}
+.g-top b{font-weight:500}
+.g-top .pct{margin-left:auto;font-family:var(--f-narrow);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.g-track{grid-column:1/-1;height:7px;border-radius:4px;background:var(--sunk);overflow:hidden;position:relative}
+.g-fill{height:100%;border-radius:4px}
+.g-fill.ok{background:linear-gradient(90deg,#3C8A70,#2D7A62)}
+.g-fill.warn{background:linear-gradient(90deg,#C0952F,#9E7519)}
+.g-fill.over{background:linear-gradient(90deg,#C2593C,#A5432B)}
+.g-fill.blue{background:linear-gradient(90deg,#3C7AB4,#2C5D8F)}
+.g-mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.35}
+.g-caption{grid-column:1/-1;font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;
+  display:flex;gap:10px;flex-wrap:wrap}
+
+/* ───────────────────────── bara de unelte a listelor ───────────────────────── */
+.toolbar{position:sticky;top:0;z-index:20;background:var(--paper);padding-top:2px;margin-bottom:12px}
+.segments{display:flex;gap:2px;border-bottom:1px solid var(--rule);margin-bottom:11px}
+.segment{position:relative;padding:8px 12px 9px;font-size:13px;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.segment:hover{color:var(--ink)}
+.segment.is-on{color:var(--ink);font-weight:500;border-bottom-color:var(--blue)}
+.segment .count{margin-left:6px;font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.segment.is-on .count{color:var(--blue)}
+.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;background:var(--sheet);
+  border:1px solid var(--rule-2);border-radius:var(--r-sm);min-width:250px;color:var(--ink-3)}
+.search input{border:0;outline:0;background:none;font-size:13px;width:100%}
+.search input::placeholder{color:var(--ink-3)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;
+  border:1px solid var(--rule-2);background:var(--sheet);font-size:12px;color:var(--ink-2)}
+.chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.chip.is-on{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip.is-on .x{opacity:.8}
+.tool-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+
+/* ───────────────────────── tabel ───────────────────────── */
+.table-wrap{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-1)}
+.tbl{font-size:13px}
+.tbl thead th{font-family:var(--f-narrow);font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;padding:9px 12px;background:var(--sunk-2);border-bottom:1px solid var(--rule-2);
+  position:sticky;top:0;z-index:2;white-space:nowrap}
+.tbl th.num,.tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tbody tr{border-bottom:1px solid var(--rule);transition:background .1s}
+.tbl tbody tr:last-child{border-bottom:0}
+.tbl tbody tr:hover{background:var(--sunk-2);cursor:pointer}
+.tbl tbody tr.is-sel{background:var(--blue-soft)}
+.tbl td{padding:9px 12px;vertical-align:middle}
+.tbl td.tight{padding-block:6px}
+.tbl .code{font-family:var(--f-narrow);font-weight:600;letter-spacing:.01em}
+.tbl .muted{color:var(--ink-3)}
+.tbl .sub{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+.tbl tfoot td{padding:10px 12px;border-top:2px solid var(--rule-2);background:var(--sunk-2);font-weight:600;
+  font-variant-numeric:tabular-nums}
+.row-acts{display:flex;gap:2px;justify-content:flex-end;opacity:0;transition:opacity .1s}
+tr:hover .row-acts,tr:focus-within .row-acts{opacity:1}
+.group-row td{background:var(--sunk);font-family:var(--f-narrow);font-size:10.5px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);padding:6px 12px}
+.mini-bar{height:5px;border-radius:3px;background:var(--sunk);width:78px;display:inline-block;vertical-align:middle;overflow:hidden}
+.mini-bar i{display:block;height:100%;border-radius:3px}
+
+/* ───────────────────────── panou lateral (drawer) ───────────────────────── */
+.scrim{position:fixed;inset:0;background:rgba(33,30,26,.34);backdrop-filter:blur(1.5px);opacity:0;pointer-events:none;
+  transition:opacity .18s;z-index:60}
+.scrim.is-on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:460px;max-width:92vw;background:var(--sheet);
+  border-left:1px solid var(--rule);box-shadow:var(--shadow-3);transform:translateX(102%);
+  transition:transform .22s cubic-bezier(.32,.72,0,1);z-index:70;display:flex;flex-direction:column}
+.drawer.is-on{transform:none}
+.drawer-head{display:flex;align-items:flex-start;gap:12px;padding:16px 18px;border-bottom:1px solid var(--rule)}
+.drawer-body{flex:1;overflow-y:auto;padding:16px 18px}
+.drawer-foot{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid var(--rule);background:var(--sunk-2)}
+.kv{display:grid;grid-template-columns:118px 1fr;gap:7px 14px;font-size:13px}
+.kv dt{color:var(--ink-2);font-size:12px}
+.kv dd{font-variant-numeric:tabular-nums}
+
+/* ───────────────────────── modal ───────────────────────── */
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.985);width:620px;max-width:94vw;
+  max-height:88vh;background:var(--sheet);border:1px solid var(--rule);border-radius:9px;box-shadow:var(--shadow-3);
+  z-index:80;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;display:flex;flex-direction:column}
+.modal.is-on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.modal-head{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--rule)}
+.modal-head h3{font-family:var(--f-narrow);font-size:16px;font-weight:600}
+.modal-body{padding:18px;overflow-y:auto}
+.modal-foot{display:flex;align-items:center;gap:8px;padding:13px 18px;border-top:1px solid var(--rule);background:var(--sunk-2);border-radius:0 0 9px 9px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:block}
+.field > span{display:block;font-family:var(--f-narrow);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:5px}
+.field .req{color:var(--over)}
+.ctl{height:36px;width:100%;padding:0 10px;border:1px solid var(--rule-2);border-radius:var(--r-sm);
+  background:var(--sheet);font-size:13.5px;outline:0}
+.ctl:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.hint{font-size:11.5px;color:var(--ink-3);margin-top:5px}
+.full{grid-column:1/-1}
+
+/* ───────────────────────── paleta de comenzi ───────────────────────── */
+.palette{position:fixed;left:50%;top:14vh;transform:translateX(-50%) translateY(-8px);width:600px;max-width:94vw;
+  background:var(--sheet);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow-3);
+  z-index:90;opacity:0;pointer-events:none;transition:opacity .14s,transform .14s;overflow:hidden}
+.palette.is-on{opacity:1;pointer-events:auto;transform:translateX(-50%)}
+.pal-input{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--rule);color:var(--ink-3)}
+.pal-input input{border:0;outline:0;background:none;font-size:15.5px;width:100%}
+.pal-list{max-height:44vh;overflow-y:auto;padding:6px}
+.pal-sec{font-family:var(--f-narrow);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);padding:8px 10px 4px}
+.pal-item{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:var(--r-sm);font-size:13.5px;width:100%;text-align:left}
+.pal-item:hover,.pal-item.is-cursor{background:var(--blue-soft);color:var(--blue-ink)}
+.pal-item svg{color:var(--ink-3)}
+.pal-item:hover svg,.pal-item.is-cursor svg{color:var(--blue)}
+.pal-item .where{margin-left:auto;font-size:11px;color:var(--ink-3)}
+.pal-foot{display:flex;gap:16px;padding:8px 14px;border-top:1px solid var(--rule);background:var(--sunk-2);font-size:11px;color:var(--ink-3)}
+kbd{font-family:var(--f-sans);font-size:10px;border:1px solid var(--rule-2);border-radius:3px;padding:1px 4px;background:var(--sheet)}
+
+/* ───────────────────────── notificări ───────────────────────── */
+.popover{position:absolute;top:44px;right:16px;width:370px;background:var(--sheet);border:1px solid var(--rule);
+  border-radius:var(--r);box-shadow:var(--shadow-2);z-index:75;opacity:0;pointer-events:none;transform:translateY(-6px);
+  transition:opacity .14s,transform .14s;overflow:hidden}
+.popover.is-on{opacity:1;pointer-events:auto;transform:none}
+.pop-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--sunk-2)}
+.pop-row{display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--rule)}
+.pop-row:hover{background:var(--sunk-2)}
+.pop-row:last-child{border-bottom:0}
+.pop-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex:0 0 7px}
+
+/* ───────────────────────── toast ───────────────────────── */
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);z-index:95;
+  display:flex;align-items:center;gap:11px;padding:11px 15px;background:var(--ink);color:#F5F2EC;
+  border-radius:8px;box-shadow:var(--shadow-3);font-size:13px;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s}
+.toast.is-on{opacity:1;transform:translateX(-50%)}
+.toast .ok{color:#7FD3B4}
+.toast button{color:#9FC4E8;font-weight:500;font-size:12.5px;margin-left:4px}
+
+/* ───────────────────────── detaliu: antet lipit + traseu de stare ───────────────────────── */
+.detail-head{position:sticky;top:0;z-index:25;background:var(--paper);padding:14px 0 12px;border-bottom:1px solid var(--rule);margin-bottom:0}
+.dh-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.dh-title{font-family:var(--f-narrow);font-size:22px;font-weight:600;letter-spacing:-.01em}
+.dh-acts{margin-left:auto;display:flex;gap:8px;align-items:center}
+.pipeline{display:flex;align-items:center;gap:0;margin-top:12px;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:7px;padding:5px 13px 5px 11px;font-size:12px;color:var(--ink-3);
+  background:var(--sunk-2);border:1px solid var(--rule);margin-right:-1px}
+.step:first-child{border-radius:var(--r-sm) 0 0 var(--r-sm)}
+.step:last-child{border-radius:0 var(--r-sm) var(--r-sm) 0}
+.step .num{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;
+  background:var(--rule);color:var(--ink-3)}
+.step.done{color:var(--fill);background:var(--fill-soft);border-color:#C8E1D6}
+.step.done .num{background:var(--fill);color:#fff}
+.step.now{color:var(--blue-ink);background:var(--blue-soft);border-color:var(--blue-line);font-weight:600;z-index:1}
+.step.now .num{background:var(--blue);color:#fff}
+.tabs{display:flex;gap:2px;margin-top:13px;margin-bottom:-13px}
+.tab{padding:8px 12px;font-size:13px;color:var(--ink-2);border-bottom:2px solid transparent}
+.tab:hover{color:var(--ink)}
+.tab.is-on{color:var(--ink);font-weight:500;border-bottom-color:var(--blue)}
+.two-col{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;margin-top:22px}
+
+/* ───────────────────────── diverse ───────────────────────── */
+.empty{border:1px dashed var(--rule-2);border-radius:var(--r);padding:26px;text-align:left;background:rgba(255,255,255,.4)}
+.empty h4{font-family:var(--f-narrow);font-size:15px;font-weight:600;margin-bottom:5px}
+.empty p{font-size:12.5px;color:var(--ink-2);max-width:46ch;margin-bottom:12px}
+.note{display:flex;gap:10px;padding:11px 14px;border-radius:var(--r);font-size:12.5px;line-height:1.5}
+.note.blue{background:var(--blue-soft);color:var(--blue-ink);border:1px solid var(--blue-line)}
+.note.warn{background:var(--warn-soft);color:var(--warn);border:1px solid #E7D2A3}
+.trail{position:relative;padding-left:20px}
+.trail::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--rule)}
+.trail-item{position:relative;padding:0 0 15px}
+.trail-item::before{content:"";position:absolute;left:-18px;top:5px;width:9px;height:9px;border-radius:50%;
+  background:var(--sheet);border:2px solid var(--rule-2)}
+.trail-item.done::before{background:var(--fill);border-color:var(--fill)}
+.trail-item.now::before{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.trail-item b{font-size:12.5px;font-weight:500;display:block}
+.trail-item span{font-size:11.5px;color:var(--ink-3)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2)}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px}
+
+/* nota de subsol a machetei */
+.mock-note{max-width:1500px;margin:0 auto;padding:0 26px 40px}
+.mock-note .card-pad{font-size:12.5px;color:var(--ink-2);line-height:1.65}
+.mock-note b{color:var(--ink)}
+
+@media (max-width:1180px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ══════════════════ RAIL ══════════════════ -->
+  <nav class="rail">
+    <div class="brand">
+      <div class="brand-mark">D</div>
+      <div>
+        <div class="brand-name">Damina</div>
+        <div class="brand-sub">Damina Construct SRL</div>
+      </div>
+    </div>
+
+    <button class="rail-search" onclick="openPalette()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+      <span class="rail-label">Caută sau execută…</span>
+      <span class="rail-kbd">Ctrl K</span>
+    </button>
+
+    <div class="rail-scroll" id="railScroll"></div>
+
+    <div class="rail-foot">
+      <button class="user-btn" onclick="toast('Meniul de cont: profil, perspectivă, setări firmă, ieșire.')">
+        <span class="avatar">MI</span>
+        <span class="user-meta">
+          <b>Mihai Ionescu</b>
+          <span>Administrator</span>
+        </span>
+        <svg class="rail-label" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;opacity:.6"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ══════════════════ MAIN ══════════════════ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" onclick="document.getElementById('app').classList.toggle('rail-mini')" aria-label="Restrânge navigația">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+      </button>
+      <nav class="crumbs" id="crumbs"><b>Panou</b></nav>
+
+      <div class="top-right">
+        <button class="period" onclick="toast('Perioada activă schimbă toate cifrele din ecran — nu doar filtrul listei.')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+          <b>august 2026</b>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="icon-btn" onclick="openPalette()" aria-label="Caută">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        </button>
+        <button class="icon-btn" id="bellBtn" onclick="togglePop(event)" aria-label="Semnale">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="bell-dot">4</span>
+        </button>
+        <span class="role-pill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          Vezi ca Administrator
+        </span>
+      </div>
+
+      <!-- popover semnale -->
+      <div class="popover" id="pop">
+        <div class="pop-head">
+          <span class="eyebrow">Semnale · recalculate acum</span>
+          <span style="font-size:11px;color:var(--ink-3)">4 de rezolvat</span>
+        </div>
+        <div class="pop-row"><span class="pop-dot" style="background:var(--over)"></span><div>
+          <div class="eyebrow" style="font-size:9.5px">Plafon depășit</div>
+          <b style="font-size:12.5px;font-weight:500">C-118 · Corectivă la 104% din plafonul lunii</b>
+          <div style="font-size:11.5px;color:var(--ink-2);margin-top:2px">Depășire 8.400 lei. Realocare din Preventivă?</div>
+        </div></div>
+        <div class="pop-row"><span class="pop-dot" style="background:var(--warn)"></span><div>
+          <div class="eyebrow" style="font-size:9.5px">Delta neumplută</div>
+          <b style="font-size:12.5px;font-weight:500">C-104 · 61% umplut, mai sunt 6 zile</b>
+          <div style="font-size:11.5px;color:var(--ink-2);margin-top:2px">42.800 lei venit care se pierde pe 31.</div>
+        </div></div>
+        <div class="pop-row"><span class="pop-dot" style="background:var(--warn)"></span><div>
+          <div class="eyebrow" style="font-size:9.5px">Situație de aprobat</div>
+          <b style="font-size:12.5px;font-weight:500">SL-2026-089 așteaptă de 4 zile</b>
+        </div></div>
+        <div class="pop-row"><span class="pop-dot" style="background:var(--ink-3)"></span><div>
+          <div class="eyebrow" style="font-size:9.5px">Contract expiră</div>
+          <b style="font-size:12.5px;font-weight:500">C-097 · 34 de zile până la expirare</b>
+        </div></div>
+      </div>
+    </header>
+
+    <div class="canvas" id="canvas">
+
+      <!-- ═══════════════════════ 1. PANOU ═══════════════════════ -->
+      <section class="screen is-on page" id="s-panou">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Conducere · august 2026, ziua 25 din 31</div>
+            <h1 class="title">Bună, Mihai</h1>
+            <div class="meta">6 contracte de mentenanță · 4 lucruri au nevoie de o decizie azi</div>
+          </div>
+          <div class="acts">
+            <button class="btn btn-default btn-sm" onclick="toast('Raportul lunii se generează în fundal și apare la Rapoarte.')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+              Export lună
+            </button>
+            <div class="btn-split">
+              <button class="btn btn-primary" onclick="openModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Adaugă
+              </button>
+              <button class="btn-caret" onclick="toast('Contract · Unitate de lucru · Deviz · Recepție · Solicitare utilaj')" aria-label="Alte opțiuni">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI cu tendință: cifra singură nu spune nimic -->
+        <div class="kpis">
+          <div class="kpi">
+            <div class="k-label">Venit facturabil luna asta</div>
+            <div class="k-value">1.284<small>k lei</small></div>
+            <div class="k-foot">
+              <span class="delta up">▲ 11,4% <span style="font-weight:400;color:var(--ink-3)">vs iulie</span></span>
+              <svg class="spark" width="76" height="24" viewBox="0 0 76 24"><polyline points="0,18 11,16 22,19 33,13 44,14 55,9 66,7 76,4" fill="none" stroke="#2D7A62" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">Cost angajat + consumat</div>
+            <div class="k-value">947<small>k lei</small></div>
+            <div class="k-foot">
+              <span class="delta down">▲ 6,1% <span style="font-weight:400;color:var(--ink-3)">peste ritm</span></span>
+              <svg class="spark" width="76" height="24" viewBox="0 0 76 24"><polyline points="0,20 11,17 22,17 33,12 44,13 55,10 66,8 76,6" fill="none" stroke="#A5432B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">Marjă lună · 26,2%</div>
+            <div class="k-value">337<small>k lei</small></div>
+            <div class="k-foot">
+              <span class="delta up">▲ 2,3 pp</span>
+              <svg class="spark" width="76" height="24" viewBox="0 0 76 24"><polyline points="0,15 11,17 22,14 33,15 44,11 55,12 66,9 76,8" fill="none" stroke="#2D7A62" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">Delta neumplută · 3 contracte</div>
+            <div class="k-value" style="color:var(--over)">128<small>k lei</small></div>
+            <div class="k-foot">
+              <span class="delta down">6 zile rămase</span>
+              <svg class="spark" width="76" height="24" viewBox="0 0 76 24"><polyline points="0,4 11,6 22,7 33,10 44,11 55,15 66,17 76,19" fill="none" stroke="#9E7519" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coada de acțiuni: panoul începe cu ce trebuie decis, nu cu ce există -->
+        <div class="section-rule">
+          <h2>Are nevoie de tine</h2><span class="line"></span>
+          <span class="right">rezolvate azi: 3 din 7</span>
+        </div>
+
+        <div class="queue">
+          <div class="queue-head">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--over)" stroke-width="1.9"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+            <h2>4 decizii · ordonate după banii în joc</h2>
+            <button class="btn btn-quiet btn-sm" style="margin-left:auto" onclick="toast('Filtru: doar ce e atribuit ție.')">Doar ale mele</button>
+          </div>
+
+          <div class="queue-row">
+            <span class="q-flag over"></span>
+            <div class="q-body">
+              <div class="q-title">C-104 · Delta neumplută pe „Reparații curente" <span class="badge warn"><span class="dot"></span>6 zile</span></div>
+              <div class="q-sub">61% umplut din plafonul de 110.000 lei. Ritmul de acum nu ajunge la 100% până pe 31.</div>
+            </div>
+            <div class="q-num" style="color:var(--over)">42.800 lei</div>
+            <div class="q-acts">
+              <button class="btn btn-default btn-sm" onclick="go('lucrari')">Vezi lucrări</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('Am deschis propunerea de umplere Delta pentru C-104.','Anulează')">Propune umplere</button>
+            </div>
+          </div>
+
+          <div class="queue-row">
+            <span class="q-flag over"></span>
+            <div class="q-body">
+              <div class="q-title">C-118 · Corectivă peste plafon <span class="badge over"><span class="dot"></span>104%</span></div>
+              <div class="q-sub">Depășire de 8.400 lei. Preventiva are 21.300 lei liberi — realocarea acoperă tot.</div>
+            </div>
+            <div class="q-num" style="color:var(--over)">8.400 lei</div>
+            <div class="q-acts">
+              <button class="btn btn-default btn-sm" onclick="go('cost')">Registrul de cost</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('Realocare 8.400 lei: Preventivă → Corectivă. Se scrie în registru.','Anulează')">Realocă</button>
+            </div>
+          </div>
+
+          <div class="queue-row">
+            <span class="q-flag warn"></span>
+            <div class="q-body">
+              <div class="q-title">SL-2026-089 · Situație de lucrări de aprobat</div>
+              <div class="q-sub">Trimisă de Andrei Popa acum 4 zile · C-104 / Obiectiv OB-12 Stație Chitila</div>
+            </div>
+            <div class="q-num">67.320 lei</div>
+            <div class="q-acts">
+              <button class="btn btn-default btn-sm" onclick="go('situatie')">Deschide</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('SL-2026-089 aprobată. A intrat în facturabilul lunii august.','Retrage')">Aprobă</button>
+            </div>
+          </div>
+
+          <div class="queue-row">
+            <span class="q-flag info"></span>
+            <div class="q-body">
+              <div class="q-title">C-097 · Contract expiră pe 28 septembrie</div>
+              <div class="q-sub">Fără act adițional început. Termenul de notificare a clientului e 30 de zile.</div>
+            </div>
+            <div class="q-num muted" style="color:var(--ink-3)">—</div>
+            <div class="q-acts">
+              <button class="btn btn-default btn-sm" onclick="go('contract')">Deschide contractul</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('Am pornit actul adițional pe C-097.','Anulează')">Începe act adițional</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bugete: gauge cu marcaj de ritm, nu doar procent -->
+        <div class="section-rule">
+          <h2>Contracte de mentenanță</h2><span class="line"></span>
+          <span class="right"><span class="legend"><span><i style="background:var(--ink);opacity:.35"></i>ritm așteptat la ziua 25</span></span></span>
+        </div>
+
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(430px,1fr))">
+
+          <article class="card card-pad">
+            <header style="display:flex;align-items:flex-start;gap:14px;padding-bottom:11px;border-bottom:1px solid var(--rule)">
+              <div style="min-width:0">
+                <a href="#" onclick="go('contract');return false" style="font-family:var(--f-narrow);font-size:15.5px;font-weight:600">C-104 · Apa Nova București</a>
+                <div style="font-size:12.5px;color:var(--ink-2)">Mentenanță rețea de canalizare, sector 6</div>
+              </div>
+              <div style="margin-left:auto;text-align:right;flex:0 0 auto">
+                <div class="eyebrow">Abonament</div>
+                <div style="font-family:var(--f-narrow);font-size:16px;font-weight:600" class="tab-num">186.000 lei</div>
+              </div>
+            </header>
+
+            <div class="gauge">
+              <div class="g-top"><b>Delta — de umplut</b><span class="badge warn"><span class="dot"></span>rămân 42.800</span><span class="pct" style="color:var(--warn)">61%</span></div>
+              <div class="g-track"><div class="g-fill warn" style="width:61%"></div><div class="g-mark" style="left:81%"></div></div>
+              <div class="g-caption"><span>plafon venit 110.000</span><span>umplut 67.200</span><span>liber 42.800</span></div>
+            </div>
+            <div class="gauge">
+              <div class="g-top"><b>Preventivă — de consumat</b><span class="pct" style="color:var(--fill)">54%</span></div>
+              <div class="g-track"><div class="g-fill ok" style="width:54%"></div><div class="g-mark" style="left:81%"></div></div>
+              <div class="g-caption"><span>venit 48.000</span><span>plafon cost 40.000</span><span>rest 18.400</span></div>
+            </div>
+            <div class="gauge">
+              <div class="g-top"><b>Corectivă — de consumat</b><span class="pct" style="color:var(--fill)">72%</span></div>
+              <div class="g-track"><div class="g-fill ok" style="width:72%"></div><div class="g-mark" style="left:81%"></div></div>
+              <div class="g-caption"><span>venit 28.000</span><span>plafon cost 24.000</span><span>rest 6.720</span></div>
+            </div>
+
+            <footer style="display:flex;align-items:center;justify-content:space-between;padding-top:11px;margin-top:6px;border-top:1px solid var(--rule-2);font-size:13px">
+              <span style="color:var(--ink-2)">Marjă lună</span>
+              <span class="tab-num" style="font-weight:600;color:var(--fill)">54.180 lei · 29,1%</span>
+            </footer>
+          </article>
+
+          <article class="card card-pad">
+            <header style="display:flex;align-items:flex-start;gap:14px;padding-bottom:11px;border-bottom:1px solid var(--rule)">
+              <div style="min-width:0">
+                <a href="#" onclick="go('contract');return false" style="font-family:var(--f-narrow);font-size:15.5px;font-weight:600">C-118 · Distrigaz Sud Rețele</a>
+                <div style="font-size:12.5px;color:var(--ink-2)">Mentenanță rețea presiune redusă, zona nord</div>
+              </div>
+              <div style="margin-left:auto;text-align:right;flex:0 0 auto">
+                <div class="eyebrow">Abonament</div>
+                <div style="font-family:var(--f-narrow);font-size:16px;font-weight:600" class="tab-num">142.500 lei</div>
+              </div>
+            </header>
+
+            <div class="gauge">
+              <div class="g-top"><b>Delta — de umplut</b><span class="badge fill"><span class="dot"></span>umplut</span><span class="pct" style="color:var(--fill)">97%</span></div>
+              <div class="g-track"><div class="g-fill ok" style="width:97%"></div><div class="g-mark" style="left:81%"></div></div>
+              <div class="g-caption"><span>plafon venit 82.000</span><span>umplut 79.540</span><span>liber 2.460</span></div>
+            </div>
+            <div class="gauge">
+              <div class="g-top"><b>Corectivă — de consumat</b><span class="badge over"><span class="dot"></span>depășire 8.400</span><span class="pct" style="color:var(--over)">104%</span></div>
+              <div class="g-track"><div class="g-fill over" style="width:100%"></div><div class="g-mark" style="left:81%"></div></div>
+              <div class="g-caption"><span>venit 36.000</span><span>plafon cost 30.000</span><span style="color:var(--over)">peste plafon 8.400</span></div>
+            </div>
+            <div class="gauge">
+              <div class="g-top"><b>Preventivă — de consumat</b><span class="pct" style="color:var(--fill)">29%</span></div>
+              <div class="g-track"><div class="g-fill ok" style="width:29%"></div><div class="g-mark" style="left:81%"></div></div>
+              <div class="g-caption"><span>venit 30.000</span><span>plafon cost 30.000</span><span>rest 21.300</span></div>
+            </div>
+
+            <footer style="display:flex;align-items:center;justify-content:space-between;padding-top:11px;margin-top:6px;border-top:1px solid var(--rule-2);font-size:13px">
+              <span style="color:var(--ink-2)">Marjă lună</span>
+              <span class="tab-num" style="font-weight:600">31.740 lei · 22,3%</span>
+            </footer>
+          </article>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════ 2. UNITĂȚI DE LUCRU (listă) ═══════════════════════ -->
+      <section class="screen page" id="s-lucrari">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Operațional</div>
+            <h1 class="title">Unități de lucru</h1>
+            <div class="meta">148 în perioada activă · 12 fără finanțare alocată</div>
+          </div>
+          <div class="acts">
+            <button class="btn btn-default btn-sm" onclick="toast('Vedere salvată: „Blocate la aprovizionare” — apare ca segment.')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21 12 17l-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              Salvează vederea
+            </button>
+            <button class="btn btn-primary" onclick="openModal()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              Unitate de lucru
+            </button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="segments">
+            <button class="segment is-on" onclick="seg(this)">Toate <span class="count">148</span></button>
+            <button class="segment" onclick="seg(this)">În lucru <span class="count">47</span></button>
+            <button class="segment" onclick="seg(this)">Fără finanțare <span class="count">12</span></button>
+            <button class="segment" onclick="seg(this)">Peste alocat <span class="count">5</span></button>
+            <button class="segment" onclick="seg(this)">Închise luna asta <span class="count">31</span></button>
+          </div>
+          <div class="filters">
+            <label class="search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+              <input placeholder="Cod, titlu, obiectiv…">
+            </label>
+            <button class="chip is-on" onclick="chip(this)">C-104 <span class="x">×</span></button>
+            <button class="chip" onclick="chip(this)">＋ Contract</button>
+            <button class="chip" onclick="chip(this)">＋ Tip</button>
+            <button class="chip" onclick="chip(this)">＋ Executant</button>
+            <button class="chip" onclick="chip(this)">＋ Obiectiv</button>
+            <div class="tool-right">
+              <span style="font-size:11.5px;color:var(--ink-3)">32 rezultate</span>
+              <button class="icon-btn" onclick="toast('Densitate: confortabil / compact / condensat')" aria-label="Densitate">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+              </button>
+              <button class="icon-btn" onclick="toast('Coloane: alege ce se vede și în ce ordine.')" aria-label="Coloane">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></svg>
+              </button>
+              <button class="icon-btn" onclick="toast('Export CSV cu filtrele curente.')" aria-label="Export">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th style="width:104px">Cod</th>
+                <th>Titlu</th>
+                <th style="width:118px">Tip</th>
+                <th style="width:170px">Obiectiv</th>
+                <th style="width:150px">Finanțare</th>
+                <th style="width:126px">Stare</th>
+                <th class="num" style="width:96px">Alocat</th>
+                <th class="num" style="width:96px">Cost</th>
+                <th class="num" style="width:130px">Marjă</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="group-row"><td colspan="10">C-104 · Apa Nova · Delta</td></tr>
+
+              <tr onclick="openDrawer()">
+                <td class="code">UL-2431</td>
+                <td>Înlocuire tronson DN300, str. Brașov<div class="sub">Andrei Popa · 3 oameni · început 12 aug</div></td>
+                <td><span class="badge neutral">Reparație</span></td>
+                <td class="muted">OB-12 Stație Chitila</td>
+                <td>Delta · 100%</td>
+                <td><span class="badge warn"><span class="dot"></span>În lucru</span></td>
+                <td class="num">38.400</td>
+                <td class="num">26.180</td>
+                <td class="num"><span class="mini-bar"><i style="width:68%;background:var(--fill)"></i></span> <b style="color:var(--fill)">31,8%</b></td>
+                <td><div class="row-acts"><button class="icon-btn" onclick="event.stopPropagation();toast('Meniu: Editează · Duplică · Realocă finanțare · Închide')" aria-label="Acțiuni"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div></td>
+              </tr>
+
+              <tr onclick="openDrawer()">
+                <td class="code">UL-2438</td>
+                <td>Refacere carosabil după intervenție<div class="sub">Subcontractant: Viacon SRL</div></td>
+                <td><span class="badge neutral">Refacere</span></td>
+                <td class="muted">OB-12 Stație Chitila</td>
+                <td>Delta · 100%</td>
+                <td><span class="badge blue"><span class="dot"></span>Planificată</span></td>
+                <td class="num">14.200</td>
+                <td class="num muted">0</td>
+                <td class="num muted">—</td>
+                <td><div class="row-acts"><button class="icon-btn" onclick="event.stopPropagation();toast('Meniu de rând')" aria-label="Acțiuni"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div></td>
+              </tr>
+
+              <tr onclick="openDrawer()">
+                <td class="code">UL-2440</td>
+                <td>Curățare cămine, sector 6 — lot 2</td>
+                <td><span class="badge neutral">Mentenanță</span></td>
+                <td class="muted">OB-14 Colector Militari</td>
+                <td><span style="color:var(--over)">nealocată</span></td>
+                <td><span class="badge neutral"><span class="dot"></span>Propusă</span></td>
+                <td class="num muted">—</td>
+                <td class="num muted">0</td>
+                <td class="num muted">—</td>
+                <td><div class="row-acts"><button class="icon-btn" onclick="event.stopPropagation();toast('Meniu de rând')" aria-label="Acțiuni"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div></td>
+              </tr>
+
+              <tr class="group-row"><td colspan="10">C-118 · Distrigaz · Corectivă</td></tr>
+
+              <tr onclick="openDrawer()">
+                <td class="code">UL-2402</td>
+                <td>Remediere avarie PR, Bd. Bucureștii Noi<div class="sub">Ionuț Marin · urgență · închisă 19 aug</div></td>
+                <td><span class="badge neutral">Avarie</span></td>
+                <td class="muted">OB-31 SRM Nord</td>
+                <td>Corectivă · 100%</td>
+                <td><span class="badge fill"><span class="dot"></span>Finalizată</span></td>
+                <td class="num">22.000</td>
+                <td class="num" style="color:var(--over)">24.910</td>
+                <td class="num"><span class="mini-bar"><i style="width:100%;background:var(--over)"></i></span> <b style="color:var(--over)">−13,2%</b></td>
+                <td><div class="row-acts"><button class="icon-btn" onclick="event.stopPropagation();toast('Meniu de rând')" aria-label="Acțiuni"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div></td>
+              </tr>
+
+              <tr onclick="openDrawer()">
+                <td class="code">UL-2419</td>
+                <td>Verificare etanșeitate branșamente — lot 4</td>
+                <td><span class="badge neutral">Verificare</span></td>
+                <td class="muted">OB-33 Rețea Străulești</td>
+                <td>Preventivă · 100%</td>
+                <td><span class="badge warn"><span class="dot"></span>În lucru</span></td>
+                <td class="num">9.800</td>
+                <td class="num">4.120</td>
+                <td class="num"><span class="mini-bar"><i style="width:82%;background:var(--fill)"></i></span> <b style="color:var(--fill)">57,9%</b></td>
+                <td><div class="row-acts"><button class="icon-btn" onclick="event.stopPropagation();toast('Meniu de rând')" aria-label="Acțiuni"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="6" style="font-weight:500;color:var(--ink-2)">5 unități afișate · total pe filtrele curente</td>
+                <td class="num">84.400</td>
+                <td class="num">55.210</td>
+                <td class="num">34,6%</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div style="margin-top:14px" class="note blue">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" style="flex:0 0 16px;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4m0-4h.01"/></svg>
+          <div><b>Ce s-a schimbat aici:</b> click pe rând deschide o previzualizare laterală, nu o pagină nouă — te uiți la 6 unități fără să pierzi filtrele. Acțiunile secundare stau în „⋯", nu ocupă coloane. Coloana de marjă are bară, ca să se vadă dintr-o privire cine e sub prag.</div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════ 3. CONTRACT (detaliu) ═══════════════════════ -->
+      <section class="screen page" id="s-contract">
+        <div class="detail-head">
+          <div class="dh-top">
+            <div style="min-width:0">
+              <div class="eyebrow">Contract de mentenanță · Apa Nova București</div>
+              <div class="dh-title">C-104 — Mentenanță rețea de canalizare, sector 6</div>
+            </div>
+            <div class="dh-acts">
+              <span class="badge fill"><span class="dot"></span>Activ · anul 2 din 4</span>
+              <button class="btn btn-default btn-sm" onclick="toast('Meniu: Act adițional · Suspendă · Duplică · Arhivează')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="toast('Am deschis emiterea situației de lucrări pe C-104.')">Emite situație</button>
+            </div>
+          </div>
+
+          <div class="pipeline">
+            <span class="step done"><span class="num">✓</span>Semnat</span>
+            <span class="step done"><span class="num">✓</span>Obiective alocate</span>
+            <span class="step now"><span class="num">3</span>În execuție · luna 8</span>
+            <span class="step"><span class="num">4</span>Situație emisă</span>
+            <span class="step"><span class="num">5</span>Facturat</span>
+          </div>
+
+          <div class="tabs">
+            <button class="tab is-on" onclick="tab(this)">Sinteză</button>
+            <button class="tab" onclick="tab(this)">Obiective <span style="color:var(--ink-3)">14</span></button>
+            <button class="tab" onclick="tab(this)">Ani și plafoane</button>
+            <button class="tab" onclick="tab(this)">Unități finanțate <span style="color:var(--ink-3)">32</span></button>
+            <button class="tab" onclick="tab(this)">Documente</button>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="section-rule" style="margin-top:6px"><h2>Plafoanele lunii august</h2><span class="line"></span><span class="right">ziua 25 din 31</span></div>
+            <div class="card card-pad">
+              <div class="gauge">
+                <div class="g-top"><b>Delta — de umplut</b><span class="badge warn"><span class="dot"></span>rămân 42.800 lei</span><span class="pct" style="color:var(--warn)">61%</span></div>
+                <div class="g-track"><div class="g-fill warn" style="width:61%"></div><div class="g-mark" style="left:81%"></div></div>
+                <div class="g-caption"><span>plafon venit 110.000</span><span>umplut 67.200</span><span>liber 42.800</span><span style="color:var(--warn)">sub ritm cu 20 pp</span></div>
+              </div>
+              <div class="gauge">
+                <div class="g-top"><b>Preventivă — de consumat</b><span class="pct" style="color:var(--fill)">54%</span></div>
+                <div class="g-track"><div class="g-fill ok" style="width:54%"></div><div class="g-mark" style="left:81%"></div></div>
+                <div class="g-caption"><span>venit 48.000</span><span>plafon cost 40.000</span><span>angajat 12.400</span><span>consumat 9.200</span><span>rest 18.400</span></div>
+              </div>
+              <div class="gauge">
+                <div class="g-top"><b>Corectivă — de consumat</b><span class="pct" style="color:var(--fill)">72%</span></div>
+                <div class="g-track"><div class="g-fill ok" style="width:72%"></div><div class="g-mark" style="left:81%"></div></div>
+                <div class="g-caption"><span>venit 28.000</span><span>plafon cost 24.000</span><span>rest 6.720</span></div>
+              </div>
+            </div>
+
+            <div class="section-rule"><h2>Unități finanțate luna asta</h2><span class="line"></span>
+              <span class="right"><a href="#" onclick="go('lucrari');return false" style="color:var(--blue-ink);font-weight:500">Vezi toate 32 →</a></span></div>
+            <div class="table-wrap">
+              <table class="tbl">
+                <thead><tr><th style="width:100px">Cod</th><th>Denumire</th><th style="width:140px">Componentă</th><th style="width:120px">Stare</th><th class="num" style="width:100px">Alocat</th><th class="num" style="width:100px">Cost</th></tr></thead>
+                <tbody>
+                  <tr onclick="openDrawer()"><td class="code">UL-2431</td><td>Înlocuire tronson DN300, str. Brașov</td><td>Delta</td><td><span class="badge warn"><span class="dot"></span>În lucru</span></td><td class="num">38.400</td><td class="num">26.180</td></tr>
+                  <tr onclick="openDrawer()"><td class="code">UL-2438</td><td>Refacere carosabil după intervenție</td><td>Delta</td><td><span class="badge blue"><span class="dot"></span>Planificată</span></td><td class="num">14.200</td><td class="num muted">0</td></tr>
+                  <tr onclick="openDrawer()"><td class="code">UL-2427</td><td>Inspecție video colector principal</td><td>Preventivă</td><td><span class="badge fill"><span class="dot"></span>Finalizată</span></td><td class="num">8.600</td><td class="num">6.940</td></tr>
+                  <tr onclick="openDrawer()"><td class="code">UL-2419</td><td>Desfundare cămine — lot 2</td><td>Corectivă</td><td><span class="badge fill"><span class="dot"></span>Finalizată</span></td><td class="num">11.400</td><td class="num">9.180</td></tr>
+                </tbody>
+                <tfoot><tr><td colspan="4" style="color:var(--ink-2);font-weight:500">32 de unități · august 2026</td><td class="num">186.000</td><td class="num">131.820</td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <aside style="display:flex;flex-direction:column;gap:14px">
+            <div class="card card-pad">
+              <div class="eyebrow" style="margin-bottom:10px">Datele contractului</div>
+              <dl class="kv">
+                <dt>Client</dt><dd>Apa Nova București</dd>
+                <dt>Perioadă</dt><dd>01.03.2025 → 28.02.2029</dd>
+                <dt>Abonament</dt><dd>186.000 lei / lună</dd>
+                <dt>Valoare an 2</dt><dd>2.232.000 lei</dd>
+                <dt>Responsabil</dt><dd>Mihai Ionescu</dd>
+                <dt>Obiective</dt><dd>14 amplasamente</dd>
+                <dt>Checklist</dt><dd>Inspecție canalizare v3</dd>
+              </dl>
+              <button class="btn btn-default btn-sm" style="width:100%;margin-top:13px" onclick="openModal()">Editează datele</button>
+            </div>
+
+            <div class="card card-pad">
+              <div class="eyebrow" style="margin-bottom:11px">Traseul lunii</div>
+              <div class="trail">
+                <div class="trail-item done"><b>Pontaje închise</b><span>21 aug · 148 de zile-om</span></div>
+                <div class="trail-item done"><b>Consumuri validate</b><span>23 aug · 41 de bonuri</span></div>
+                <div class="trail-item now"><b>Situație de emis</b><span>termen 31 aug · 6 zile</span></div>
+                <div class="trail-item"><b>Factură</b><span>după aprobarea clientului</span></div>
+                <div class="trail-item"><b>Închiderea lunii</b><span>blochează scrierile în registru</span></div>
+              </div>
+            </div>
+
+            <div class="note warn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" style="flex:0 0 16px;margin-top:1px"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+              <div><b>Delta sub ritm.</b> La 25 august ar trebui să fie umplută 81%. Este 61% — 42.800 lei se pierd dacă nu intră lucrări până pe 31.</div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════ 4. REGISTRUL DE COST ═══════════════════════ -->
+      <section class="screen page" id="s-cost">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Operațional · august 2026</div>
+            <h1 class="title">Registrul de cost</h1>
+            <div class="meta">Fiecare leu are un rând aici. Nimic nu se șterge — se stornează.</div>
+          </div>
+          <div class="acts">
+            <button class="btn btn-default btn-sm" onclick="toast('Export cu filtrele curente (CSV / XLSX).')">Export</button>
+            <button class="btn btn-default btn-sm" onclick="go('panou')">Realocări</button>
+          </div>
+        </div>
+
+        <div class="kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+          <div class="kpi"><div class="k-label">Angajat</div><div class="k-value">312<small>k</small></div><div class="k-foot"><span class="delta flat">168 de documente</span></div></div>
+          <div class="kpi"><div class="k-label">Consumat</div><div class="k-value">635<small>k</small></div><div class="k-foot"><span class="delta up">▲ 4,2% vs iulie</span></div></div>
+          <div class="kpi"><div class="k-label">Stornat</div><div class="k-value" style="color:var(--ink-3)">18<small>k</small></div><div class="k-foot"><span class="delta flat">7 documente</span></div></div>
+          <div class="kpi"><div class="k-label">Peste plafon</div><div class="k-value" style="color:var(--over)">8,4<small>k</small></div><div class="k-foot"><span class="delta down">1 componentă · C-118</span></div></div>
+        </div>
+
+        <div class="toolbar">
+          <div class="filters">
+            <label class="search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+              <input placeholder="Document, unitate, furnizor…">
+            </label>
+            <button class="chip is-on" onclick="chip(this)">august 2026 <span class="x">×</span></button>
+            <button class="chip" onclick="chip(this)">＋ Contract</button>
+            <button class="chip" onclick="chip(this)">＋ Tip de cost</button>
+            <button class="chip" onclick="chip(this)">＋ Stadiu</button>
+            <button class="chip" onclick="chip(this)">＋ Componentă</button>
+            <div class="tool-right"><span style="font-size:11.5px;color:var(--ink-3)">1.284 de rânduri</span></div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr>
+              <th style="width:88px">Data</th><th style="width:132px">Document</th><th style="width:78px">Contract</th>
+              <th style="width:112px">Componentă</th><th>Unitate de lucru</th><th style="width:118px">Tip</th>
+              <th style="width:106px">Stadiu</th><th class="num" style="width:104px">Valoare</th>
+            </tr></thead>
+            <tbody>
+              <tr class="group-row"><td colspan="8">25 august 2026</td></tr>
+              <tr onclick="openDrawer()"><td class="muted">25.08</td><td class="code">BC-0412</td><td>C-104</td><td>Delta</td><td>UL-2431 Înlocuire tronson DN300</td><td><span class="badge neutral">Materiale</span></td><td><span class="badge fill">consumat</span></td><td class="num">12.480,00</td></tr>
+              <tr onclick="openDrawer()"><td class="muted">25.08</td><td class="code">PT-08-25</td><td>C-104</td><td>Delta</td><td>UL-2431 Înlocuire tronson DN300</td><td><span class="badge neutral">Manoperă</span></td><td><span class="badge fill">consumat</span></td><td class="num">3.640,00</td></tr>
+              <tr onclick="openDrawer()"><td class="muted">25.08</td><td class="code">UTJ-1189</td><td>C-118</td><td>Corectivă</td><td>UL-2402 Remediere avarie PR</td><td><span class="badge neutral">Utilaj</span></td><td><span class="badge fill">consumat</span></td><td class="num">2.150,00</td></tr>
+              <tr class="group-row"><td colspan="8">24 august 2026</td></tr>
+              <tr onclick="openDrawer()"><td class="muted">24.08</td><td class="code">CMD-0771</td><td>C-118</td><td>Corectivă</td><td>UL-2402 Remediere avarie PR</td><td><span class="badge neutral">Achiziție</span></td><td><span class="badge blue">angajat</span></td><td class="num">18.900,00</td></tr>
+              <tr onclick="openDrawer()"><td class="muted">24.08</td><td class="code">NIR-0338</td><td>C-104</td><td>Preventivă</td><td class="muted">— pe gestiune, nealocat</td><td><span class="badge neutral">Recepție</span></td><td><span class="badge blue">angajat</span></td><td class="num">7.310,00</td></tr>
+              <tr onclick="openDrawer()" style="color:var(--ink-3)"><td class="muted">24.08</td><td class="code">ST-0044</td><td>C-104</td><td>Delta</td><td>UL-2427 Inspecție video colector</td><td><span class="badge neutral">Stornare</span></td><td><span class="badge neutral">stornat</span></td><td class="num">−1.820,00</td></tr>
+              <tr class="group-row"><td colspan="8">23 august 2026</td></tr>
+              <tr onclick="openDrawer()"><td class="muted">23.08</td><td class="code">SUB-0219</td><td>C-104</td><td>Delta</td><td>UL-2438 Refacere carosabil</td><td><span class="badge neutral">Subcontract</span></td><td><span class="badge blue">angajat</span></td><td class="num">14.200,00</td></tr>
+              <tr onclick="openDrawer()"><td class="muted">23.08</td><td class="code">TRP-0902</td><td>C-118</td><td>Preventivă</td><td>UL-2419 Verificare etanșeitate</td><td><span class="badge neutral">Transport</span></td><td><span class="badge fill">consumat</span></td><td class="num">980,00</td></tr>
+            </tbody>
+            <tfoot><tr><td colspan="7" style="color:var(--ink-2);font-weight:500">Total pe filtrele curente · 1.284 de rânduri</td><td class="num">947.420,00</td></tr></tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════ 5. SITUAȚIE DE LUCRĂRI (document) ═══════════════════════ -->
+      <section class="screen page" id="s-situatie">
+        <div class="detail-head">
+          <div class="dh-top">
+            <div style="min-width:0">
+              <div class="eyebrow">Situație de lucrări · C-104 Apa Nova · august 2026</div>
+              <div class="dh-title">SL-2026-089</div>
+            </div>
+            <div class="dh-acts">
+              <span class="badge warn"><span class="dot"></span>Așteaptă aprobarea ta · de 4 zile</span>
+              <button class="btn btn-default btn-sm" onclick="toast('PDF-ul se generează cu antetul firmei și semnăturile.')">Tipărește</button>
+              <button class="btn btn-default btn-sm" onclick="toast('Trimisă înapoi lui Andrei Popa cu observații.','Anulează')">Trimite înapoi</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('SL-2026-089 aprobată. A intrat în facturabilul lunii august.','Retrage')">Aprobă 67.320 lei</button>
+            </div>
+          </div>
+          <div class="pipeline">
+            <span class="step done"><span class="num">✓</span>Întocmită</span>
+            <span class="step done"><span class="num">✓</span>Verificată tehnic</span>
+            <span class="step now"><span class="num">3</span>De aprobat</span>
+            <span class="step"><span class="num">4</span>Trimisă clientului</span>
+            <span class="step"><span class="num">5</span>Facturată</span>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="section-rule" style="margin-top:6px"><h2>Articole din deviz</h2><span class="line"></span><span class="right">8 poziții · 3 cu cantitate modificată</span></div>
+            <div class="table-wrap">
+              <table class="tbl">
+                <thead><tr><th style="width:86px">Cod</th><th>Articol</th><th style="width:52px">UM</th><th class="num" style="width:86px">Cant. deviz</th><th class="num" style="width:92px">Cant. real</th><th class="num" style="width:88px">Preț unitar</th><th class="num" style="width:100px">Valoare</th></tr></thead>
+                <tbody>
+                  <tr><td class="code">A-1102</td><td>Săpătură mecanizată în teren mijlociu</td><td>mc</td><td class="num muted">120,00</td><td class="num">138,50</td><td class="num">42,00</td><td class="num">5.817,00</td></tr>
+                  <tr><td class="code">A-2041</td><td>Montaj conductă PVC-KG DN300</td><td>ml</td><td class="num muted">86,00</td><td class="num">86,00</td><td class="num">168,00</td><td class="num">14.448,00</td></tr>
+                  <tr><td class="code">A-2044</td><td>Racord la cămin existent</td><td>buc</td><td class="num muted">4,00</td><td class="num">5,00</td><td class="num">1.240,00</td><td class="num">6.200,00</td></tr>
+                  <tr><td class="code">A-3310</td><td>Umplutură compactată în strat de 20 cm</td><td>mc</td><td class="num muted">110,00</td><td class="num">126,00</td><td class="num">58,00</td><td class="num">7.308,00</td></tr>
+                  <tr><td class="code">A-4120</td><td>Refacere sistem rutier asfaltic</td><td>mp</td><td class="num muted">210,00</td><td class="num">210,00</td><td class="num">124,00</td><td class="num">26.040,00</td></tr>
+                  <tr><td class="code">A-5008</td><td>Semnalizare rutieră temporară</td><td>zi</td><td class="num muted">12,00</td><td class="num">14,00</td><td class="num">310,00</td><td class="num">4.340,00</td></tr>
+                  <tr><td class="code">A-6001</td><td>Transport pământ excedentar</td><td>to</td><td class="num muted">92,00</td><td class="num">92,00</td><td class="num">28,00</td><td class="num">2.576,00</td></tr>
+                  <tr><td class="code">A-7003</td><td>Probe de etanșeitate</td><td>buc</td><td class="num muted">2,00</td><td class="num">2,00</td><td class="num">295,50</td><td class="num">591,00</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr><td colspan="6" style="color:var(--ink-2)">Total situație · fără TVA</td><td class="num" style="font-size:15px">67.320,00</td></tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <div class="note blue" style="margin-top:14px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" style="flex:0 0 16px;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4m0-4h.01"/></svg>
+              <div><b>Cantitățile care depășesc devizul sunt marcate.</b> A-1102, A-2044, A-3310 și A-5008 au cantitate reală peste cea din deviz — diferența de 4.180 lei intră în suplimentări, nu în situația de bază.</div>
+            </div>
+          </div>
+
+          <aside style="display:flex;flex-direction:column;gap:14px">
+            <div class="card card-pad">
+              <div class="eyebrow" style="margin-bottom:10px">Decontare</div>
+              <dl class="kv" style="grid-template-columns:1fr auto">
+                <dt>Valoare articole</dt><dd>63.140,00</dd>
+                <dt>Suplimentări</dt><dd>4.180,00</dd>
+                <dt style="color:var(--ink)">Total fără TVA</dt><dd style="font-weight:600">67.320,00</dd>
+                <dt>TVA 21%</dt><dd>14.137,20</dd>
+              </dl>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:11px;margin-top:11px;border-top:1px solid var(--rule-2)">
+                <span style="font-size:12.5px;color:var(--ink-2)">De facturat</span>
+                <b class="tab-num" style="font-family:var(--f-narrow);font-size:19px;font-weight:600">81.457,20</b>
+              </div>
+              <div class="hint">Intră în Delta lunii august · umple 61% → 100%</div>
+            </div>
+
+            <div class="card card-pad">
+              <div class="eyebrow" style="margin-bottom:11px">Cine a atins documentul</div>
+              <div class="trail">
+                <div class="trail-item done"><b>Andrei Popa · întocmit</b><span>19 aug, 17:42 · din teren</span></div>
+                <div class="trail-item done"><b>Elena Radu · verificat tehnic</b><span>20 aug, 09:15 · 2 cantități corectate</span></div>
+                <div class="trail-item now"><b>Mihai Ionescu · de aprobat</b><span>așteaptă de 4 zile</span></div>
+                <div class="trail-item"><b>Client · confirmare</b><span>termen contractual 5 zile lucrătoare</span></div>
+              </div>
+            </div>
+
+            <div class="card card-pad">
+              <div class="eyebrow" style="margin-bottom:9px">Atașamente</div>
+              <div style="display:flex;flex-direction:column;gap:7px;font-size:12.5px">
+                <a href="#" onclick="return false" style="display:flex;gap:8px;align-items:center;color:var(--blue-ink)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v5h5M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/></svg>Atașament cantități.pdf</a>
+                <a href="#" onclick="return false" style="display:flex;gap:8px;align-items:center;color:var(--blue-ink)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m4 18 5-4 4 3 3-2 4 3"/></svg>Foto înainte–după (12)</a>
+                <a href="#" onclick="return false" style="display:flex;gap:8px;align-items:center;color:var(--blue-ink)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v5h5M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/></svg>PV de recepție parțială</a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════ 6. STOC (stare goală + listă) ═══════════════════════ -->
+      <section class="screen page" id="s-stoc">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Aprovizionare</div>
+            <h1 class="title">Gestiuni și stoc</h1>
+            <div class="meta">4 gestiuni · 312 articole · 7 sub stocul minim</div>
+          </div>
+          <div class="acts">
+            <button class="btn btn-default btn-sm" onclick="toast('Bon de consum nou — scade din gestiune și scrie în registrul de cost.')">Bon de consum</button>
+            <button class="btn btn-primary" onclick="openModal()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              Recepție / NIR
+            </button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="segments">
+            <button class="segment is-on" onclick="seg(this)">Depozit central <span class="count">248</span></button>
+            <button class="segment" onclick="seg(this)">Șantier Chitila <span class="count">41</span></button>
+            <button class="segment" onclick="seg(this)">Șantier Militari <span class="count">23</span></button>
+            <button class="segment" onclick="seg(this)">Sub minim <span class="count">7</span></button>
+          </div>
+          <div class="filters">
+            <label class="search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+              <input placeholder="Denumire, cod, furnizor…">
+            </label>
+            <button class="chip" onclick="chip(this)">＋ Categorie</button>
+            <button class="chip" onclick="chip(this)">＋ Furnizor</button>
+            <div class="tool-right"><span style="font-size:11.5px;color:var(--ink-3)">valoare stoc 418.240 lei</span></div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th style="width:96px">Cod</th><th>Articol</th><th style="width:56px">UM</th><th class="num" style="width:92px">Stoc</th><th style="width:150px">Nivel</th><th class="num" style="width:100px">Preț mediu</th><th class="num" style="width:110px">Valoare</th><th style="width:44px"></th></tr></thead>
+            <tbody>
+              <tr onclick="openDrawer()"><td class="code">MAT-0142</td><td>Conductă PVC-KG DN300, SN8<div class="sub">min. 60 ml · consum mediu 84 ml/lună</div></td><td>ml</td><td class="num" style="color:var(--over);font-weight:600">18,0</td><td><span class="mini-bar"><i style="width:22%;background:var(--over)"></i></span> <span style="font-size:11.5px;color:var(--over)">sub minim</span></td><td class="num">148,00</td><td class="num">2.664,00</td><td><div class="row-acts"><button class="icon-btn" onclick="event.stopPropagation();toast('Comandă de aprovizionare pentru MAT-0142.')" aria-label="Acțiuni"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div></td></tr>
+              <tr onclick="openDrawer()"><td class="code">MAT-0210</td><td>Nisip sortat 0–4 mm</td><td>to</td><td class="num">86,4</td><td><span class="mini-bar"><i style="width:72%;background:var(--fill)"></i></span> <span style="font-size:11.5px;color:var(--ink-3)">confortabil</span></td><td class="num">92,00</td><td class="num">7.948,80</td><td><div class="row-acts"><button class="icon-btn" onclick="event.stopPropagation();toast('Meniu de rând')" aria-label="Acțiuni"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div></td></tr>
+              <tr onclick="openDrawer()"><td class="code">MAT-0388</td><td>Capac fontă carosabil D400</td><td>buc</td><td class="num" style="color:var(--warn);font-weight:600">6</td><td><span class="mini-bar"><i style="width:40%;background:var(--warn)"></i></span> <span style="font-size:11.5px;color:var(--warn)">aproape de minim</span></td><td class="num">640,00</td><td class="num">3.840,00</td><td><div class="row-acts"><button class="icon-btn" onclick="event.stopPropagation();toast('Meniu de rând')" aria-label="Acțiuni"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div></td></tr>
+              <tr onclick="openDrawer()"><td class="code">MAT-0501</td><td>Mixtură asfaltică BA16</td><td>to</td><td class="num">24,0</td><td><span class="mini-bar"><i style="width:60%;background:var(--fill)"></i></span> <span style="font-size:11.5px;color:var(--ink-3)">confortabil</span></td><td class="num">412,00</td><td class="num">9.888,00</td><td><div class="row-acts"><button class="icon-btn" onclick="event.stopPropagation();toast('Meniu de rând')" aria-label="Acțiuni"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section-rule"><h2>Cum arată o listă goală</h2><span class="line"></span></div>
+        <div class="empty">
+          <h4>Nicio recepție în august pe gestiunea Șantier Militari</h4>
+          <p>Recepția intră aici după ce marfa e descărcată și NIR-ul e semnat. Poți porni una direct dintr-o comandă de aprovizionare deja confirmată — se completează singură cu articolele și prețurile din comandă.</p>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="openModal()">Recepție din comandă</button>
+            <button class="btn btn-default btn-sm" onclick="toast('Recepție liberă, fără comandă în spate.')">Recepție liberă</button>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /canvas -->
+
+    <div class="mock-note">
+      <div class="card card-pad">
+        <b>Această pagină e o machetă.</b> Un singur fișier HTML, fără legătură cu aplicația. Datele sunt inventate, dar structura, denumirile și regulile de business sunt cele reale.
+        Cele cinci schimbări propuse: <b>1)</b> navigația cu iconuri, favorite și paletă de comenzi (Ctrl+K) în locul listei de 27 de link-uri;
+        <b>2)</b> panoul care începe cu ce trebuie decis azi, cu sume și butoane pe fiecare rând;
+        <b>3)</b> listele cu segmente + filtre-chip + previzualizare laterală, ca să nu mai pierzi contextul;
+        <b>4)</b> detaliile cu antet lipit, traseu de stare și o singură acțiune primară;
+        <b>5)</b> feedback vizibil peste tot — toast cu „Anulează", stări goale care explică, marcaj de ritm pe fiecare bară de buget.
+        Terenul (PWA-ul șefilor de șantier) rămâne neatins.
+      </div>
+    </div>
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══════════════════ OVERLAY-URI ══════════════════ -->
+<div class="scrim" id="scrim" onclick="closeAll()"></div>
+
+<!-- drawer -->
+<aside class="drawer" id="drawer" aria-label="Previzualizare">
+  <div class="drawer-head">
+    <div style="min-width:0">
+      <div class="eyebrow">Unitate de lucru · C-104 · Delta</div>
+      <div style="font-family:var(--f-narrow);font-size:18px;font-weight:600;margin-top:2px">UL-2431</div>
+      <div style="font-size:13px;color:var(--ink-2)">Înlocuire tronson DN300, str. Brașov</div>
+    </div>
+    <button class="icon-btn" style="margin-left:auto" onclick="closeAll()" aria-label="Închide">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <span class="badge warn"><span class="dot"></span>În lucru</span>
+      <span class="badge neutral">Reparație</span>
+      <span class="badge blue">Finanțată 100% din Delta</span>
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:9px">Bani</div>
+    <div class="gauge" style="padding-top:0">
+      <div class="g-top"><b>Consumat din alocat</b><span class="pct" style="color:var(--fill)">68%</span></div>
+      <div class="g-track"><div class="g-fill ok" style="width:68%"></div></div>
+      <div class="g-caption"><span>alocat 38.400</span><span>cost 26.180</span><span>marjă 31,8%</span></div>
+    </div>
+
+    <div class="eyebrow" style="margin:18px 0 9px">Detalii</div>
+    <dl class="kv">
+      <dt>Obiectiv</dt><dd>OB-12 Stație Chitila</dd>
+      <dt>Șef de șantier</dt><dd>Andrei Popa</dd>
+      <dt>Echipă</dt><dd>3 oameni · 42 zile-om</dd>
+      <dt>Început</dt><dd>12 august 2026</dd>
+      <dt>Termen</dt><dd>29 august 2026</dd>
+      <dt>Deviz</dt><dd>DV-0331 · 8 articole</dd>
+    </dl>
+
+    <div class="eyebrow" style="margin:18px 0 9px">Ultimele mișcări de cost</div>
+    <div class="trail">
+      <div class="trail-item done"><b>BC-0412 · Materiale 12.480 lei</b><span>25 aug · consumat</span></div>
+      <div class="trail-item done"><b>PT-08-25 · Manoperă 3.640 lei</b><span>25 aug · consumat</span></div>
+      <div class="trail-item done"><b>SUB-0219 · Subcontract 14.200 lei</b><span>23 aug · angajat</span></div>
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn btn-primary btn-sm" onclick="toast('Am deschis unitatea de lucru completă.')">Deschide complet</button>
+    <button class="btn btn-default btn-sm" onclick="toast('Realocare finanțare pentru UL-2431.')">Realocă</button>
+    <button class="btn btn-quiet btn-sm" style="margin-left:auto" onclick="closeAll()">Închide</button>
+  </div>
+</aside>
+
+<!-- modal -->
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="modal-head">
+    <div>
+      <div class="eyebrow">Nou</div>
+      <h3>Unitate de lucru</h3>
+    </div>
+    <button class="icon-btn" style="margin-left:auto" onclick="closeAll()" aria-label="Închide">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid">
+      <label class="field full"><span>Titlu <i class="req">•</i></span><input class="ctl" placeholder="Ce se execută, pe scurt"></label>
+      <label class="field"><span>Tip <i class="req">•</i></span><select class="ctl"><option>Reparație</option><option>Mentenanță</option><option>Avarie</option><option>Verificare</option><option>Refacere</option></select></label>
+      <label class="field"><span>Obiectiv <i class="req">•</i></span><select class="ctl"><option>OB-12 — Stație Chitila</option><option>OB-14 — Colector Militari</option><option>OB-31 — SRM Nord</option></select></label>
+      <div class="field full">
+        <span>Finanțare</span>
+        <div class="note blue" style="margin-bottom:10px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" style="flex:0 0 15px;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4m0-4h.01"/></svg>
+          <div>Finanțarea e o legătură, nu un câmp: o unitate poate fi plătită din mai multe componente. Aici alegi prima alocare — restul se adaugă după salvare.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 110px;gap:10px">
+          <select class="ctl"><option>C-104 · Apa Nova</option><option>C-118 · Distrigaz Sud</option></select>
+          <select class="ctl"><option>Delta — rămân 42.800 lei</option><option>Preventivă — rămân 18.400 lei</option><option>Corectivă — rămân 6.720 lei</option></select>
+          <input class="ctl" value="100%" style="text-align:right">
+        </div>
+      </div>
+      <label class="field"><span>Valoare alocată</span><input class="ctl tab-num" placeholder="0,00" style="text-align:right"><div class="hint">lei, fără TVA</div></label>
+      <label class="field"><span>Șef de șantier</span><select class="ctl"><option>Andrei Popa</option><option>Ionuț Marin</option><option>Cristian Dobre</option></select></label>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <span style="font-size:11.5px;color:var(--ink-3)">Modalul nu se închide la click în afara lui.</span>
+    <button class="btn btn-quiet btn-sm" style="margin-left:auto" onclick="closeAll()">Renunță</button>
+    <button class="btn btn-default btn-sm" onclick="closeAll();toast('Salvată ca propunere, fără finanțare.','Anulează')">Salvează ca propunere</button>
+    <button class="btn btn-primary btn-sm" onclick="closeAll();toast('UL-2441 creată și finanțată din Delta C-104.','Anulează')">Creează</button>
+  </div>
+</div>
+
+<!-- paleta de comenzi -->
+<div class="palette" id="palette" role="dialog" aria-modal="true">
+  <div class="pal-input">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+    <input id="palInput" placeholder="Mergi la ecran, caută un document sau execută o acțiune…" oninput="filterPal(this.value)">
+    <kbd>Esc</kbd>
+  </div>
+  <div class="pal-list" id="palList"></div>
+  <div class="pal-foot">
+    <span><kbd>↑</kbd><kbd>↓</kbd> navighează</span><span><kbd>↵</kbd> deschide</span><span><kbd>Ctrl</kbd>+<kbd>K</kbd> oricând</span>
+  </div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast">
+  <svg class="ok" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m5 13 4 4L19 7"/></svg>
+  <span id="toastMsg">Gata</span>
+  <button id="toastAct" onclick="hideToast()">Anulează</button>
+</div>
+
+<script>
+/* ─────────────────── navigație ─────────────────── */
+const ICONS = {
+  panou:'<path d="M3 13h8V3H3zM13 21h8V11h-8zM13 7h8V3h-8zM3 21h8v-4H3z"/>',
+  contracte:'<path d="M14 3v5h5M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/>',
+  obiective:'<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+  cereri:'<path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/>',
+  backlog:'<path d="M4 6h16M4 12h10M4 18h7"/>',
+  lucrari:'<path d="M14.5 5.5 18 9l-8.5 8.5H6v-3.5z"/><path d="M4 21h16"/>',
+  cost:'<path d="M12 2v20"/><path d="M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.8 5 3.2 5 1.3 5 3.3-2.2 3.2-5 3.2-5-1.3-5-3.2"/>',
+  realocari:'<path d="M17 3l4 4-4 4"/><path d="M21 7H8a4 4 0 0 0-4 4"/><path d="M7 21l-4-4 4-4"/><path d="M3 17h13a4 4 0 0 0 4-4"/>',
+  perioade:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/><path d="m9 16 2 2 4-4"/>',
+  devize:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+  pachete:'<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
+  situatii:'<path d="M14 3v5h5M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="m9 15 2 2 4-4"/>',
+  garantii:'<path d="M12 3 4 6.5v5c0 4.6 3.4 8.4 8 9.5 4.6-1.1 8-4.9 8-9.5v-5z"/>',
+  stoc:'<path d="M3 8h18v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M2 4h20v4H2zM10 12h4"/>',
+  achizitii:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.7 12.4a1.5 1.5 0 0 0 1.5 1.1h8.4a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/>',
+  receptii:'<path d="m3 9 9-5 9 5v9l-9 5-9-5z"/><path d="m8.5 12 2.5 2.5 4.5-4.5"/>',
+  utilaje:'<circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/><path d="M4 18h-1v-5l3-5h5v10M12 13h9v5h-1.5"/>',
+  unelte:'<path d="M14.7 6.3a4 4 0 0 0 5.3 5.3l-7.4 7.4a2.4 2.4 0 1 1-3.4-3.4z"/><path d="M4 4l5 5"/>',
+  transporturi:'<path d="M2 7h11v10H2zM13 10h4l4 4v3h-8z"/><circle cx="6.5" cy="18.5" r="1.6"/><circle cx="17.5" cy="18.5" r="1.6"/>',
+  concedii:'<path d="M12 3a5 5 0 0 1 5 5v3h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h1V8a5 5 0 0 1 5-5"/>',
+  documente:'<path d="M4 4a2 2 0 0 1 2-2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M13 2v5h5"/>',
+  rapoarte:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  facturi:'<path d="M5 3h14v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  nomenclatoare:'<path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="1.6"/><circle cx="14" cy="12" r="1.6"/><circle cx="10" cy="19" r="1.6"/>',
+  integrari:'<path d="M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4"/><rect x="7" y="7" width="10" height="10" rx="2"/>'
+};
+const NAV = [
+  {title:'Fixate', items:[
+    {id:'panou', icon:'panou', label:'Panou', screen:'panou'},
+    {id:'lucrari', icon:'lucrari', label:'Unități de lucru', screen:'lucrari', badge:'12'},
+    {id:'situatii', icon:'situatii', label:'Situații de lucrări', screen:'situatie', badge:'3', hot:true}
+  ]},
+  {title:'Conducere', items:[
+    {id:'contracte', icon:'contracte', label:'Contracte', screen:'contract'},
+    {id:'obiective', icon:'obiective', label:'Obiective'},
+    {id:'rapoarte', icon:'rapoarte', label:'Rapoarte lunare'}
+  ]},
+  {title:'Operațional', items:[
+    {id:'cereri', icon:'cereri', label:'Cereri și tichete', badge:'8'},
+    {id:'backlog', icon:'backlog', label:'Backlog Delta'},
+    {id:'cost', icon:'cost', label:'Registrul de cost', screen:'cost'},
+    {id:'realocari', icon:'realocari', label:'Realocări'},
+    {id:'perioade', icon:'perioade', label:'Închiderea lunii'}
+  ]},
+  {title:'Comercial', items:[
+    {id:'devize', icon:'devize', label:'Devize'},
+    {id:'pachete', icon:'pachete', label:'Pachete'},
+    {id:'garantii', icon:'garantii', label:'Suplimentări și garanții'}
+  ]},
+  {title:'Aprovizionare', items:[
+    {id:'stoc', icon:'stoc', label:'Gestiuni și stoc', screen:'stoc', badge:'7'},
+    {id:'achizitii', icon:'achizitii', label:'Achiziții'},
+    {id:'receptii', icon:'receptii', label:'Recepții și NIR'}
+  ]},
+  {title:'Resurse', items:[
+    {id:'utilaje', icon:'utilaje', label:'Utilaje'},
+    {id:'unelte', icon:'unelte', label:'Unelte'},
+    {id:'transporturi', icon:'transporturi', label:'Transporturi'},
+    {id:'concedii', icon:'concedii', label:'Concedii'}
+  ]},
+  {title:'Evidență', items:[
+    {id:'documente', icon:'documente', label:'Documente și PV'},
+    {id:'facturi', icon:'facturi', label:'Facturi'},
+    {id:'nomenclatoare', icon:'nomenclatoare', label:'Nomenclatoare'},
+    {id:'integrari', icon:'integrari', label:'Integrări', soon:true}
+  ]}
+];
+const CRUMB = {
+  panou:['Panou'],
+  lucrari:['Operațional','Unități de lucru'],
+  contract:['Conducere','Contracte','C-104'],
+  cost:['Operațional','Registrul de cost'],
+  situatie:['Comercial','Situații de lucrări','SL-2026-089'],
+  stoc:['Aprovizionare','Gestiuni și stoc']
+};
+
+const railScroll = document.getElementById('railScroll');
+railScroll.innerHTML = NAV.map(g => `
+  <div class="rail-group">
+    <div class="rail-group-title">${g.title}</div>
+    ${g.items.map(it => it.soon
+      ? `<div class="rail-item is-soon" title="Ecranul urmează">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[it.icon]}</svg>
+           <span class="rail-label">${it.label}</span><span class="soon-tag rail-label">urmează</span>
+         </div>`
+      : `<a class="rail-item" href="#" data-screen="${it.screen||''}" onclick="navClick(event,this)">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[it.icon]}</svg>
+           <span class="rail-label">${it.label}</span>
+           ${it.badge ? `<span class="rail-badge${it.hot?' is-hot':''}">${it.badge}</span>` : ''}
+         </a>`
+    ).join('')}
+  </div>`).join('');
+
+function navClick(e, el){
+  e.preventDefault();
+  const s = el.dataset.screen;
+  if(!s){ toast('Ecranul „'+el.textContent.trim()+'” nu e reprodus în machetă — structura lui e cea din lista curentă.'); return; }
+  go(s, el);
+}
+function go(screen, el){
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('is-on', s.id === 's'+'-'+screen));
+  document.querySelectorAll('.rail-item').forEach(a => a.classList.remove('is-active'));
+  const target = el || document.querySelector(`.rail-item[data-screen="${screen}"]`);
+  if(target) target.classList.add('is-active');
+  const parts = CRUMB[screen] || ['Panou'];
+  document.getElementById('crumbs').innerHTML = parts.map((p,i) =>
+    i === parts.length-1 ? `<b>${p}</b>` : `${p}<span class="sep">/</span>`).join(' ');
+  document.getElementById('canvas').scrollTop = 0;
+  closeAll();
+}
+go('panou');
+
+/* ─────────────────── interacțiuni mici ─────────────────── */
+function seg(el){ el.parentElement.querySelectorAll('.segment').forEach(s=>s.classList.remove('is-on')); el.classList.add('is-on'); }
+function tab(el){ el.parentElement.querySelectorAll('.tab').forEach(s=>s.classList.remove('is-on')); el.classList.add('is-on'); }
+function chip(el){ el.classList.toggle('is-on'); }
+
+const scrim = document.getElementById('scrim');
+function openDrawer(){ closePop(); document.getElementById('drawer').classList.add('is-on'); scrim.classList.add('is-on'); }
+function openModal(){ closePop(); document.getElementById('modal').classList.add('is-on'); scrim.classList.add('is-on'); }
+function openPalette(){
+  closePop();
+  document.getElementById('palette').classList.add('is-on'); scrim.classList.add('is-on');
+  const i = document.getElementById('palInput'); i.value=''; filterPal(''); setTimeout(()=>i.focus(),40);
+}
+/* Modalul nu se închide la scrim — regula 4 din CLAUDE.md. Drawerul și paleta, da. */
+function closeAll(){
+  document.getElementById('drawer').classList.remove('is-on');
+  document.getElementById('palette').classList.remove('is-on');
+  document.getElementById('modal').classList.remove('is-on');
+  scrim.classList.remove('is-on');
+}
+scrim.addEventListener('click', e => {
+  const m = document.getElementById('modal');
+  if(m.classList.contains('is-on')){
+    toast('Modalul nu se închide la click în afara lui — folosește „Renunță”.');
+    return;
+  }
+  closeAll();
+});
+
+/* semnale */
+const pop = document.getElementById('pop');
+function togglePop(e){ e.stopPropagation(); pop.classList.toggle('is-on'); }
+function closePop(){ pop.classList.remove('is-on'); }
+document.addEventListener('click', e => {
+  if(!pop.contains(e.target) && !document.getElementById('bellBtn').contains(e.target)) closePop();
+});
+
+/* toast */
+let toastTimer;
+function toast(msg, action){
+  document.getElementById('toastMsg').textContent = msg;
+  const a = document.getElementById('toastAct');
+  a.textContent = action || 'Închide';
+  const t = document.getElementById('toast');
+  t.classList.add('is-on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 4200);
+}
+function hideToast(){ document.getElementById('toast').classList.remove('is-on'); }
+
+/* ─────────────────── paleta de comenzi ─────────────────── */
+const PAL = [
+  {sec:'Sari la', label:'Panou', where:'Conducere', icon:'panou', run:()=>go('panou')},
+  {sec:'Sari la', label:'Unități de lucru', where:'Operațional', icon:'lucrari', run:()=>go('lucrari')},
+  {sec:'Sari la', label:'Registrul de cost', where:'Operațional', icon:'cost', run:()=>go('cost')},
+  {sec:'Sari la', label:'Gestiuni și stoc', where:'Aprovizionare', icon:'stoc', run:()=>go('stoc')},
+  {sec:'Sari la', label:'Contract C-104 · Apa Nova', where:'Contracte', icon:'contracte', run:()=>go('contract')},
+  {sec:'Sari la', label:'SL-2026-089 · de aprobat', where:'Situații', icon:'situatii', run:()=>go('situatie')},
+  {sec:'Acțiuni', label:'Unitate de lucru nouă', where:'Ctrl+U', icon:'lucrari', run:openModal},
+  {sec:'Acțiuni', label:'Bon de consum nou', where:'', icon:'stoc', run:()=>toast('Bon de consum nou.')},
+  {sec:'Acțiuni', label:'Realocă între componente', where:'', icon:'realocari', run:()=>toast('Realocare între componente.')},
+  {sec:'Acțiuni', label:'Închide luna august', where:'', icon:'perioade', run:()=>toast('Închiderea lunii blochează scrierile în registru.','Anulează')},
+  {sec:'Documente recente', label:'UL-2431 · Înlocuire tronson DN300', where:'C-104', icon:'lucrari', run:openDrawer},
+  {sec:'Documente recente', label:'NIR-0338 · Recepție materiale', where:'Depozit central', icon:'receptii', run:openDrawer}
+];
+function filterPal(q){
+  const s = q.trim().toLowerCase();
+  const hits = PAL.filter(p => !s || p.label.toLowerCase().includes(s) || p.where.toLowerCase().includes(s));
+  const list = document.getElementById('palList');
+  if(!hits.length){ list.innerHTML = '<div class="pal-sec">Niciun rezultat pentru „'+q+'”</div>'; return; }
+  let html = '', sec = '';
+  hits.forEach((p, i) => {
+    if(p.sec !== sec){ sec = p.sec; html += `<div class="pal-sec">${sec}</div>`; }
+    html += `<button class="pal-item${i===0?' is-cursor':''}" data-i="${PAL.indexOf(p)}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[p.icon]}</svg>
+      <span>${p.label}</span>${p.where?`<span class="where">${p.where}</span>`:''}</button>`;
+  });
+  list.innerHTML = html;
+  list.querySelectorAll('.pal-item').forEach(b => b.onclick = () => { closeAll(); PAL[+b.dataset.i].run(); });
+}
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); openPalette(); return; }
+  if(e.key === 'Escape'){ closePop(); closeAll(); hideToast(); return; }
+  const pal = document.getElementById('palette');
+  if(!pal.classList.contains('is-on')) return;
+  const items = [...pal.querySelectorAll('.pal-item')];
+  if(!items.length) return;
+  let idx = items.findIndex(b => b.classList.contains('is-cursor'));
+  if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+    e.preventDefault();
+    items[Math.max(idx,0)].classList.remove('is-cursor');
+    idx = (idx + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length;
+    items[idx].classList.add('is-cursor');
+    items[idx].scrollIntoView({block:'nearest'});
+  }
+  if(e.key === 'Enter' && idx > -1){ e.preventDefault(); items[idx].click(); }
+});
+</script>
+</body>
+</html>
