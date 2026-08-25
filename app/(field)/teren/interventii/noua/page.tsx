@@ -4,6 +4,7 @@ import { createInterventionSheet, maintenanceObjectives } from "@/app/actions/me
 import { Alert, Block, Empty, FieldBar, Label, Note } from "@/components/domain/FieldUI";
 import { ChipPick } from "@/components/domain/FieldParts";
 import { ActionButton } from "@/components/domain/FieldKit";
+import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
 import { workUnits } from "@/lib/db/schema";
 import { subcontractorPartners } from "@/lib/field-data";
@@ -88,7 +89,7 @@ export default async function InterventieNouaPage({
         </div>
         <div className="f-fld">
           <label htmlFor="objectiveId">Obiectiv</label>
-          <select
+          <Select tone="field"
             id="objectiveId"
             name="objectiveId"
             defaultValue={sp.loc ?? source?.objectiveId ?? objectives[0]?.id}
@@ -98,7 +99,7 @@ export default async function InterventieNouaPage({
                 {objective.name} — {objective.code}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="f-fld">
           <label htmlFor="day">Data</label>
@@ -110,14 +111,14 @@ export default async function InterventieNouaPage({
         </div>
         <div className="f-fld">
           <label htmlFor="subcontractorId">Subcontractant</label>
-          <select id="subcontractorId" name="subcontractorId" defaultValue="">
+          <Select tone="field" id="subcontractorId" name="subcontractorId" defaultValue="">
             <option value="">— fără —</option>
             {subcontractors.map((partner) => (
               <option key={partner.id} value={partner.id}>
                 {partner.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </Block>
 

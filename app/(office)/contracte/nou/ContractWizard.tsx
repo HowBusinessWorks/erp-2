@@ -470,7 +470,7 @@ function StepTwo({
                     <Select
                       value={c.kind}
                       onChange={(e) => onEdit(i, { kind: e.target.value })}
-                      className="h-8"
+                      size="sm"
                     >
                       {COMPONENT_KINDS.map((k) => (
                         <option key={k.value} value={k.value}>

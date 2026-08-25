@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { submitInspectionSheet } from "@/app/actions/mentenanta";
+import { Select } from "@/components/ui/select";
 import { Icon } from "./FieldIcons";
 import { SubmitBar } from "./FieldKit";
 import { BigChoice, ChipPick, PhotoDeck, QtyStepper } from "./FieldParts";
@@ -98,7 +99,7 @@ export function InspectionWizard({
         <Block>
           <div className="f-fld">
             <label htmlFor="objectiveId">Obiectiv</label>
-            <select
+            <Select tone="field"
               id="objectiveId"
               name="objectiveId"
               value={objectiveId}
@@ -109,7 +110,7 @@ export function InspectionWizard({
                   {option.name} — {option.code}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="f-fld">
             <label htmlFor="day">Data</label>
@@ -117,14 +118,14 @@ export function InspectionWizard({
           </div>
           <div className="f-fld">
             <label htmlFor="subcontractorId">Subcontractant</label>
-            <select id="subcontractorId" name="subcontractorId" defaultValue="">
+            <Select tone="field" id="subcontractorId" name="subcontractorId" defaultValue="">
               <option value="">— fără —</option>
               {subcontractors.map((partner) => (
                 <option key={partner.id} value={partner.id}>
                   {partner.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </Block>
 
@@ -220,11 +221,11 @@ export function InspectionWizard({
               </div>
               <div className="f-fld">
                 <label htmlFor="qualification">Calificare</label>
-                <select id="qualification" name="qualification" defaultValue="muncitor">
+                <Select tone="field" id="qualification" name="qualification" defaultValue="muncitor">
                   <option value="muncitor">Muncitor</option>
                   <option value="electrician">Electrician</option>
                   <option value="instalator">Instalator</option>
-                </select>
+                </Select>
               </div>
             </Block>
 

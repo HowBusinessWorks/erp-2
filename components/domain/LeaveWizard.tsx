@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { requestLeave } from "@/app/actions/leave";
+import { Select } from "@/components/ui/select";
 import { Icon, type IconName } from "./FieldIcons";
 import { SubmitBar } from "./FieldKit";
 import {
@@ -183,14 +184,14 @@ export function LeaveWizard({
         <div className="f-blk">
           <div className="f-fld">
             <label htmlFor="replacementId">Cine te înlocuiește (opțional)</label>
-            <select id="replacementId" name="replacementId" defaultValue="">
+            <Select tone="field" id="replacementId" name="replacementId" defaultValue="">
               <option value="">— nimeni —</option>
               {colleagues.map((person) => (
                 <option key={person.id} value={person.id}>
                   {person.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="f-fld">
             <label htmlFor="reason">Motiv (opțional)</label>

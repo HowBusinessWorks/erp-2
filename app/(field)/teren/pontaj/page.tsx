@@ -3,6 +3,7 @@ import { and, asc, eq, inArray, or } from "drizzle-orm";
 import { submitTimesheet } from "@/app/actions/field";
 import { SubmitBar } from "@/components/domain/FieldKit";
 import { Block, Empty, FieldBar, Label, Note, Row, longDate } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
 import { objectives, timesheets, workUnits } from "@/lib/db/schema";
 import { todayIso } from "@/lib/field";
@@ -97,13 +98,13 @@ export default async function PontajPage() {
       <Block>
         <div className="f-fld">
           <label htmlFor="qualification">Cum ai lucrat azi</label>
-          <select id="qualification" name="qualification" defaultValue="muncitor">
+          <Select tone="field" id="qualification" name="qualification" defaultValue="muncitor">
             {QUALIFICATIONS.map((q) => (
               <option key={q.value} value={q.value}>
                 {q.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </Block>
 

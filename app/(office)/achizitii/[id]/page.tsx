@@ -195,7 +195,7 @@ export default async function ComandaPage({ params }: { params: Promise<{ id: st
                       <Select
                         name="componentId"
                         defaultValue={line.componentId ?? ""}
-                        className="h-7 w-56 text-tiny"
+                        size="xs" className="w-56"
                       >
                         <option value="">— fără componentă —</option>
                         {componentRows.map(({ component, contract }) => (
@@ -207,7 +207,7 @@ export default async function ComandaPage({ params }: { params: Promise<{ id: st
                       <Select
                         name="workUnitId"
                         defaultValue={line.workUnitId ?? ""}
-                        className="h-7 w-56 text-tiny"
+                        size="xs" className="w-56"
                       >
                         <option value="">— fără lucrare —</option>
                         {unitRows.map((u) => (

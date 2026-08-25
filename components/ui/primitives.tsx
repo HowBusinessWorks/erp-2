@@ -503,9 +503,13 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input className={clsx(CONTROL, className)} {...props} />;
 }
 
-export function Select({ className, ...props }: ComponentProps<"select">) {
-  return <select className={clsx(CONTROL, "pr-8", className)} {...props} />;
-}
+/**
+ * Lista de alegere e proprie, nu cea a sistemului — stă în `./select`, ca să nu
+ * intre `"use client"` peste tot fișierul ăsta, care se folosește și din server.
+ * Se re-exportă de aici fiindcă e un control de formular ca oricare altul: nimeni
+ * nu trebuie să știe din ce fișier vine.
+ */
+export { Select, type SelectTone } from "./select";
 
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   return (

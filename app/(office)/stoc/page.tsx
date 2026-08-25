@@ -238,7 +238,7 @@ export default async function StocPage({
                         className="h-7 w-16 text-right text-tiny tabular"
                         placeholder="cant."
                       />
-                      <Select name="toWarehouseId" defaultValue="" className="h-7 w-36 text-tiny">
+                      <Select name="toWarehouseId" defaultValue="" size="xs" className="w-36">
                         <option value="" disabled>
                           către…
                         </option>

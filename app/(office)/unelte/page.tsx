@@ -146,7 +146,7 @@ export default async function UneltePage({
                         <Select
                           name="holderUserId"
                           defaultValue={tool.holderUserId ?? ""}
-                          className="h-7 w-40 text-tiny"
+                          size="xs" className="w-40"
                         >
                           <option value="">— retur în magazie —</option>
                           {staff.map((u) => (

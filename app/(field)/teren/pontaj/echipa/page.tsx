@@ -2,6 +2,7 @@ import { submitTeamAttendance } from "@/app/actions/teren-timp";
 import { SubmitBar } from "@/components/domain/FieldKit";
 import { PickableLine } from "@/components/domain/FieldParts";
 import { Block, Empty, FieldBar, Label, Note, longDate } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { todayIso } from "@/lib/field";
 import { myTeam, myWorks } from "@/lib/field-data";
 import { requireSession } from "@/lib/session";
@@ -60,13 +61,13 @@ export default async function PontajEchipaPage({
         </div>
         <div className="f-fld">
           <label htmlFor="workUnitId">Unde ați lucrat</label>
-          <select id="workUnitId" name="workUnitId" defaultValue={sp.ul ?? works[0]?.id}>
+          <Select tone="field" id="workUnitId" name="workUnitId" defaultValue={sp.ul ?? works[0]?.id}>
             {works.map((work) => (
               <option key={work.id} value={work.id}>
                 {work.title} — {work.objectiveName}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </Block>
 

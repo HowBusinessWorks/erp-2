@@ -3,6 +3,7 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import { submitMaterialNeed } from "@/app/actions/field";
 import { SubmitBar } from "@/components/domain/FieldKit";
 import { Alert, Block, FieldBar, Label } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
 import { objectives, products, warehouses, workUnits } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
@@ -66,13 +67,13 @@ export default async function NecesarPage({
       <Block>
         <div className="f-fld">
           <label htmlFor="productId">Produs</label>
-          <select id="productId" name="productId" defaultValue={productRows[0]?.id}>
+          <Select tone="field" id="productId" name="productId" defaultValue={productRows[0]?.id}>
             {productRows.map((product) => (
               <option key={product.id} value={product.id}>
                 {product.name} ({product.unit})
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="f-fld">
           <label htmlFor="quantity">Cantitate</label>
@@ -90,13 +91,13 @@ export default async function NecesarPage({
       <Label>Pentru care lucrare</Label>
       <Block>
         <div className="f-fld">
-          <select name="workUnitId" defaultValue={preselected} aria-label="Lucrarea">
+          <Select tone="field" name="workUnitId" defaultValue={preselected} aria-label="Lucrarea">
             {units.map(({ unit, objective }) => (
               <option key={unit.id} value={unit.id}>
                 {objective?.name ?? unit.title} — {unit.code}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </Block>
 

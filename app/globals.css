@@ -236,6 +236,39 @@ table,
 /* ───────────────────────── utilitare proprii ───────────────────────── */
 
 /**
+ * Panoul listelor de alegere (`components/ui/select.tsx`). Apariția e scurtă și
+ * dinspre declanșator, nu o cortină: lista se deschide de zeci de ori pe ecran.
+ * Pe teren, unde panoul urcă de jos ca o foaie, mișcarea e ceva mai lungă,
+ * cât să se vadă de unde vine.
+ */
+@keyframes pop-panel {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+}
+@keyframes pop-sheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+.pop-panel {
+  animation: pop-panel 0.13s ease-out;
+  transform-origin: top center;
+}
+.pop-sheet {
+  animation: pop-sheet 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pop-panel,
+  .pop-sheet {
+    animation: none;
+  }
+}
+
+/**
  * Eticheta de secțiune: majuscule mici, spațiate, cu linie de cotă care merge
  * până la capătul containerului. E elementul care ține tot sistemul împreună.
  */

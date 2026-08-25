@@ -200,7 +200,8 @@ export function TemplateEditor({
                         onChange={(e) =>
                           patch(f.key, { kind: e.target.value as TemplateFieldKind })
                         }
-                        className="h-7 w-32 text-tiny"
+                        size="xs"
+                        className="w-32"
                       >
                         {Object.entries(FIELD_KIND_LABEL).map(([key, label]) => (
                           <option key={key} value={key}>

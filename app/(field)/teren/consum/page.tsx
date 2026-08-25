@@ -3,6 +3,7 @@ import { and, asc, eq, inArray, sql as raw } from "drizzle-orm";
 import { submitConsumption } from "@/app/actions/field";
 import { SubmitBar } from "@/components/domain/FieldKit";
 import { Alert, Block, Empty, FieldBar, Label } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
 import {
   objectives,
@@ -89,25 +90,25 @@ export default async function TerenConsumPage({
       <Block>
         <div className="f-fld">
           <label htmlFor="workUnitId">Lucrarea</label>
-          <select id="workUnitId" name="workUnitId" defaultValue={selected}>
+          <Select tone="field" id="workUnitId" name="workUnitId" defaultValue={selected}>
             {units.map(({ unit, objective }) => (
               <option key={unit.id} value={unit.id}>
                 {objective?.name ?? unit.title} — {unit.code}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         {stages.length > 0 ? (
           <div className="f-fld">
             <label htmlFor="stageId">Etapa</label>
-            <select id="stageId" name="stageId" defaultValue="">
+            <Select tone="field" id="stageId" name="stageId" defaultValue="">
               <option value="">— fără etapă —</option>
               {stages.map((stage) => (
                 <option key={stage.id} value={stage.id}>
                   {stage.position}. {stage.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         ) : null}
         <div className="f-fld">

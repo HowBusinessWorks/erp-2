@@ -3,6 +3,7 @@ import { asc, desc, eq, inArray } from "drizzle-orm";
 import { submitJournal } from "@/app/actions/field";
 import { SubmitBar } from "@/components/domain/FieldKit";
 import { Block, Empty, FieldBar, Label, longDate, shortDate } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
 import { objectives, siteJournalEntries, workUnits } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
@@ -91,13 +92,13 @@ export default async function JurnalPage({
           </div>
           <div className="f-fld">
             <label htmlFor="workUnitId">Lucrarea</label>
-            <select id="workUnitId" name="workUnitId" defaultValue={selected}>
+            <Select tone="field" id="workUnitId" name="workUnitId" defaultValue={selected}>
               {rows.map(({ unit, objective }) => (
                 <option key={unit.id} value={unit.id}>
                   {objective?.name ?? unit.title} — {unit.code}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </Block>
 

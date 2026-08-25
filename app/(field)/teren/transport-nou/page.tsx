@@ -4,6 +4,7 @@ import { requestTransportFromField } from "@/app/actions/teren-comenzi";
 import { SubmitBar } from "@/components/domain/FieldKit";
 import { ChipPick } from "@/components/domain/FieldParts";
 import { Block, Empty, FieldBar, Label, Note } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
 import { objectives, warehouses } from "@/lib/db/schema";
 import { todayIso } from "@/lib/field";
@@ -86,14 +87,14 @@ export default async function TransportNouPage({
         </div>
         <div className="f-fld">
           <label htmlFor="toObjectiveId">Se duce la</label>
-          <select id="toObjectiveId" name="toObjectiveId" defaultValue="">
+          <Select tone="field" id="toObjectiveId" name="toObjectiveId" defaultValue="">
             <option value="">— scriu eu mai jos —</option>
             {places.map((place) => (
               <option key={place.id} value={place.id}>
                 {place.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="f-fld">
           <label htmlFor="toText">Sau adresa</label>
@@ -109,13 +110,13 @@ export default async function TransportNouPage({
         </div>
         <div className="f-fld">
           <label htmlFor="workUnitId">Pentru ce lucrare</label>
-          <select id="workUnitId" name="workUnitId" defaultValue={sp.ul ?? works[0].id}>
+          <Select tone="field" id="workUnitId" name="workUnitId" defaultValue={sp.ul ?? works[0].id}>
             {works.map((work) => (
               <option key={work.id} value={work.id}>
                 {work.title} — {work.objectiveName}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="f-fld">
           <label htmlFor="description">Ce se transportă</label>

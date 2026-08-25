@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { reportEquipmentIssue, requestEquipment } from "@/app/actions/equipment";
 import { SubmitBar } from "@/components/domain/FieldKit";
+import { Select } from "@/components/ui/select";
 
 /**
  * T7 — solicitarea și observația, în două atingeri.
@@ -70,13 +71,13 @@ export function RequestEquipmentForm({
         {objectives.length ? (
           <div className="f-fld">
             <label htmlFor="objectiveId">Unde</label>
-            <select id="objectiveId" name="objectiveId" defaultValue={objectives[0]?.id ?? ""}>
+            <Select tone="field" id="objectiveId" name="objectiveId" defaultValue={objectives[0]?.id ?? ""}>
               {objectives.map((objective) => (
                 <option key={objective.id} value={objective.id}>
                   {objective.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         ) : null}
         <div className="f-fld">

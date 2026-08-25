@@ -130,7 +130,7 @@ export default async function ReceptiiPage() {
                           name="warehouseId"
                           defaultValue={po.deliverToWarehouseId ?? warehouse?.id ?? ""}
                           required
-                          className="h-8 w-52 text-tiny"
+                          size="sm" className="w-52"
                         >
                           <option value="" disabled>
                             Alege gestiunea

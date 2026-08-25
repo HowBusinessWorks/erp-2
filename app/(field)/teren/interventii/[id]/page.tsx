@@ -23,6 +23,7 @@ import {
   Row,
   StaticRow,
 } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
 import { products, stock, warehouses } from "@/lib/db/schema";
 import { SOURCE_LABEL, interventionThread } from "@/lib/field-data";
@@ -218,11 +219,11 @@ export default async function InterventieDetaliuPage({ params }: { params: Promi
               </div>
               <div className="f-fld">
                 <label htmlFor="qualification">Calificare</label>
-                <select id="qualification" name="qualification" defaultValue="muncitor">
+                <Select tone="field" id="qualification" name="qualification" defaultValue="muncitor">
                   <option value="muncitor">Muncitor</option>
                   <option value="electrician">Electrician</option>
                   <option value="instalator">Instalator</option>
-                </select>
+                </Select>
               </div>
               <div className="f-fld">
                 <label htmlFor="note">Pentru ce</label>

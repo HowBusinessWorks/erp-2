@@ -2,6 +2,7 @@ import { requestEquipmentFromField } from "@/app/actions/teren-comenzi";
 import { SubmitBar } from "@/components/domain/FieldKit";
 import { ChipPick } from "@/components/domain/FieldParts";
 import { Alert, Block, Empty, FieldBar, Label } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { todayIso } from "@/lib/field";
 import { myWorks } from "@/lib/field-data";
 import { requireSession } from "@/lib/session";
@@ -62,13 +63,13 @@ export default async function UtilajNouPage({
         </div>
         <div className="f-fld">
           <label htmlFor="workUnitId">Pentru ce lucrare</label>
-          <select id="workUnitId" name="workUnitId" defaultValue={sp.ul ?? works[0].id}>
+          <Select tone="field" id="workUnitId" name="workUnitId" defaultValue={sp.ul ?? works[0].id}>
             {works.map((work) => (
               <option key={work.id} value={work.id}>
                 {work.title} — {work.objectiveName}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
           <div className="f-fld" style={{ flex: 1 }}>

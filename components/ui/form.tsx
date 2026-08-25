@@ -108,8 +108,7 @@ export function Field({
         name={name}
         defaultValue={value}
         disabled={disabled}
-        aria-invalid={invalid || undefined}
-        className={ring}
+        invalid={invalid}
       >
         {children ??
           options?.map((o) => (

@@ -43,8 +43,6 @@ referințele de tip §4.2, §13.1, §18.1.4 din cod și din plan trimit acolo.
 
 **Stare:** *toate cele șase blocuri sunt gata și plimbate. Teren → cerere → rutare → lucrare → cost → raport → **factură**, plus flota, stocul și cele 3 canale de achiziție. A început ziua 3.*
 
-Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `damina`
-
 | Bloc | Stare |
 |---|---|
 | Fundație (schemă, seed, design system, shell, auth) | ✅ **gata** — schemă împinsă, seed rulat, verificat în browser |
@@ -223,59 +221,69 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ## 6. Istoric pe sesiuni
 
-### 2026-08-25 — redesign birou după `erp-mockup.html`
+### 2026-08-25 — listă de alegere proprie, peste tot
+
+`components/ui/select.tsx` (nou) înlocuiește dropdown-ul browserului în toate cele 31 de locuri.
+Sub el stă **tot un `<select>` nativ**, invizibil (`opacity-0`, nu `display:none` — altfel `required`
+ar deveni „invalid, dar nefocusabil"), întins peste declanșator: poartă `name`, deci acțiunile de
+server nu s-au atins, și primește alegerea prin setter-ul nativ + `change` care urcă, deci
+`value`/`defaultValue`/`onChange` din apelurile vechi au rămas neschimbate. Opțiunile se citesc din
+DOM-ul lui, nu din `children` prin React — merg și `<UnitOptions />`, `<OptionList>`, orice `.map()`;
+pentru randarea de server se deduc și din `children`, altfel fiecare câmp ar clipi pe „Alege…".
+Butonul stă **înaintea** select-ului în DOM (un `<label>` care împachetează câmpul își leagă primul
+descendent focusabil; altfel un click pe etichetă ar deschide lista sistemului peste a noastră), și
+tot el poartă `id`.
+
+Două înfățișări: `tone="office"` (38/32/28px prin `size`, panou `fixed` ca să nu-l taie `overflow`
+de tabel, căutare de la 8 opțiuni în sus) și `tone="field"` (tipografia de 17.5px din `.f-fld`,
+panou care urcă de jos sub 640px). Tastatură completă; animații `.pop-panel`/`.pop-sheet` în
+`globals.css`, oprite la `prefers-reduced-motion`. `Select` din `primitives.tsx` e acum re-export —
+de-aici, cele 14 fișiere de birou n-au avut nevoie de nicio schimbare. Singura excepție:
+`className` folosit pentru înălțime a devenit `size="xs" | "sm" | "md"`, `className` rămâne doar
+pentru lățime (9 apeluri).
+
+Verificat: `tsc`/`eslint` curate (rămân erorile dinainte din `rapoarte/inspectii` și `modal.tsx`);
+15 ecrane răspund 200 și randează `role="combobox"` cu eticheta corectă în HTML-ul de server.
+**Neverificat vizual** — extensia de browser nu era conectată.
+
+### 2026-08-25 — redesign birou după `erp-mockup.html` (comprimat)
 
 Paleta trece în variabile brute (`--bg --surf --sunk --line --tx --acc --ok --warn --bad --rail*`,
-umbre `--sh-1/2/3`, raze 10/7/5px) în `app/globals.css`; numele Tailwind existente (`paper`, `sheet`,
-`rule`, `ink`, `blueprint`, `fill`, `warn`, `over`…) sunt acum indirecții către ele, deci **nicio
-pagină nu s-a atins**. Temă închisă pe `[data-theme="dark"]`, densitate pe `[data-density]`, ambele
-puse de un script inline din `app/layout.tsx` — care **sare peste `/teren`**, ca terenul să rămână
-exact cum era.
+umbre `--sh-1/2/3`, raze 10/7/5px) în `app/globals.css`; numele Tailwind (`paper`, `sheet`, `rule`,
+`ink`, `blueprint`…) sunt indirecții către ele, deci **nicio pagină nu s-a atins**. Temă închisă pe
+`[data-theme="dark"]`, densitate pe `[data-density]`, puse de un script inline din `app/layout.tsx`
+care **sare peste `/teren`**. `primitives.tsx` a primit `Kpi` (cu sparkline SVG), `Note`,
+`Toolbar`/`Segments`/`Chip`, `Pipeline`, `Trail`, `DetailHeader`; `table.tsx` densitate din
+`--row-y`/`--tbl-fs`; `Rail` 244px cu icoane `lucide-react` (numele iconiței în `lib/navigation.ts`,
+nu componenta — altfel nu trece granița server→client); `TopBar`; `CommandPalette.tsx` (Ctrl/⌘K).
 
-`primitives.tsx`: buton 36/29px cu rază 7px și `:active` translateY, badge-pastilă cu punct,
-`PageHeader` cu eyebrow + titlu 26px, `EmptyState` punctat, plus componente noi — `Kpi` (cu
-sparkline SVG), `Note`, `Toolbar`/`Segments`/`Chip`, `Pipeline`, `Trail`, `DetailHeader`.
-`gauge.tsx` a primit marcaj de ritm (`mark`) și legendă sub bară. `table.tsx`: cap pe `surf-2`,
-rând de grup, total cu linie groasă, `TRowActions` la hover, densitate din `--row-y`/`--tbl-fs`.
-`Rail` — 244px, icoane `lucide-react` (numele iconiței stă în `lib/navigation.ts`, nu componenta,
-altfel nu trece granița server→client), contoare din `liveSignals` repartizate pe cea mai lungă
-adresă care le prinde, colaps la 64px în `localStorage`, contul în subsol. `TopBar` — breadcrumb,
-căutare, perioadă, comutator de temă și de densitate, clopoțel, pastilă de rol.
-`CommandPalette.tsx` (nou) — Ctrl/⌘K, căutare fără diacritice, săgeți/Enter/Esc.
+Ce **nu** s-a făcut: paginile încă folosesc KPI/toolbar/note scrise de mână — adoptarea
+componentelor noi ecran cu ecran e o sesiune separată.
 
-Verificat: `tsc` și `npm run build` curate; opt ecrane de birou și trei de teren răspund 200 cu
-sesiune de admin. Ce **nu** s-a făcut: paginile încă folosesc KPI/toolbar/note scrise de mână —
-adoptarea componentelor noi ecran cu ecran e o sesiune separată.
-
-### 2026-08-24 — bara de jos a terenului, iOS (comprimat)
+### 2026-08-24 — bara de jos a terenului + blocul F (comprimat)
 
 Fâșia de sub `.f-tabs` pe iOS instalat: `FieldViewportFit` măsoară `screen.height − innerHeight`
 (clamp 0–80px) în `--f-extra`, `.f-app` primește `bottom: calc(-1 * var(--f-extra))`, `.f-tabs`
-padding `max(env(safe-area-inset-bottom), var(--f-extra))`; `html`/`body` sub `.f-app` au fundal
-`#10151f`. Bara comprimată, „Locuri"→„Lucrări" (ruta rămâne `/teren/locuri`), tab nou **Mentenanță**.
-Tastatura pe iOS nu mai împinge bara (`visualViewport`). Coșul de comandă la `/teren/catalog`,
-cu adăugare pe linii, zero prețuri.
+padding `max(env(safe-area-inset-bottom), var(--f-extra))`, `html`/`body` sub `.f-app` fundal
+`#10151f`; tastatura nu mai împinge bara (`visualViewport`). Tab nou **Mentenanță**,
+„Locuri"→„Lucrări" (ruta rămâne `/teren/locuri`), coș de comandă la `/teren/catalog`, zero prețuri.
 
-### 2026-08-24 — blocul F: funcțiile noi din mockup-ul `santierappv3.html` (comprimat)
-
-15 rute noi, `db:push` **de rulat**. Din `santierappv3.html` se iau **doar funcțiile**; `v3` e canonic
-unde diferă. Media e doar interfață (stocare pe R2 mai târziu). Schemă: `subcontractor_attendance`,
-`media_slots`, `work_units.inspection_type/discipline/source_tag/source_unit_id`,
-`purchase_orders.needed_by/drop_point/urgency/field_note`. Ecrane: mentenanța ca două fluxuri
-(`/teren/mentenanta`, inspecție-wizard care se închide cu verdict, intervenție care rămâne deschisă
+Blocul F — 15 rute noi din `santierappv3.html` (**doar funcțiile**; `v3` e canonic unde diferă;
+media e doar interfață). Schemă: `subcontractor_attendance`, `media_slots`,
+`work_units.inspection_type/discipline/source_tag/source_unit_id`,
+`purchase_orders.needed_by/drop_point/urgency/field_note`. Mentenanța ca două fluxuri
+(`/teren/mentenanta`: inspecție-wizard care se închide cu verdict, intervenție care rămâne deschisă
 și își împletește firul din `site_journal_entries`+`timesheets`+`intervention_details`); pontaj
-echipă/firme; lucrarea pe patru file `?f=jurnal|echipa|depozit|acte` + `inainte-dupa`; comenzi,
-catalog, utilaj/transport nou; PV cu semnătură canvas. Piese: `FieldParts.tsx`, `InspectionWizard.tsx`.
-Intervențiile merg pe `/teren/interventii/[id]`; `/teren/[id]` redirectează acolo.
+echipă/firme; lucrarea pe file `?f=jurnal|echipa|depozit|acte`; PV cu semnătură canvas. Piese:
+`FieldParts.tsx`, `InspectionWizard.tsx`. `/teren/[id]` redirectează la `/teren/interventii/[id]`.
 
-### 2026-08-21 — aplicația de teren pe 3 tab-uri; concedii (comprimat)
+### 2026-08-21 — aplicația de teren; concedii (comprimat)
 
-Limbaj vizual propriu (`field.css`, prefix `f-`), bara de tab-uri (`FieldTabs.tsx`, apartenența
-pe prefixul căii — a ajuns la patru tab-uri pe 2026-08-24, vezi mai sus), `lib/field.ts` ca sursă
-unică a cifrelor. Ecrane: meniul unui **loc** (obiectiv, nu UL), cererile mele ca fir peste
-`purchase_orders` **și** `requests`, inventarul echipei (disponibil, nu cantitate), bon de
-consum, notificări. **Concedii**, nou: `leave_requests` + `users.annual_leave_days`,
-`lib/leave.ts` pur, wizard 3 pași pe teren, `/concedii` la birou. 64 de rute, `tsc`/`build` curate.
+Limbaj vizual propriu (`field.css`, prefix `f-`), bara de tab-uri (`FieldTabs.tsx`, apartenența pe
+prefixul căii), `lib/field.ts` ca sursă unică a cifrelor. Meniul unui **loc** (obiectiv, nu UL),
+cererile ca fir peste `purchase_orders` **și** `requests`, inventarul echipei (disponibil, nu
+cantitate), bon de consum, notificări. **Concedii:** `leave_requests` + `users.annual_leave_days`,
+`lib/leave.ts` pur, wizard 3 pași pe teren, `/concedii` la birou.
 
 ### 2026-08-21 și mai devreme — restul blocurilor (comprimat)
 
@@ -283,11 +291,10 @@ consum, notificări. **Concedii**, nou: `leave_requests` + `users.annual_leave_d
 - **E** (§9.2–§9.10): `/contracte/nou` (asistent 3 pași, o tranzacție, pagină nu modal),
   `ObjectiveForm`, `OperabilityForms`, `DevizForms`, `lib/pickers.ts`.
 - **Facturi/clopoțel:** `lib/notifications.ts` (semnale calculate) · `/facturi` + `lib/invoicing.ts`.
-- **C2** `lib/stock.ts` + 23–25: disponibil = cantitate − rezervat, 3 canale, CMP, `releaseCommitment`.
-- **B2** `lib/execution.ts` + `/lucrari/[id]/executie` · **A2** `lib/deviz.ts` + 16–21, T8 (N:M,
-  SL blocată pe depășire, garanții) · **C** `lib/equipment.ts`, `pv-templates.ts`, ecranele 26–33.
-- **Fundația+A+B**: Next.js 16, Tailwind 4, `lib/`, design system, shell, login, seed, 2–15, 34,
-  36, T1–T6, plimbate: 31 rute, 4 roluri, 0 „lei" pe teren, panoul 15s→0,7s.
+- **C2** `lib/stock.ts` + 23–25: disponibil = cantitate − rezervat, 3 canale, CMP · **B2**
+  `lib/execution.ts` + `/lucrari/[id]/executie` · **A2** `lib/deviz.ts` + 16–21, T8 (N:M, SL blocată
+  pe depășire, garanții) · **C** `lib/equipment.ts`, `pv-templates.ts`, ecranele 26–33.
+- **Fundația+A+B**: Next.js 16, Tailwind 4, design system, shell, login, seed, 2–15, 34, 36, T1–T6.
 
 **Accidentul care se repetă:** un fișier client care importă `lib/` cu `lib/db` în spate dă 500
 pe tot blocul, `tsc` curat — de-aici `lib/*-types.ts`.

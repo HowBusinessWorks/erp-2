@@ -4,6 +4,7 @@ import { createFieldPv } from "@/app/actions/teren-acte";
 import { ActionButton } from "@/components/domain/FieldKit";
 import { PhotoDeck, PickableLine, SignaturePad } from "@/components/domain/FieldParts";
 import { Block, Empty, FieldBar, Label, Note } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
 import { users, workUnitStages } from "@/lib/db/schema";
 import { todayIso } from "@/lib/field";
@@ -73,13 +74,13 @@ export default async function PvNouPage({
       <Block>
         <div className="f-fld">
           <label htmlFor="templateId">Șablon</label>
-          <select id="templateId" name="templateId" defaultValue={templates[0].id}>
+          <Select tone="field" id="templateId" name="templateId" defaultValue={templates[0].id}>
             {templates.map((template) => (
               <option key={template.id} value={template.id}>
                 {template.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="f-fld">
           <label htmlFor="day">Data</label>
@@ -88,13 +89,13 @@ export default async function PvNouPage({
         {stages.length > 0 ? (
           <div className="f-fld">
             <label htmlFor="stageName">Etapa</label>
-            <select id="stageName" name="stageName" defaultValue={stages[0].name}>
+            <Select tone="field" id="stageName" name="stageName" defaultValue={stages[0].name}>
               {stages.map((stage) => (
                 <option key={stage.id} value={stage.name}>
                   {stage.position}. {stage.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         ) : null}
         <div className="f-fld">

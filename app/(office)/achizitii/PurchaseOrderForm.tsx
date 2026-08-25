@@ -129,7 +129,7 @@ export function PurchaseOrderForm({
                     <Select
                       value={l.productId}
                       onChange={(e) => edit(i, { productId: e.target.value })}
-                      className="h-8"
+                      size="sm"
                     >
                       <option value="">— alege —</option>
                       {products.map((p) => (
@@ -160,7 +160,7 @@ export function PurchaseOrderForm({
                     <Select
                       value={l.componentId}
                       onChange={(e) => edit(i, { componentId: e.target.value })}
-                      className="h-8"
+                      size="sm"
                     >
                       <option value="">— alege —</option>
                       {components.map((c) => (
@@ -175,7 +175,7 @@ export function PurchaseOrderForm({
                     <Select
                       value={l.workUnitId}
                       onChange={(e) => edit(i, { workUnitId: e.target.value })}
-                      className="h-8"
+                      size="sm"
                     >
                       <option value="">— niciuna —</option>
                       {workUnits.map((w) => (

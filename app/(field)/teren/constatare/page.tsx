@@ -3,6 +3,7 @@ import { asc, eq, inArray } from "drizzle-orm";
 import { submitObservation } from "@/app/actions/field";
 import { SubmitBar } from "@/components/domain/FieldKit";
 import { Block, FieldBar, Label, Note } from "@/components/domain/FieldUI";
+import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
 import { objectives, workUnits } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
@@ -64,7 +65,7 @@ export default async function ConstatarePage({
       <Label>Unde</Label>
       <Block>
         <div className="f-fld">
-          <select
+          <Select tone="field"
             name="objectiveId"
             defaultValue={unit?.objectiveId ?? objectiveRows[0]?.id}
             aria-label="Obiectivul"
@@ -74,7 +75,7 @@ export default async function ConstatarePage({
                 {objective.name} — {objective.code}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </Block>
 
