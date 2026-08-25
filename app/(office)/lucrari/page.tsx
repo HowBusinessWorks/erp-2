@@ -204,8 +204,8 @@ export default async function LucrariPage({
               const margin = alloc === 0 ? null : ratio(alloc - cost, alloc);
               return (
                 <TR key={unit.id}>
-                  <TD>
-                    <Link href={`/lucrari/${unit.id}`} className="font-medium hover:text-blueprint">
+                  <TD code>
+                    <Link href={`/lucrari/${unit.id}`} className="hover:text-blueprint">
                       {unit.code}
                     </Link>
                   </TD>

@@ -69,14 +69,22 @@ export function TD({
   numeric,
   strong,
   muted,
+  code,
   className,
   ...props
-}: ComponentProps<"td"> & { numeric?: boolean; strong?: boolean; muted?: boolean }) {
+}: ComponentProps<"td"> & {
+  numeric?: boolean;
+  strong?: boolean;
+  muted?: boolean;
+  /** celulă de identificator: cifre înguste, pe un singur rând */
+  code?: boolean;
+}) {
   return (
     <td
       className={clsx(
         "px-[13px] py-[var(--row-y)] align-middle",
         numeric && "whitespace-nowrap text-right tabular",
+        code && "whitespace-nowrap font-narrow font-semibold tracking-[0.01em]",
         strong && "font-semibold text-ink",
         muted && "text-ink-3",
         className,
