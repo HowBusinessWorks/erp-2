@@ -6,6 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { db } from "@/lib/db";
 import { firms } from "@/lib/db/schema";
 import { navigationFor } from "@/lib/navigation";
+import { ROLE_LABELS } from "@/lib/permissions";
 import { liveSignals } from "@/lib/notifications";
 import { getSession } from "@/lib/session";
 
@@ -38,12 +39,20 @@ export default async function OfficeLayout({ children }: { children: React.React
   // deci nu există nici momentul în care rămân în urmă (vezi `lib/notifications.ts`).
   const signals = await liveSignals(session.role, firm?.id ?? null);
 
+  const groups = navigationFor(session.role);
+
   const now = new Date();
   const period = `${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
 
   return (
     <div className="flex h-dvh overflow-hidden">
-      <Rail groups={navigationFor(session.role)} firmName={firm?.name ?? "—"} />
+      <Rail
+        groups={groups}
+        firmName={firm?.name ?? "—"}
+        userName={session.name}
+        roleLabel={ROLE_LABELS[session.role]}
+        signals={signals}
+      />
       <div className="flex min-w-0 grow flex-col">
         <TopBar
           userName={session.name}
@@ -52,9 +61,10 @@ export default async function OfficeLayout({ children }: { children: React.React
           impersonating={session.impersonating}
           signals={signals}
           period={period}
+          groups={groups}
         />
         <main className="grow overflow-y-auto print:overflow-visible">
-          <div data-print="page" className="mx-auto max-w-[1600px] px-6 py-5">
+          <div data-print="page" className="mx-auto max-w-[1560px] px-[26px] pb-20 pt-[22px]">
             {children}
           </div>
         </main>

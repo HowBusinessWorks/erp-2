@@ -9,38 +9,154 @@
 
    Regula de densitate: ecranele astea se citesc, nu se admiră. Aerul se pune
    între secțiuni, nu în interiorul tabelelor.
+
+   Paleta trăiește în variabile brute (`--bg`, `--surf`, `--line`, `--tx`…), iar
+   numele Tailwind (`paper`, `sheet`, `rule`, `ink`, `blueprint`…) sunt doar
+   indirecții către ele. Așa tema închisă se schimbă dintr-un singur loc, fără
+   să atingă nicio pagină.
    ══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg: #f7f5f1;
+  --surf: #ffffff;
+  --surf-2: #fbfaf7;
+  --sunk: #f0ede7;
+  --sunk-2: #e9e5dd;
+  --line: #e5e0d7;
+  --line-2: #d2cbbe;
+
+  --tx: #1a1917;
+  --tx-2: #605b53;
+  --tx-3: #918b81;
+
+  --acc: #1f5b8f;
+  --acc-2: #17456d;
+  --acc-soft: #e7f0f8;
+  --acc-line: #b7d0e7;
+  --acc-tx: #17456d;
+
+  --ok: #2a7a5f;
+  --ok-soft: #e1f0ea;
+  --ok-line: #b6dbca;
+
+  --warn: #95700f;
+  --warn-soft: #f7efd9;
+  --warn-line: #e4cf9c;
+
+  --bad: #a03f27;
+  --bad-soft: #f9e7e0;
+  --bad-line: #ebc0af;
+
+  --rail: #14171c;
+  --rail-2: #1c2027;
+  --rail-3: #262c35;
+  --rail-tx: #c9cdd3;
+  --rail-tx-2: #79808a;
+
+  --sh-1: 0 1px 2px rgba(20, 18, 15, 0.05);
+  --sh-2:
+    0 6px 20px -8px rgba(20, 18, 15, 0.2), 0 1px 3px rgba(20, 18, 15, 0.06);
+  --sh-3:
+    0 28px 64px -20px rgba(20, 18, 15, 0.36), 0 4px 12px rgba(20, 18, 15, 0.1);
+
+  --r: 10px;
+  --r-2: 7px;
+  --r-3: 5px;
+
+  /* densitatea tabelelor — comutată din bara de sus */
+  --row-y: 9px;
+  --tbl-fs: 13px;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #101215;
+  --surf: #181b20;
+  --surf-2: #1d2126;
+  --sunk: #212530;
+  --sunk-2: #272c36;
+  --line: #292e36;
+  --line-2: #3a4049;
+
+  --tx: #e8e5e0;
+  --tx-2: #a39d94;
+  --tx-3: #7b756c;
+
+  --acc: #5a9bd6;
+  --acc-2: #7fb4e4;
+  --acc-soft: #14283a;
+  --acc-line: #27455f;
+  --acc-tx: #8cbce6;
+
+  --ok: #54a98a;
+  --ok-soft: #122b22;
+  --ok-line: #254a3b;
+
+  --warn: #c9a44a;
+  --warn-soft: #2c2412;
+  --warn-line: #4c3f1d;
+
+  --bad: #d07257;
+  --bad-soft: #301b14;
+  --bad-line: #553025;
+
+  --rail: #0c0e11;
+  --rail-2: #14171c;
+  --rail-3: #1e232a;
+  --rail-tx: #bfc4cb;
+  --rail-tx-2: #6e757e;
+
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sh-2: 0 6px 20px -8px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --sh-3: 0 28px 64px -20px rgba(0, 0, 0, 0.7), 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  color-scheme: dark;
+}
+
+[data-density="compact"] {
+  --row-y: 5px;
+  --tbl-fs: 12.5px;
+}
 
 @theme {
   /* — suprafețe: hârtie, nu alb — */
-  --color-paper: oklch(97.4% 0.006 85);
-  --color-sheet: oklch(99.3% 0.003 85);
-  --color-sunk: oklch(95.2% 0.008 85);
-  --color-rail: oklch(23.5% 0.014 250);
+  --color-paper: var(--bg);
+  --color-sheet: var(--surf);
+  --color-sheet-2: var(--surf-2);
+  --color-sunk: var(--sunk);
+  --color-sunk-2: var(--sunk-2);
+  --color-rail: var(--rail);
+  --color-rail-2: var(--rail-2);
+  --color-rail-3: var(--rail-3);
 
   /* — linii de cotă — */
-  --color-rule: oklch(89.5% 0.008 85);
-  --color-rule-strong: oklch(76% 0.012 85);
+  --color-rule: var(--line);
+  --color-rule-strong: var(--line-2);
 
   /* — cerneală — */
-  --color-ink: oklch(24% 0.014 60);
-  --color-ink-2: oklch(46% 0.012 60);
-  --color-ink-3: oklch(63% 0.010 60);
-  --color-ink-rail: oklch(88% 0.010 250);
-  --color-ink-rail-2: oklch(66% 0.014 250);
+  --color-ink: var(--tx);
+  --color-ink-2: var(--tx-2);
+  --color-ink-3: var(--tx-3);
+  --color-ink-rail: var(--rail-tx);
+  --color-ink-rail-2: var(--rail-tx-2);
 
   /* — albastru de planșă: singura culoare de acțiune — */
-  --color-blueprint: oklch(45% 0.115 248);
-  --color-blueprint-ink: oklch(38% 0.12 248);
-  --color-blueprint-soft: oklch(94.5% 0.028 248);
+  --color-blueprint: var(--acc);
+  --color-blueprint-ink: var(--acc-tx);
+  --color-blueprint-soft: var(--acc-soft);
+  --color-blueprint-line: var(--acc-line);
 
   /* — stări de buget — */
-  --color-fill: oklch(53% 0.095 165); /* Delta umplută, verdigris */
-  --color-fill-soft: oklch(94% 0.035 165);
-  --color-warn: oklch(64% 0.125 75); /* 80% din plafon, ocru */
-  --color-warn-soft: oklch(95% 0.045 75);
-  --color-over: oklch(52% 0.155 32); /* depășire, teracotă */
-  --color-over-soft: oklch(94.5% 0.04 32);
+  --color-fill: var(--ok); /* Delta umplută */
+  --color-fill-soft: var(--ok-soft);
+  --color-fill-line: var(--ok-line);
+  --color-warn: var(--warn); /* 80% din plafon */
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-line: var(--warn-line);
+  --color-over: var(--bad); /* depășire */
+  --color-over-soft: var(--bad-soft);
+  --color-over-line: var(--bad-line);
 
   /* — tipografie — */
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
@@ -51,8 +167,15 @@
   --text-tiny: 0.75rem;
   --text-tiny--line-height: 1.125rem;
 
-  /* — ritm — */
-  --radius-sheet: 3px;
+  /* — ritm: carduri 10px, controale 7px, mărunțiș 5px — */
+  --radius-sheet: var(--r);
+  --radius-ctl: var(--r-2);
+  --radius-chip: var(--r-3);
+
+  /* — umbre în două trepte, plus una de overlay — */
+  --shadow-flat: var(--sh-1);
+  --shadow-lift: var(--sh-2);
+  --shadow-float: var(--sh-3);
 }
 
 /* ───────────────────────────── baza ───────────────────────────── */
@@ -77,6 +200,9 @@ body {
   min-height: 100%;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 /* Instalat pe ecranul de start (iOS/Android), fără gesturi de sistem pentru
@@ -98,8 +224,8 @@ table,
 /* Focus vizibil, în albastrul de planșă — nu inelul implicit al browserului. */
 :focus-visible {
   outline: 2px solid var(--color-blueprint);
-  outline-offset: 1px;
-  border-radius: 2px;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 ::selection {
@@ -115,9 +241,9 @@ table,
  */
 @utility eyebrow {
   font-family: var(--font-narrow);
-  font-size: var(--text-micro);
-  line-height: 1;
-  letter-spacing: 0.09em;
+  font-size: 10.5px;
+  line-height: 1.2;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--color-ink-3);
   font-weight: 600;
@@ -126,25 +252,34 @@ table,
 /** Capul de tabel — aceeași voce ca eticheta de secțiune, dar mai strâns. */
 @utility th-label {
   font-family: var(--font-narrow);
-  font-size: var(--text-micro);
-  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-3);
   font-weight: 600;
 }
 
-/** Suprafața de date: fundal de coală, chenar de o linie, colț aproape drept. */
+/** Suprafața de date: fundal de coală, chenar de o linie, umbră abia perceptibilă. */
 @utility sheet {
   background: var(--color-sheet);
   border: 1px solid var(--color-rule);
   border-radius: var(--radius-sheet);
+  box-shadow: var(--sh-1);
+}
+
+/** Titlu în Archivo Narrow, folosit de anteturi și de cifrele mari. */
+@utility narrow-title {
+  font-family: var(--font-narrow);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
 }
 
 /* Bara de derulare, discretă — se vede mult tabel în aplicația asta. */
 @supports (scrollbar-width: thin) {
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-rule-strong) transparent;
+    scrollbar-color: var(--line-2) transparent;
   }
 }
 

@@ -22,11 +22,14 @@ export function Gauge({
   direction,
   percent,
   size = "md",
+  /** ritmul așteptat la data de azi — se desenează ca un semn pe bară */
+  mark,
   className,
 }: {
   direction: GaugeDirection;
   percent: number;
   size?: "sm" | "md";
+  mark?: number;
   className?: string;
 }) {
   const clamped = Math.max(0, Math.min(percent, 100));
@@ -43,11 +46,11 @@ export function Gauge({
 
   return (
     <div
-      className={clsx("relative w-full overflow-hidden rounded-[1px]", className)}
+      className={clsx("relative w-full rounded-[5px]", mark === undefined && "overflow-hidden", className)}
       style={{
-        height: size === "sm" ? 6 : 9,
+        height: size === "sm" ? 6 : 8,
         // La Delta, fundalul e hașurat — restul neumplut e o problemă, nu spațiu liber.
-        background: direction === "umple" ? HATCH : "var(--color-sunk)",
+        background: direction === "umple" ? HATCH : "var(--sunk-2)",
         backgroundColor: direction === "umple" ? "var(--color-over-soft)" : undefined,
       }}
       role="meter"
@@ -55,10 +58,20 @@ export function Gauge({
       aria-valuemin={0}
       aria-valuemax={100}
     >
-      <div
-        className="h-full transition-[width] duration-500 ease-out"
-        style={{ width: `${clamped}%`, background: fillColor }}
-      />
+      <div className="h-full overflow-hidden rounded-[5px]">
+        <div
+          className="h-full rounded-[5px] transition-[width] duration-500 ease-out"
+          style={{ width: `${clamped}%`, background: fillColor }}
+        />
+      </div>
+      {mark !== undefined ? (
+        <span
+          aria-hidden
+          title="ritmul așteptat"
+          className="absolute -top-0.5 -bottom-0.5 w-[2px] rounded-[2px] bg-ink opacity-40"
+          style={{ left: `${Math.max(0, Math.min(mark, 100))}%` }}
+        />
+      ) : null}
       {overflow ? (
         <span
           aria-hidden
@@ -80,6 +93,8 @@ export function BudgetRow({
   direction,
   percent,
   right,
+  mark,
+  legend,
   hidePrices,
 }: {
   label: string;
@@ -87,6 +102,10 @@ export function BudgetRow({
   direction: GaugeDirection;
   percent: number;
   right?: string;
+  /** ritmul așteptat, ca semn pe bară */
+  mark?: number;
+  /** cifrele de sub bară: consumat · rămas · ritm */
+  legend?: string[];
   /** șeful de șantier nu vede lei — atunci rămâne doar bara și procentul */
   hidePrices?: boolean;
 }) {
@@ -104,7 +123,7 @@ export function BudgetRow({
         <div className="mt-0.5 text-tiny text-ink-2">{caption}</div>
       ) : null}
       <div className="mt-1.5 flex items-center gap-2.5">
-        <Gauge direction={direction} percent={percent} className="grow" />
+        <Gauge direction={direction} percent={percent} mark={mark} className="grow" />
         <span
           className={clsx(
             "w-11 shrink-0 text-right tabular text-tiny font-semibold",
@@ -122,6 +141,13 @@ export function BudgetRow({
           {Math.round(percent)}%
         </span>
       </div>
+      {legend && legend.length > 0 && !hidePrices ? (
+        <div className="tabular mt-1.5 flex flex-wrap gap-x-[11px] text-[11px] text-ink-3">
+          {legend.map((l) => (
+            <span key={l}>{l}</span>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

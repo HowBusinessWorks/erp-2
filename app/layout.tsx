@@ -94,9 +94,32 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
+const THEME_BOOTSTRAP = `try{
+  if(!location.pathname.startsWith("/teren")){
+    var t=localStorage.getItem("damina.theme");
+    if(t)document.documentElement.dataset.theme=t;
+    var d=localStorage.getItem("damina.density");
+    if(d)document.documentElement.dataset.density=d;
+  }
+}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ro" className={`${archivo.variable} ${archivoNarrow.variable}`}>
+    <html
+      lang="ro"
+      className={`${archivo.variable} ${archivoNarrow.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* Tema si densitatea se pun inainte de prima pictura, altfel ecranul clipeste
+            alb la fiecare navigare. Terenul ramane in afara: designul lui e deja bun
+            si nu are comutator de tema. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: THEME_BOOTSTRAP,
+          }}
+        />
+      </head>
       <body>
         {children}
         <RegisterServiceWorker />

@@ -48,14 +48,14 @@ export function NotificationBell({ signals }: { signals: Signal[] }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="relative flex h-8 w-8 items-center justify-center rounded-[3px] text-ink-2 transition-colors hover:bg-sunk hover:text-ink"
+        className="relative grid size-[34px] place-items-center rounded-ctl text-ink-2 transition-colors duration-[130ms] hover:bg-sunk hover:text-ink"
         aria-label={`Semnale${count ? ` (${count})` : ""}`}
       >
-        <Bell size={16} strokeWidth={1.75} />
+        <Bell size={17} strokeWidth={1.8} />
         {count > 0 ? (
           <span
             className={clsx(
-              "absolute right-1 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[0.5625rem] font-bold leading-none text-white",
+              "absolute right-[5px] top-[5px] grid h-4 min-w-4 place-items-center rounded-full border-2 border-sheet px-1 text-[10px] font-bold leading-none text-white",
               critical > 0 ? "bg-over" : "bg-warn",
             )}
           >
@@ -67,9 +67,9 @@ export function NotificationBell({ signals }: { signals: Signal[] }) {
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-9 z-50 w-[22rem] sheet shadow-[0_8px_24px_-12px_rgba(24,20,16,0.35)]"
+          className="sheet absolute right-0 top-11 z-50 w-[390px] overflow-hidden shadow-lift"
         >
-          <div className="flex items-baseline justify-between border-b border-rule px-3 py-2">
+          <div className="flex items-baseline justify-between border-b border-rule bg-sheet-2 px-4 py-2.5">
             <span className="eyebrow">Semnale</span>
             <span className="text-micro text-ink-3">
               {count === 0 ? "nimic de rezolvat" : `${count} · recalculate acum`}
@@ -88,7 +88,7 @@ export function NotificationBell({ signals }: { signals: Signal[] }) {
                   <Link
                     href={s.href}
                     onClick={() => setOpen(false)}
-                    className="flex gap-2.5 border-b border-rule px-3 py-2.5 transition-colors last:border-b-0 hover:bg-sunk"
+                    className="flex gap-3 border-b border-rule px-4 py-3 transition-colors last:border-b-0 hover:bg-sheet-2"
                   >
                     <span
                       aria-hidden

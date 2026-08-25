@@ -8,7 +8,43 @@ export type NavItem = {
   needs?: Capability;
   /** intrări care încă n-au ecran — se văd, dar sunt marcate */
   stub?: boolean;
+  /**
+   * Numele iconiței, nu componenta: `NavGroup` trece din server în `Rail`, care e
+   * componentă de client, iar o funcție-componentă nu se poate serializa peste
+   * graniță. `Rail` traduce numele într-o iconiță `lucide-react`.
+   */
+  icon: NavIcon;
 };
+
+export type NavIcon =
+  | "panou"
+  | "contracte"
+  | "obiective"
+  | "cereri"
+  | "backlog"
+  | "lucrari"
+  | "cost"
+  | "realocari"
+  | "perioade"
+  | "devize"
+  | "pachete"
+  | "situatii"
+  | "garantii"
+  | "stoc"
+  | "consum"
+  | "achizitii"
+  | "receptii"
+  | "utilaje"
+  | "solicitari"
+  | "unelte"
+  | "transporturi"
+  | "concedii"
+  | "documente"
+  | "rapoarte"
+  | "inspectii"
+  | "facturi"
+  | "integrari"
+  | "nomenclatoare";
 
 export type NavGroup = {
   label: string;
@@ -19,59 +55,59 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: "Conducere",
     items: [
-      { href: "/panou", label: "Panou" },
-      { href: "/contracte", label: "Contracte", needs: "contracte.vezi" },
-      { href: "/obiective", label: "Obiective" },
+      { href: "/panou", label: "Panou", icon: "panou" },
+      { href: "/contracte", label: "Contracte", needs: "contracte.vezi", icon: "contracte" },
+      { href: "/obiective", label: "Obiective", icon: "obiective" },
     ],
   },
   {
     label: "Operațional",
     items: [
-      { href: "/cereri", label: "Cereri și tichete" },
-      { href: "/backlog", label: "Backlog Delta", needs: "cost.vezi" },
-      { href: "/lucrari", label: "Unități de lucru" },
-      { href: "/cost", label: "Registrul de cost", needs: "cost.vezi" },
-      { href: "/realocari", label: "Realocări", needs: "cost.vezi" },
-      { href: "/perioade", label: "Închiderea lunii", needs: "perioada.inchide" },
+      { href: "/cereri", label: "Cereri și tichete", icon: "cereri" },
+      { href: "/backlog", label: "Backlog Delta", needs: "cost.vezi", icon: "backlog" },
+      { href: "/lucrari", label: "Unități de lucru", icon: "lucrari" },
+      { href: "/cost", label: "Registrul de cost", needs: "cost.vezi", icon: "cost" },
+      { href: "/realocari", label: "Realocări", needs: "cost.vezi", icon: "realocari" },
+      { href: "/perioade", label: "Închiderea lunii", needs: "perioada.inchide", icon: "perioade" },
     ],
   },
   {
     label: "Comercial",
     items: [
-      { href: "/devize", label: "Devize" },
-      { href: "/pachete", label: "Pachete", needs: "pachete.gestioneaza" },
-      { href: "/situatii", label: "Situații de lucrări" },
-      { href: "/garantii", label: "Suplimentări și garanții", needs: "preturi.vezi" },
+      { href: "/devize", label: "Devize", icon: "devize" },
+      { href: "/pachete", label: "Pachete", needs: "pachete.gestioneaza", icon: "pachete" },
+      { href: "/situatii", label: "Situații de lucrări", icon: "situatii" },
+      { href: "/garantii", label: "Suplimentări și garanții", needs: "preturi.vezi", icon: "garantii" },
     ],
   },
   {
     label: "Aprovizionare",
     items: [
-      { href: "/stoc", label: "Gestiuni și stoc", needs: "stoc.vezi" },
-      { href: "/stoc/consum", label: "Bonuri de consum", needs: "stoc.opereaza" },
-      { href: "/achizitii", label: "Achiziții", needs: "achizitii.gestioneaza" },
-      { href: "/receptii", label: "Recepții și NIR", needs: "stoc.opereaza" },
+      { href: "/stoc", label: "Gestiuni și stoc", needs: "stoc.vezi", icon: "stoc" },
+      { href: "/stoc/consum", label: "Bonuri de consum", needs: "stoc.opereaza", icon: "consum" },
+      { href: "/achizitii", label: "Achiziții", needs: "achizitii.gestioneaza", icon: "achizitii" },
+      { href: "/receptii", label: "Recepții și NIR", needs: "stoc.opereaza", icon: "receptii" },
     ],
   },
   {
     label: "Resurse",
     items: [
-      { href: "/utilaje", label: "Utilaje" },
-      { href: "/utilaje/solicitari", label: "Solicitări de utilaj" },
-      { href: "/unelte", label: "Unelte" },
-      { href: "/transporturi", label: "Transporturi" },
-      { href: "/concedii", label: "Concedii" },
+      { href: "/utilaje", label: "Utilaje", icon: "utilaje" },
+      { href: "/utilaje/solicitari", label: "Solicitări de utilaj", icon: "solicitari" },
+      { href: "/unelte", label: "Unelte", icon: "unelte" },
+      { href: "/transporturi", label: "Transporturi", icon: "transporturi" },
+      { href: "/concedii", label: "Concedii", icon: "concedii" },
     ],
   },
   {
     label: "Evidență",
     items: [
-      { href: "/documente", label: "Documente și PV" },
-      { href: "/rapoarte", label: "Rapoarte lunare" },
-      { href: "/rapoarte/inspectii", label: "Acoperirea inspecțiilor" },
-      { href: "/facturi", label: "Facturi", needs: "facturi.gestioneaza" },
-      { href: "/integrari", label: "Integrări și schelete" },
-      { href: "/nomenclatoare", label: "Nomenclatoare", needs: "nomenclatoare.editeaza" },
+      { href: "/documente", label: "Documente și PV", icon: "documente" },
+      { href: "/rapoarte", label: "Rapoarte lunare", icon: "rapoarte" },
+      { href: "/rapoarte/inspectii", label: "Acoperirea inspecțiilor", icon: "inspectii" },
+      { href: "/facturi", label: "Facturi", needs: "facturi.gestioneaza", icon: "facturi" },
+      { href: "/integrari", label: "Integrări și schelete", icon: "integrari" },
+      { href: "/nomenclatoare", label: "Nomenclatoare", needs: "nomenclatoare.editeaza", icon: "nomenclatoare" },
     ],
   },
 ];

@@ -20,10 +20,10 @@ export function Tabs({
           <Link
             key={item.key}
             href={item.href}
-            className={`-mb-px border-b-2 px-3 py-2 text-[0.8125rem] transition-colors ${
+            className={`-mb-px rounded-t-chip border-b-2 px-3 py-2.5 text-[0.8125rem] transition-colors duration-[130ms] ${
               on
                 ? "border-blueprint font-medium text-ink"
-                : "border-transparent text-ink-2 hover:border-rule-strong hover:text-ink"
+                : "border-transparent text-ink-2 hover:bg-sheet-2 hover:text-ink"
             }`}
           >
             {item.label}

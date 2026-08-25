@@ -57,6 +57,7 @@ Pornire: `npm run dev` → http://localhost:3000 · login `admin@damina.ro` / `d
 | Integrare și lustruire | 🟨 **în lucru** — facturi, clopoțel viu, schelete declarate. Rămâne plimbarea pe cele 8 reguli |
 | E — Operabilitate (introducerea datelor) | ✅ **gata** — ecranul 37 + §9.2–§9.10. Rămâne plimbarea cap-coadă a contractului nou |
 | Aplicația de teren (3 tab-uri) + concedii | ✅ **gata ca și cod** — `tsc` și `build` curate. **Neplimbată în browser** |
+| Redesign birou (sistemul vizual din `erp-mockup.html`) | ✅ **gata** — tokens, primitive, tabel, rail cu icoane, bară de sus cu Ctrl+K, temă și densitate. Componentele noi (`Kpi`, `Toolbar`, `Note`, `Pipeline`, `Trail`, `DetailHeader`) există, dar **nu sunt încă adoptate în pagini** |
 | F — Teren, funcțiile din mockup-ul v3 (mentenanță, timp, lucrare pe file, comenzi, acte) | ✅ **gata ca și cod** — 15 rute noi, `tsc` și `build` curate. **Neplimbată în browser**, `db:push` de rulat |
 
 Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
@@ -222,70 +223,50 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 
 ## 6. Istoric pe sesiuni
 
-### 2026-08-24 — fâșia de sub bara de jos, a treia (și ultima) încercare
+### 2026-08-25 — redesign birou după `erp-mockup.html`
 
-Poză nouă: pe iOS instalat rămâne o bandă deschisă la culoare (fundalul `body`) sub `.f-tabs`,
-deci viewport-ul de layout se raportează mai scurt decât ecranul fizic — `inset: 0` nu ajunge.
-Fix în două straturi: (1) `FieldViewportFit` (client, montat în layout-ul de teren) măsoară
-`screen.height − innerHeight` doar în modul instalat, clamp 0–80px, și îl pune în `--f-extra`;
-`.f-app` primește `bottom: calc(-1 * var(--f-extra))`, iar `.f-tabs` mută padding-ul de jos în
-`max(env(safe-area-inset-bottom), var(--f-extra))` — bara cade fix pe marginea ecranului, iconițele
-rămân peste bara de gesturi. (2) `html`/`body` sub `.f-app` au fundal `#10151f`, deci orice
-milimetru scăpat se citește ca bară, nu ca fâșie albă. Sheet-urile fixed din `FieldKit`/`FieldParts`
-folosesc același offset.
+Paleta trece în variabile brute (`--bg --surf --sunk --line --tx --acc --ok --warn --bad --rail*`,
+umbre `--sh-1/2/3`, raze 10/7/5px) în `app/globals.css`; numele Tailwind existente (`paper`, `sheet`,
+`rule`, `ink`, `blueprint`, `fill`, `warn`, `over`…) sunt acum indirecții către ele, deci **nicio
+pagină nu s-a atins**. Temă închisă pe `[data-theme="dark"]`, densitate pe `[data-density]`, ambele
+puse de un script inline din `app/layout.tsx` — care **sare peste `/teren`**, ca terenul să rămână
+exact cum era.
 
-### 2026-08-24 — bara de jos: mai scundă, „Lucrări" în loc de „Locuri", tab nou Mentenanță
+`primitives.tsx`: buton 36/29px cu rază 7px și `:active` translateY, badge-pastilă cu punct,
+`PageHeader` cu eyebrow + titlu 26px, `EmptyState` punctat, plus componente noi — `Kpi` (cu
+sparkline SVG), `Note`, `Toolbar`/`Segments`/`Chip`, `Pipeline`, `Trail`, `DetailHeader`.
+`gauge.tsx` a primit marcaj de ritm (`mark`) și legendă sub bară. `table.tsx`: cap pe `surf-2`,
+rând de grup, total cu linie groasă, `TRowActions` la hover, densitate din `--row-y`/`--tbl-fs`.
+`Rail` — 244px, icoane `lucide-react` (numele iconiței stă în `lib/navigation.ts`, nu componenta,
+altfel nu trece granița server→client), contoare din `liveSignals` repartizate pe cea mai lungă
+adresă care le prinde, colaps la 64px în `localStorage`, contul în subsol. `TopBar` — breadcrumb,
+căutare, perioadă, comutator de temă și de densitate, clopoțel, pastilă de rol.
+`CommandPalette.tsx` (nou) — Ctrl/⌘K, căutare fără diacritice, săgeți/Enter/Esc.
 
-`.f-tabs`/`.f-tab` comprimate (padding, iconițe, text) — ocupa prea mult. „Locuri"→**„Lucrări"**
-(ruta rămâne `/teren/locuri`). Tab nou **Mentenanță** → `/teren/mentenanta` (+ `/inspectii`,
-`/interventii`). Patru tab-uri, nu trei. **Fâșia albă de sub bară, a doua încercare:**
-`height: 100dvh`→`position: fixed; inset: 0` pe `.f-app` tot nu ajungea — cauza reală era
-bounce-ul elastic din iOS: `html`/`body` rămâneau scrollabile și, la swipe, dădeau la iveală
-o clipă fundalul din spatele shell-ului fix. Fix: `html:has(.f-app), body:has(> .f-app)
-{ overflow: hidden }` în `field.css` — blochează scroll-ul **doar** pe ecranele de teren.
+Verificat: `tsc` și `npm run build` curate; opt ecrane de birou și trei de teren răspund 200 cu
+sesiune de admin. Ce **nu** s-a făcut: paginile încă folosesc KPI/toolbar/note scrise de mână —
+adoptarea componentelor noi ecran cu ecran e o sesiune separată.
 
-### 2026-08-24 — tastatura pe iOS nu mai strică bara de tab-uri
+### 2026-08-24 — bara de jos a terenului, iOS (comprimat)
 
-Bug real (poză utilizator): la focus pe un input, tastatura deschidea și `.f-tabs` (fixed)
-sărea la mijlocul ecranului. Fix: `.f-main` a devenit singurul container care se scrolează
-(`overflow-y: auto`), `.f-tabs` a ieșit din `position: fixed` și e ultimul din coloana flex
-`.f-app`. `.f-submit`/`.f-cart` nu mai au nevoie de offset-ul `84px`.
+Fâșia de sub `.f-tabs` pe iOS instalat: `FieldViewportFit` măsoară `screen.height − innerHeight`
+(clamp 0–80px) în `--f-extra`, `.f-app` primește `bottom: calc(-1 * var(--f-extra))`, `.f-tabs`
+padding `max(env(safe-area-inset-bottom), var(--f-extra))`; `html`/`body` sub `.f-app` au fundal
+`#10151f`. Bara comprimată, „Locuri"→„Lucrări" (ruta rămâne `/teren/locuri`), tab nou **Mentenanță**.
+Tastatura pe iOS nu mai împinge bara (`visualViewport`). Coșul de comandă la `/teren/catalog`,
+cu adăugare pe linii, zero prețuri.
 
-### 2026-08-24 — coșul de comandă la `/teren/catalog`, cu adăugare pe linii
+### 2026-08-24 — blocul F: funcțiile noi din mockup-ul `santierappv3.html` (comprimat)
 
-Ecranul de comandă (`catalog/page.tsx`) trecea printr-o listă de bife peste tot catalogul, cu
-căutare pe reîncărcare de pagină. Înlocuit cu `OrderCart.tsx`: coșul pornește gol, „+ Adaugă
-produs" deschide o căutare **client-side instantă** (~30 produse, deja încărcate, fără rețea),
-alegerea adaugă o linie cu cantitate 1, editabilă. Câmpuri neschimbate (`productId[]`,
-`qty_<id>`) — `submitCart` neatins.
-
-### 2026-08-24 — blocul F: funcțiile noi din mockup-ul `santierappv3.html`
-
-`tsc`/`build` curate, **15 rute noi**. `db:push` **de rulat**. Din `santierappv3.html`/
-`santierappmockup.html` se iau **doar funcțiile**, nu designul; `v3` e
-canonic unde diferă. Limbajul rămâne `f-`. Media (poze, filmări, semnături) e doar interfață;
-stocarea pe **Cloudflare R2** (`media_slots.storage_key` gol până atunci).
-
-**Schemă:** `subcontractor_attendance` (ore-om/zi, nu produce cost) · `media_slots` (poze
-declarate) · `work_units` + `inspection_type/discipline/source_tag/source_unit_id` ·
-`purchase_orders` + `needed_by/drop_point/urgency/field_note`.
-
-**Ecrane:**
-
-- **Mentenanța, ca două fluxuri.** `/teren/mentenanta` · `/inspectii/noua` (wizard 3 pași) +
-  `[id]` · `/interventii/noua` + `[id]`. Inspecția se închide odată, cu verdict; intervenția stă
-  **deschisă**, primește ore/materiale/însemnări, firul se împletește la citire din
-  `site_journal_entries`+`timesheets`+`intervention_details` — zero tabele noi. La „nu am
-  rezolvat pe loc", **intervenția se naște în același apel** cu inspecția.
-- **Timp:** `/teren/pontaj/echipa` (ore din intrare−plecare) · `/teren/pontaj/firme` (**rescrie**).
-- **Lucrarea pe patru file** `?f=jurnal|echipa|depozit|acte`, ca linkuri · `/lucrare/[id]/inainte-dupa`.
-- **Comenzi:** `/teren/comenzi` · `/comenzi/nou` · `/catalog` (coș, zero prețuri) ·
-  `/utilaj-nou` (rutat, nu comandă) · `/transport-nou` · `/comenzi/[id]` (trepte din status).
-- **Acte:** `/teren/pv/nou` (semnătură canvas, `signatureImage`) · `/pv/unelte/[id]` (**blocată**).
-- Piese noi: `FieldParts.tsx` (stepper, bifă, galerie, semnătură, foaie de jos) + `InspectionWizard.tsx`.
-
-**Rutare schimbată:** intervențiile merg pe `/teren/interventii/[id]`; `/teren/[id]` redirectează
-acolo și rămâne fișa cu **checklist** pentru inspecția planificată de la birou.
+15 rute noi, `db:push` **de rulat**. Din `santierappv3.html` se iau **doar funcțiile**; `v3` e canonic
+unde diferă. Media e doar interfață (stocare pe R2 mai târziu). Schemă: `subcontractor_attendance`,
+`media_slots`, `work_units.inspection_type/discipline/source_tag/source_unit_id`,
+`purchase_orders.needed_by/drop_point/urgency/field_note`. Ecrane: mentenanța ca două fluxuri
+(`/teren/mentenanta`, inspecție-wizard care se închide cu verdict, intervenție care rămâne deschisă
+și își împletește firul din `site_journal_entries`+`timesheets`+`intervention_details`); pontaj
+echipă/firme; lucrarea pe patru file `?f=jurnal|echipa|depozit|acte` + `inainte-dupa`; comenzi,
+catalog, utilaj/transport nou; PV cu semnătură canvas. Piese: `FieldParts.tsx`, `InspectionWizard.tsx`.
+Intervențiile merg pe `/teren/interventii/[id]`; `/teren/[id]` redirectează acolo.
 
 ### 2026-08-21 — aplicația de teren pe 3 tab-uri; concedii (comprimat)
 

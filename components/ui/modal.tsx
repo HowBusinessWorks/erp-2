@@ -70,18 +70,18 @@ export function Modal({
   const maxWidth = width === "sm" ? "max-w-xl" : width === "lg" ? "max-w-6xl" : "max-w-3xl";
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/35 p-4 backdrop-blur-[1px]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[rgba(18,16,14,.42)] p-4 backdrop-blur-[2px]">
       {/* Fundalul e doar fundal. Nu are onClick — asta e regula. */}
       <div className="flex min-h-full items-center justify-center py-10">
         <div
           role="dialog"
           aria-modal="true"
           aria-label={title}
-          className={`sheet w-full ${maxWidth} shadow-[0_24px_60px_-24px_rgba(24,20,16,0.45)]`}
+          className={`w-full ${maxWidth} rounded-[13px] border border-rule bg-sheet shadow-float`}
         >
-          <header className="flex items-start justify-between gap-4 border-b border-rule-strong px-6 py-4">
+          <header className="flex items-start justify-between gap-4 border-b border-rule px-5 py-4">
             <div className="min-w-0">
-              <h2 className="font-narrow text-lg font-semibold leading-tight tracking-tight text-ink">
+              <h2 className="narrow-title text-[17px] text-ink">
                 {title}
               </h2>
               {subtitle ? <p className="mt-1 text-sm text-ink-2">{subtitle}</p> : null}
@@ -95,19 +95,19 @@ export function Modal({
             ref={bodyRef}
             onInput={() => setDirty(true)}
             onChange={() => setDirty(true)}
-            className="px-6 py-5"
+            className="px-5 py-5"
           >
             {children}
           </div>
 
           {footer ? (
-            <footer className="flex items-center justify-end gap-2 border-t border-rule bg-sunk/50 px-6 py-3.5">
+            <footer className="flex items-center justify-end gap-2 rounded-b-[13px] border-t border-rule bg-sheet-2 px-5 py-3.5">
               {footer}
             </footer>
           ) : null}
 
           {confirming ? (
-            <div className="border-t-2 border-over bg-over-soft px-6 py-3.5">
+            <div className="rounded-b-[13px] border-t-2 border-over bg-over-soft px-5 py-3.5">
               <p className="text-tiny text-over">
                 Ai modificări nesalvate. Dacă închizi acum, se pierd.
               </p>
