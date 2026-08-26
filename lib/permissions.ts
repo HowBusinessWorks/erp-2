@@ -23,6 +23,11 @@ export type Capability =
   | "contracte.editeaza"
   /** decizia de rutare mentenanță / Delta / lucrare / contract nou */
   | "cereri.decide"
+  | "tichete.vezi"
+  /** creează, mută, atribuie, adaugă documente */
+  | "tichete.opereaza"
+  /** etape și tipuri de tichet — doar adminul, prin "*" */
+  | "tichete.configureaza"
   | "cost.vezi"
   | "cost.realoca"
   | "perioada.inchide"
@@ -55,6 +60,8 @@ const MATRIX: Record<Role, Capability[]> = {
     ...OFFICE_FINANCIAL,
     "contracte.editeaza",
     "cereri.decide",
+    "tichete.vezi",
+    "tichete.opereaza",
     "cost.realoca",
     "perioada.inchide",
     "deviz.client.editeaza",
@@ -74,7 +81,15 @@ const MATRIX: Record<Role, Capability[]> = {
    * Șeful de șantier NU are `preturi.vezi`. Nicăieri: nici la situații de lucrări,
    * nici la utilaje, nici la stoc. Vede cantități, litri, ore — nu lei.
    */
-  sef_santier: ["contracte.vezi", "sl.verifica", "teren.opereaza", "flota.solicita", "stoc.vezi"],
+  sef_santier: [
+    "contracte.vezi",
+    "sl.verifica",
+    "teren.opereaza",
+    "flota.solicita",
+    "stoc.vezi",
+    "tichete.vezi",
+    "tichete.opereaza",
+  ],
 
   devizist: [
     "preturi.vezi",
@@ -82,13 +97,21 @@ const MATRIX: Record<Role, Capability[]> = {
     "deviz.client.editeaza",
     "deviz.intern.editeaza",
     "nomenclatoare.editeaza",
+    "tichete.vezi",
   ],
 
-  achizitii: ["preturi.vezi", "stoc.vezi", "stoc.opereaza", "achizitii.gestioneaza", "nomenclatoare.editeaza"],
+  achizitii: [
+    "preturi.vezi",
+    "stoc.vezi",
+    "stoc.opereaza",
+    "achizitii.gestioneaza",
+    "nomenclatoare.editeaza",
+    "tichete.vezi",
+  ],
 
-  magazie: ["stoc.vezi", "stoc.opereaza", "preturi.vezi"],
+  magazie: ["stoc.vezi", "stoc.opereaza", "preturi.vezi", "tichete.vezi"],
 
-  flota: ["flota.gestioneaza", "preturi.vezi", "stoc.vezi"],
+  flota: ["flota.gestioneaza", "preturi.vezi", "stoc.vezi", "tichete.vezi"],
 
   /** clientul vede doar rapoartele lui, prin link — nimic din interior */
   client: [],

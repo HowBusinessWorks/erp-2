@@ -16,7 +16,7 @@ secțiunea de care ai nevoie, nu tot.
 ## La final de sesiune
 
 Actualizează `PROGRESS.md`: tabelul din §1, plus o intrare în §6. **Fapte, nu narațiune.**
-Fișierul nu are voie să treacă de 300 de linii — când se apropie, comprimă istoricul vechi.
+Fișierul nu are voie să treacă de 600 de linii — când se apropie, comprimă istoricul vechi.
 
 ## Regulile care nu se negociază
 

@@ -21,6 +21,7 @@ export type NavIcon =
   | "contracte"
   | "obiective"
   | "cereri"
+  | "tichete"
   | "backlog"
   | "lucrari"
   | "cost"
@@ -64,6 +65,7 @@ export const NAVIGATION: NavGroup[] = [
     label: "Operațional",
     items: [
       { href: "/cereri", label: "Cereri și tichete", icon: "cereri" },
+      { href: "/tichete", label: "Tichete", needs: "tichete.vezi", icon: "tichete" },
       { href: "/backlog", label: "Backlog Delta", needs: "cost.vezi", icon: "backlog" },
       { href: "/lucrari", label: "Unități de lucru", icon: "lucrari" },
       { href: "/cost", label: "Registrul de cost", needs: "cost.vezi", icon: "cost" },

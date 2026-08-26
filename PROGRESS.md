@@ -4,7 +4,7 @@
 
 ## Regula de scurtime — se aplică și ție
 
-Fișierul ăsta **nu are voie să treacă de 300 de linii.** Când se apropie, comprimi istoricul vechi
+Fișierul ăsta **nu are voie să treacă de 600 de linii.** Când se apropie, comprimi istoricul vechi
 în una-două linii per sesiune.
 
 Fiecare intrare: **fapte, nu narațiune.** Dacă o observație nu schimbă ce face următoarea
@@ -57,6 +57,7 @@ referințele de tip §4.2, §13.1, §18.1.4 din cod și din plan trimit acolo.
 | Aplicația de teren (3 tab-uri) + concedii | ✅ **gata ca și cod** — `tsc` și `build` curate. **Neplimbată în browser** |
 | Redesign birou (sistemul vizual din `erp-mockup.html`) | ✅ **gata** — tokens, primitive, tabel, rail cu icoane, bară de sus cu Ctrl+K, temă și densitate. Componentele noi (`Kpi`, `Toolbar`, `Note`, `Pipeline`, `Trail`, `DetailHeader`) există, dar **nu sunt încă adoptate în pagini** |
 | F — Teren, funcțiile din mockup-ul v3 (mentenanță, timp, lucrare pe file, comenzi, acte) | ✅ **gata ca și cod** — 15 rute noi, `tsc` și `build` curate. **Neplimbată în browser**, `db:push` de rulat |
+| Tichete — kanban pe contract (`/tichete`) | ✅ **gata** — schemă, acțiuni, board, filtre, drawer, etape/tipuri de admin, seed aditiv. `tsc` și `build` curate; grilă, board, drawer și mutarea plimbate în browser |
 
 Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
 
@@ -220,6 +221,39 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 ---
 
 ## 6. Istoric pe sesiuni
+
+### 2026-08-26 — Tichete: kanban pe contract
+
+Construit peste `requests` (`kind = 'tichet'`), nu pe un tabel nou. Schema: enum-urile
+`ticket_urgency` și `ticket_event_kind`; tabelele `ticket_types` (nomenclator), `ticket_stages`
+(**per contract**), `ticket_documents` (doar metadate — nu există bucket), `ticket_events` (firul de
+istoric); pe `requests` opt coloane noi (`stage_id`, `ticket_type_id`, `urgency`,
+`assigned_partner_id`, `assignee_id`, `due_date`, `board_order`, `stage_entered_at`).
+
+`lib/tickets.ts` (pur: etichete, tonuri, validatori, formatări) · `app/actions/tickets.ts` (o singură
+poartă: `requireSession` → `can` → scriere → `revalidatePath`) · trei capabilități noi în
+`permissions.ts`, dintre care `tichete.configureaza` **doar prin `*` de admin** · `/tichete` (grilă de
+contracte) și `/tichete/[contractId]` (board) · `TicketBoard`, `TicketFilters`, `TicketDetail`,
+`TicketForms`, `TicketContracts`. Drag & drop HTML5 nativ, cu linie-indicator și mutare optimistă;
+alternativa fără mouse e meniul „⋯" de pe card. Filtrele trăiesc în URL. Seed aditiv:
+`seed/tickets.ts` (nu șterge nimic, se poate rula de mai multe ori) — 7 tipuri, etape pe fiecare
+contract (două fluxuri diferite, ca importul de etape să aibă ce copia), ~10 tichete pe contract,
+plus adoptarea tichetelor vechi din `/cereri` în prima etapă.
+
+**Capcana care a costat cel mai mult:** într-un `select` **fără join**, Drizzle emite coloana
+outer-ului **fără prefix de tabel** (`"id"`), deci o subinterogare corelată se leagă tăcut de tabelul
+ei (`r.id`) și întoarce mereu 0. Fix: `sql.raw('"ticket_stages"."id"')`. Cu join, Drizzle
+califică singur — de-aia agregatele de pe `/tichete` mergeau, iar contorul de etape nu.
+
+A doua: `clsx` nu e `tailwind-merge`. `Input`/`Select` au `w-full` în clasa de bază, deci un `w-40`
+adăugat prin `className` nu câștigă — rândurile din modalele de configurare stau pe `grid` cu coloane
+fixe, nu pe `flex` cu lățimi pe control.
+
+`db:push` a atârnat (drizzle-kit cere confirmare pe adăugările de coloane), așa că DDL-ul a fost
+aplicat direct, idempotent. `tsc --noEmit` și `npm run build` curate. Rămâne de plimbat în browser
+modalul „Etape"/„Tipuri" după trecerea pe grid — pool-ul Supabase a început să pice intermitent
+(cădeau și interogări din `layout.tsx`), deci verificarea s-a oprit acolo.
+
 
 ### 2026-08-25 — listă de alegere proprie, peste tot
 

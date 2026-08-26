@@ -215,6 +215,19 @@ export const workUnitSource = pgEnum("work_unit_source", ["tichet", "solicitare"
 /** Cât de tare arde comanda venită din teren. Magazia sortează după ea. */
 export const orderUrgency = pgEnum("order_urgency", ["poate_astepta", "normal", "urgent"]);
 
+/** Cat de tare arde tichetul. Ordinea conteaza — sortarea pe board o foloseste. */
+export const ticketUrgency = pgEnum("ticket_urgency", ["scazuta", "normala", "ridicata", "critica"]);
+
+/** Ce s-a intamplat cu tichetul. Da firul de istoric din panoul de detaliu. */
+export const ticketEventKind = pgEnum("ticket_event_kind", [
+  "creat",
+  "mutat",
+  "atribuit",
+  "comentariu",
+  "document",
+  "camp",
+]);
+
 /** Unde atârnă un fișier de teren. Un singur enum, ca să nu apară al doilea tabel de poze. */
 export const mediaSlot = pgEnum("media_slot", [
   "inainte",
@@ -599,6 +612,50 @@ export const periods = pgTable(
   (t) => [uniqueIndex("periods_unq").on(t.firmId, t.year, t.month)],
 );
 
+/* ══════════════════════════ 4b. TICHETE — NOMENCLATOR ȘI ETAPE ══════════════════════════ */
+
+/**
+ * Tipurile de tichet (electric, sanitar, construcții…). Nomenclator, nu enum:
+ * adminul adaugă unul nou fără să treacă prin cod.
+ */
+export const ticketTypes = pgTable(
+  "ticket_types",
+  {
+    id: id(),
+    name: text("name").notNull(),
+    /** ton de Badge: neutral | blueprint | fill | warn | over */
+    tone: text("tone").notNull().default("neutral"),
+    /** nume de iconiță lucide, opțional — dă recunoaștere din privire pe card */
+    icon: text("icon"),
+    position: integer("position").notNull().default(0),
+    active: boolean("active").notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("ticket_types_name_uq").on(sql`lower(${t.name})`)],
+);
+
+/**
+ * Coloanele board-ului. PER CONTRACT — fiecare contract își are fluxul lui.
+ * `isFinal` marchează coloanele de ieșire (Rezolvat, Anulat): board-ul le poate ascunde.
+ */
+export const ticketStages = pgTable(
+  "ticket_stages",
+  {
+    id: id(),
+    contractId: uuid("contract_id")
+      .notNull()
+      .references(() => contracts.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    position: integer("position").notNull().default(0),
+    tone: text("tone").notNull().default("neutral"),
+    isFinal: boolean("is_final").notNull().default(false),
+    /** limită de lucru simultan; null = fără limită. Doar semnal vizual, nu blochează. */
+    wipLimit: integer("wip_limit"),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("ticket_stages_contract_name_uq").on(t.contractId, sql`lower(${t.name})`)],
+);
+
 /* ══════════════════════════ 5. CERERI ȘI RUTARE ══════════════════════════ */
 
 /**
@@ -635,6 +692,53 @@ export const requests = pgTable("requests", {
   /** emailul original rămâne atașat — e dovada solicitării clientului */
   sourceEmail: jsonb("source_email"),
   requestedBy: uuid("requested_by").references(() => users.id),
+
+  /* ── tichete pe board (modulul Tichete) ── */
+  /** coloana de kanban; null pentru cererile care nu sunt tichete */
+  stageId: uuid("stage_id").references(() => ticketStages.id, { onDelete: "set null" }),
+  ticketTypeId: uuid("ticket_type_id").references(() => ticketTypes.id, { onDelete: "set null" }),
+  urgency: ticketUrgency("urgency").notNull().default("normala"),
+  /** subcontractantul căruia i s-a dat tichetul */
+  assignedPartnerId: uuid("assigned_partner_id").references(() => partners.id),
+  /** responsabilul intern */
+  assigneeId: uuid("assignee_id").references(() => users.id),
+  dueDate: date("due_date"),
+  /** poziția în coloană — mic, se rescrie coloana întreagă la mutare */
+  boardOrder: integer("board_order").notNull().default(0),
+  /** de când stă în etapa curentă — dă „de 6 zile aici" pe card */
+  stageEnteredAt: timestamp("stage_entered_at", { withTimezone: true }),
+
+  createdAt: createdAt(),
+});
+
+/**
+ * Documentele care urmăresc tichetul, indiferent de etapă.
+ * NU există fișier: nu e legat niciun bucket. Se rețin doar metadatele.
+ */
+export const ticketDocuments = pgTable("ticket_documents", {
+  id: id(),
+  ticketId: uuid("ticket_id")
+    .notNull()
+    .references(() => requests.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  mimeType: text("mime_type"),
+  sizeBytes: integer("size_bytes"),
+  note: text("note"),
+  uploadedBy: uuid("uploaded_by").references(() => users.id),
+  createdAt: createdAt(),
+});
+
+/** Firul de istoric: mutări, atribuiri, comentarii. Se scrie din acțiuni, nu din UI. */
+export const ticketEvents = pgTable("ticket_events", {
+  id: id(),
+  ticketId: uuid("ticket_id")
+    .notNull()
+    .references(() => requests.id, { onDelete: "cascade" }),
+  kind: ticketEventKind("kind").notNull(),
+  fromStageId: uuid("from_stage_id").references(() => ticketStages.id, { onDelete: "set null" }),
+  toStageId: uuid("to_stage_id").references(() => ticketStages.id, { onDelete: "set null" }),
+  note: text("note"),
+  authorId: uuid("author_id").references(() => users.id),
   createdAt: createdAt(),
 });
 

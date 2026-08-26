@@ -159,7 +159,15 @@ export default async function CereriPage({
             {rows.map(({ request, objective, contract, decider }) => (
               <TR key={request.id}>
                 <TD>
-                  <Link href={`/cereri/${request.id}`} className="font-medium hover:text-blueprint">
+                  {/* Tichetele de pe board se deschid pe board, nu în dosarul de cerere. */}
+                  <Link
+                    href={
+                      request.kind === "tichet" && request.stageId && request.contractId
+                        ? `/tichete/${request.contractId}?tichet=${request.id}`
+                        : `/cereri/${request.id}`
+                    }
+                    className="font-medium hover:text-blueprint"
+                  >
                     {request.code}
                   </Link>
                 </TD>
