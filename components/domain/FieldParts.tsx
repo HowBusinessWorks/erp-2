@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 
 import { Icon, type IconName } from "./FieldIcons";
 
@@ -195,66 +195,115 @@ export function PickableLine({
 /* ───────────────────────── poze ───────────────────────── */
 
 /**
- * Galeria de poze, declarate fără conținut.
+ * Galeria de poze și filmări, cu fișiere adevărate.
  *
- * Până se leagă Cloudflare R2, apăsarea pe aparat nu deschide camera — adaugă un slot.
- * Numărul pleacă cu formularul și devine rânduri în `media_slots`, ca „6 poze la ÎNAINTE"
- * să fie o cifră reală, nu una desenată în interfață.
+ * Un singur `input[type=file]` fără atributul `capture`: browserul de telefon arată nativ
+ * alegerea între „Fă poză" și galerie / Drive. Cu `capture` s-ar deschide direct camera și
+ * s-ar pierde poza făcută acum zece minute — exact cazul de pe șantier.
+ *
+ * Fișierele pleacă în același submit cu restul formularului, sub numele `name`, deci server
+ * action-ul le ia din `formData.getAll(name)`. Nicio încărcare separată înainte de submit.
  */
+const MAX_FILE_BYTES = 25 * 1024 * 1024;
+
+type PickedFile = { file: File; url: string; video: boolean };
+
 export function PhotoDeck({
-  name = "photoCount",
-  videoName,
-  initial = 0,
-  label = "Adaugă poză",
+  name = "photos",
+  label = "Adaugă poză sau filmare",
 }: {
   name?: string;
-  videoName?: string;
-  initial?: number;
   label?: string;
 }) {
-  const [photos, setPhotos] = useState(initial);
-  const [videos, setVideos] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [picked, setPicked] = useState<PickedFile[]>([]);
+  const [error, setError] = useState("");
+
+  /** Lista din stare devine lista input-ului, ca ștergerea unei poze să plece și din submit. */
+  function sync(next: PickedFile[]) {
+    const input = inputRef.current;
+    if (input) {
+      try {
+        const transfer = new DataTransfer();
+        next.forEach((item) => transfer.items.add(item.file));
+        input.files = transfer.files;
+      } catch {
+        // browser vechi care nu lasă lista rescrisă: rămâne selecția nativă
+      }
+    }
+    setPicked(next);
+  }
+
+  function onPick(event: ChangeEvent<HTMLInputElement>) {
+    const chosen = Array.from(event.target.files ?? []);
+    const tooBig = chosen.filter((file) => file.size > MAX_FILE_BYTES);
+    setError(tooBig.length ? `${tooBig.length} fișier(e) peste 25 MB — neatașate.` : "");
+    sync([
+      ...picked,
+      ...chosen
+        .filter((file) => file.size <= MAX_FILE_BYTES)
+        .map((file) => ({
+          file,
+          url: URL.createObjectURL(file),
+          video: file.type.startsWith("video/"),
+        })),
+    ]);
+  }
+
+  function remove(index: number) {
+    URL.revokeObjectURL(picked[index].url);
+    sync(picked.filter((_, i) => i !== index));
+  }
 
   return (
     <div className="f-blk f-p">
       <div className="f-phs">
-        {Array.from({ length: photos }, (_, i) => (
-          <div key={`p${i}`} className="f-ph">
-            <Icon name="img" />
-            <span className="f-tg">{i + 1}</span>
-          </div>
-        ))}
-        {Array.from({ length: videos }, (_, i) => (
-          <div key={`v${i}`} className="f-ph">
-            <Icon name="video" />
-            <span className="f-tg">film</span>
-          </div>
+        {picked.map((item, i) => (
+          <button
+            key={`${item.file.name}-${i}`}
+            type="button"
+            className="f-ph"
+            onClick={() => remove(i)}
+            aria-label={`Șterge ${item.file.name}`}
+            style={{ padding: 0, overflow: "hidden", border: "none" }}
+          >
+            {item.video ? (
+              <Icon name="video" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.url}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            )}
+            <span className="f-tg">{item.video ? "film" : i + 1}</span>
+          </button>
         ))}
         <button
           type="button"
           className="f-ph f-add"
-          onClick={() => setPhotos(photos + 1)}
+          onClick={() => inputRef.current?.click()}
           aria-label={label}
         >
           <Icon name="cam" />
         </button>
-        {videoName ? (
-          <button
-            type="button"
-            className="f-ph f-add"
-            onClick={() => setVideos(videos + 1)}
-            aria-label="Adaugă filmare"
-          >
-            <Icon name="video" />
-          </button>
-        ) : null}
       </div>
-      <input type="hidden" name={name} value={photos} />
-      {videoName ? <input type="hidden" name={videoName} value={videos} /> : null}
+      <input
+        ref={inputRef}
+        type="file"
+        name={name}
+        accept="image/*,video/*"
+        multiple
+        onChange={onPick}
+        style={{ display: "none" }}
+      />
       <p className="f-xs f-mut" style={{ margin: "10px 2px 0" }}>
-        {photos + videos === 0
-          ? "Se salvează cu ora și locul, ca dovadă."
-          : `${photos + videos} ${photos + videos === 1 ? "fișier pregătit" : "fișiere pregătite"} · conținutul se încarcă la sincronizare.`}
+        {error
+          ? error
+          : picked.length === 0
+            ? "Poză nouă sau din galerie. Se salvează cu ora, ca dovadă."
+            : `${picked.length} ${picked.length === 1 ? "fișier atașat" : "fișiere atașate"} · atinge o miniatură ca s-o scoți.`}
       </p>
     </div>
   );

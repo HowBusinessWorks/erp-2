@@ -121,7 +121,7 @@ export default async function InainteDupaPage({
       </div>
 
       <Label>Poze și filmări</Label>
-      <PhotoDeck videoName="videoCount" />
+      <PhotoDeck />
 
       <div style={{ padding: "12px 16px 0" }}>
         <Pill tone="n">

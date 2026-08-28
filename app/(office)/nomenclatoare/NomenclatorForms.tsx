@@ -2,6 +2,7 @@
 
 import {
   saveChecklistTemplate,
+  saveInspectionCheck,
   saveFirm,
   saveFuelPrice,
   saveLaborRate,
@@ -18,6 +19,7 @@ import {
   UNITS,
   dayToMonth,
   validateChecklistTemplate,
+  validateInspectionCheck,
   validateFirm,
   validateFuelPrice,
   validateLaborRate,
@@ -387,27 +389,133 @@ export function OperationForm({ operation }: { operation?: OperationValues }) {
   );
 }
 
-/* ───────────────────── Șabloane de checklist ───────────────────── */
+/* ───────────────────── Puncte de verificare ───────────────────── */
+
+export type InspectionCheckValues = {
+  id: string;
+  code: string;
+  name: string;
+  ticketTypeId: string | null;
+  objectiveKind: string | null;
+  guidance: string | null;
+  requiresPhoto: boolean;
+  requiresValue: boolean;
+  valueUnit: string | null;
+};
+
+/**
+ * Punctul din catalog. Codul e cheia cu care intră în liste — de-aia e primul câmp
+ * și de-aia se scrie cu majuscule: în listă îl tastezi, nu îl alegi dintr-un dropdown.
+ */
+export function InspectionCheckForm({
+  point,
+  ticketTypes,
+  objectiveKinds,
+}: {
+  point?: InspectionCheckValues;
+  ticketTypes: Opt[];
+  objectiveKinds: Opt[];
+}) {
+  return (
+    <FormModal
+      {...trigger(Boolean(point), "Punct")}
+      title={point ? point.name : "Punct de verificare nou"}
+      subtitle="Se definește o dată și intră în oricâte liste. Codul e cheia cu care îl pui în listă."
+      action={saveInspectionCheck}
+      validate={validateInspectionCheck}
+      width="lg"
+    >
+      {point ? <input type="hidden" name="id" value={point.id} /> : null}
+      <Field
+        name="code"
+        label="Cod"
+        required
+        defaultValue={point?.code}
+        placeholder="EL-ACUM"
+        hint="Îl scrii în listă ca să legi punctul."
+      />
+      <Field
+        name="name"
+        label="Denumire"
+        required
+        defaultValue={point?.name}
+        placeholder="Verificare acumulatori"
+      />
+      <Field
+        name="ticketTypeId"
+        label="Tip de inspecție"
+        kind="select"
+        defaultValue={empty(point?.ticketTypeId)}
+      >
+        <OptionList options={ticketTypes} blank="— orice tip —" />
+      </Field>
+      <Field
+        name="objectiveKind"
+        label="Tip de obiectiv"
+        kind="select"
+        defaultValue={empty(point?.objectiveKind)}
+      >
+        <OptionList options={objectiveKinds} blank="— orice tip —" />
+      </Field>
+      <Field
+        name="guidance"
+        label="Indicații"
+        full
+        defaultValue={empty(point?.guidance)}
+        placeholder="Ce anume se măsoară sau se privește"
+      />
+      <Field
+        name="requiresPhoto"
+        label="Cere poză"
+        kind="select"
+        defaultValue={point?.requiresPhoto ? "1" : "0"}
+      >
+        <option value="0">Nu</option>
+        <option value="1">Da</option>
+      </Field>
+      <Field
+        name="requiresValue"
+        label="Cere valoare măsurată"
+        kind="select"
+        defaultValue={point?.requiresValue ? "1" : "0"}
+      >
+        <option value="0">Nu</option>
+        <option value="1">Da</option>
+      </Field>
+      <Field
+        name="valueUnit"
+        label="Unitatea valorii"
+        defaultValue={empty(point?.valueUnit)}
+        placeholder="V, bar, °C"
+      />
+    </FormModal>
+  );
+}
+
+/* ───────────────────── Liste de inspecție ───────────────────── */
 
 export type ChecklistValues = {
   id: string;
   name: string;
   objectiveKind: string | null;
+  ticketTypeId: string | null;
   discipline: string | null;
   items: string;
 };
 
 export function ChecklistForm({
   template,
+  ticketTypes,
   objectiveKinds,
 }: {
   template?: ChecklistValues;
+  ticketTypes: Opt[];
   objectiveKinds: Opt[];
 }) {
   return (
     <FormModal
       {...trigger(Boolean(template), "Șablon")}
-      title={template ? template.name : "Șablon de checklist nou"}
+      title={template ? template.name : "Listă de inspecție nouă"}
       subtitle="Punctele de aici sunt exact ce vede omul pe teren la inspecție."
       action={saveChecklistTemplate}
       validate={validateChecklistTemplate}
@@ -424,10 +532,19 @@ export function ChecklistForm({
         <OptionList options={objectiveKinds} blank="— orice tip —" />
       </Field>
       <Field
+        name="ticketTypeId"
+        label="Tip de inspecție"
+        kind="select"
+        defaultValue={empty(template?.ticketTypeId)}
+        hint="Același nomenclator ca la tichete."
+      >
+        <OptionList options={ticketTypes} blank="— fără tip —" />
+      </Field>
+      <Field
         name="discipline"
-        label="Disciplină"
+        label="Etichetă liberă"
         defaultValue={empty(template?.discipline)}
-        placeholder="electrică, sanitară, vizuală…"
+        placeholder="folosită doar când nu ai ales un tip"
       />
       <Field
         name="items"

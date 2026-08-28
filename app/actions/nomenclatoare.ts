@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import {
   checklistItems,
   checklistTemplates,
+  inspectionChecks,
   firms,
   fuelPrices,
   laborRates,
@@ -23,6 +24,7 @@ import {
   parseChecklistItems,
   parseOperationMaterials,
   validateChecklistTemplate,
+  validateInspectionCheck,
   validateFirm,
   validateFuelPrice,
   validateLaborRate,
@@ -229,6 +231,33 @@ export async function saveOperation(fd: FormData): Promise<void> {
 
 /* ───────────────────── Șabloane de checklist ───────────────────── */
 
+/**
+ * Punctul din catalog. Codul e cheia: în lista de inspecție scrii codul, iar punctul
+ * se leagă automat. Așa același punct intră în 20 de liste fără să fie rescris de 20 de ori,
+ * iar întrebarea „la câte obiective a picat verificarea acumulatorilor" are un răspuns.
+ */
+export async function saveInspectionCheck(fd: FormData): Promise<void> {
+  await guard();
+  check(validateInspectionCheck(values(fd)));
+  const id = str(fd, "id");
+  const row = {
+    code: str(fd, "code").toUpperCase(),
+    name: str(fd, "name"),
+    ticketTypeId: nul(str(fd, "ticketTypeId")),
+    objectiveKind: nul(str(fd, "objectiveKind")),
+    guidance: nul(str(fd, "guidance")),
+    requiresPhoto: str(fd, "requiresPhoto") === "1",
+    requiresValue: str(fd, "requiresValue") === "1",
+    valueUnit: nul(str(fd, "valueUnit")),
+  };
+  if (id) {
+    await db.update(inspectionChecks).set(row).where(eq(inspectionChecks.id, id));
+  } else {
+    await db.insert(inspectionChecks).values(row);
+  }
+  done();
+}
+
 export async function saveChecklistTemplate(fd: FormData): Promise<void> {
   await guard();
   check(validateChecklistTemplate(values(fd)));
@@ -236,6 +265,7 @@ export async function saveChecklistTemplate(fd: FormData): Promise<void> {
   const row = {
     name: str(fd, "name"),
     objectiveKind: nul(str(fd, "objectiveKind")),
+    ticketTypeId: nul(str(fd, "ticketTypeId")),
     discipline: nul(str(fd, "discipline")),
   };
 
@@ -247,16 +277,28 @@ export async function saveChecklistTemplate(fd: FormData): Promise<void> {
         ?.id;
   if (!templateId) return;
 
+  /**
+   * O linie care e un cod din catalog devine punct legat; restul rămâne text liber.
+   * Regula asta ține editarea la o singură căsuță de text și totuși dă legătura
+   * de care are nevoie raportarea pe puncte.
+   */
   const items = parseChecklistItems(str(fd, "items"));
+  const catalog = await db.select().from(inspectionChecks);
+  const byCode = new Map(catalog.map((c) => [c.code.toLowerCase(), c]));
+
   await db.delete(checklistItems).where(eq(checklistItems.templateId, templateId));
   if (items.length > 0) {
     await db.insert(checklistItems).values(
-      items.map((item, index) => ({
-        templateId,
-        position: index + 1,
-        text: item.text,
-        section: item.section,
-      })),
+      items.map((item, index) => {
+        const hit = byCode.get(item.text.toLowerCase());
+        return {
+          templateId,
+          position: index + 1,
+          checkId: hit?.id ?? null,
+          text: hit?.name ?? item.text,
+          section: item.section,
+        };
+      }),
     );
   }
   done();
@@ -334,6 +376,7 @@ const ACTIVABLE = {
   calificari: laborRates,
   operatiuni: operationCatalog,
   checklist: checklistTemplates,
+  puncte: inspectionChecks,
   utilizatori: users,
   pv: pvTemplates,
 } as const;

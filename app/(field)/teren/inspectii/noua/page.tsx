@@ -4,8 +4,9 @@ import { maintenanceObjectives } from "@/app/actions/mentenanta";
 import { InspectionWizard } from "@/components/domain/InspectionWizard";
 import { Empty } from "@/components/domain/FieldUI";
 import { db } from "@/lib/db";
-import { products, stock, warehouses } from "@/lib/db/schema";
-import { DISCIPLINES, subcontractorPartners } from "@/lib/field-data";
+import { products, stock, ticketTypes, warehouses } from "@/lib/db/schema";
+import { effectiveLists } from "@/lib/inspections";
+import { subcontractorPartners } from "@/lib/field-data";
 import { todayIso } from "@/lib/field";
 import { requireSession } from "@/lib/session";
 
@@ -26,9 +27,19 @@ export default async function InspectieNouaPage({
   const session = await requireSession();
   const sp = await searchParams;
 
-  const [objectives, subcontractors, teamWarehouse] = await Promise.all([
+  const today = todayIso();
+
+  const [objectives, subcontractors, listMap, types, teamWarehouse] = await Promise.all([
     maintenanceObjectives(),
     subcontractorPartners(),
+    // Listele efective pentru toate obiectivele deodată: schimbarea obiectivului în
+    // wizard nu are voie să coste un tur la server, omul e pe date mobile.
+    effectiveLists(today),
+    db
+      .select({ id: ticketTypes.id, name: ticketTypes.name })
+      .from(ticketTypes)
+      .where(eq(ticketTypes.active, true))
+      .orderBy(asc(ticketTypes.position)),
     db
       .select()
       .from(warehouses)
@@ -62,14 +73,14 @@ export default async function InspectieNouaPage({
     );
   }
 
-  const today = todayIso();
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   return (
     <InspectionWizard
       objectives={objectives}
       subcontractors={subcontractors}
-      disciplines={DISCIPLINES}
+      lists={Object.fromEntries(listMap)}
+      disciplines={types}
       stockLines={stockLines.map((line) => ({
         id: line.id,
         name: line.name,
@@ -78,6 +89,7 @@ export default async function InspectieNouaPage({
       }))}
       today={today}
       tomorrow={tomorrow}
+      reportPeriod={today.slice(0, 7)}
       backHref="/teren/mentenanta"
       presetObjectiveId={sp.loc}
     />

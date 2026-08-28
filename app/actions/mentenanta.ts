@@ -24,6 +24,7 @@ import {
 } from "@/lib/db/schema";
 import { multiplyQty, type Bani } from "@/lib/money";
 import { can } from "@/lib/permissions";
+import { pickedFiles, uploadToStorage } from "@/lib/storage";
 import { requireSession } from "@/lib/session";
 import { activeAllocation, createWorkUnit } from "@/lib/work-units";
 
@@ -106,36 +107,29 @@ async function firmOfObjective(objectiveId: string): Promise<string | null> {
   return [...rows][0]?.firm_id ?? null;
 }
 
-/** Pozele declarate: rândul există din clipa apăsării, conținutul vine cu R2. */
-async function declareMedia(params: {
+/** Pozele și filmările din formular: se urcă în storage, apoi devin rânduri cu cheie reală. */
+async function storeMedia(params: {
   ownerType: string;
   ownerId: string;
   workUnitId: string | null;
   slot: "inspectie" | "interventie" | "jurnal" | "inainte" | "dupa" | "pv" | "unealta";
-  photos: number;
-  videos?: number;
+  files: File[];
   userId: string;
 }) {
   const rows: (typeof mediaSlots.$inferInsert)[] = [];
-  for (let i = 0; i < params.photos; i += 1) {
+  let photos = 0;
+  for (const file of params.files) {
+    const video = file.type.startsWith("video/");
+    const storageKey = await uploadToStorage(file, `teren/${params.slot}`);
+    if (!video) photos += 1;
     rows.push({
       ownerType: params.ownerType,
       ownerId: params.ownerId,
       workUnitId: params.workUnitId,
       slot: params.slot,
-      kind: "foto",
-      label: String(i + 1),
-      createdBy: params.userId,
-    });
-  }
-  for (let i = 0; i < (params.videos ?? 0); i += 1) {
-    rows.push({
-      ownerType: params.ownerType,
-      ownerId: params.ownerId,
-      workUnitId: params.workUnitId,
-      slot: params.slot,
-      kind: "video",
-      label: "film",
+      kind: video ? "video" : "foto",
+      label: video ? "film" : String(photos),
+      storageKey,
       createdBy: params.userId,
     });
   }
@@ -169,10 +163,41 @@ export async function submitInspectionSheet(formData: FormData): Promise<void> {
     | "trimestriala"
     | "anuala"
     | "la_cerere";
+  const ticketTypeId = String(formData.get("ticketTypeId") ?? "") || null;
   const subcontractorId = String(formData.get("subcontractorId") ?? "") || null;
-  const foundProblem = String(formData.get("foundProblem") ?? "nu") === "da";
   const description = String(formData.get("description") ?? "").trim();
   const resolvedOnSite = String(formData.get("resolvedOnSite") ?? "") === "da";
+
+  /**
+   * Luna de raportare, nu data faptei. Mentenanța se face „când are cineva timp în luna
+   * aia" — deci acoperirea se măsoară pe lună, iar fișa poate fi mutată dintr-o lună în
+   * alta cât timp raportul nu a plecat la client (§20.1).
+   */
+  const periodRaw = String(formData.get("reportPeriod") ?? "").trim();
+  const period = /^\d{4}-\d{2}$/.test(periodRaw) ? periodRaw : day.slice(0, 7);
+  const reportYear = Number(period.slice(0, 4));
+  const reportMonth = Number(period.slice(5, 7));
+
+  /**
+   * Punctele bifate la pasul 2, cu verdictul de la pasul 3. Verdictul fișei NU se mai
+   * declară global — iese din puncte: dacă vreunul e NOK, fișa are probleme. Ecranul
+   * fără nicio listă cade pe întrebarea liberă, ca omul să nu rămână blocat.
+   */
+  const points = formData.getAll("pointId").map((raw) => {
+    const itemId = String(raw);
+    return {
+      itemId,
+      checkId: String(formData.get(`chk_${itemId}`) ?? "") || null,
+      text: String(formData.get(`txt_${itemId}`) ?? "").trim() || "Punct de verificare",
+      status: String(formData.get(`st_${itemId}`) ?? "ok"),
+      value: String(formData.get(`val_${itemId}`) ?? "").trim() || null,
+      note: String(formData.get(`note_${itemId}`) ?? "").trim() || null,
+    };
+  });
+  const foundProblem =
+    points.length > 0
+      ? points.some((point) => point.status === "nok")
+      : String(formData.get("freeVerdict") ?? formData.get("foundProblem") ?? "nu") === "da";
 
   const [objective] = await db.select().from(objectives).where(eq(objectives.id, objectiveId)).limit(1);
   if (!objective) return;
@@ -201,29 +226,56 @@ export async function submitInspectionSheet(formData: FormData): Promise<void> {
     .set({
       inspectionType: inspectionKind,
       discipline,
+      ticketTypeId,
+      reportYear,
+      reportMonth,
       subcontractorId,
       executant: subcontractorId ? "subcontractant" : "propriu",
       closedAt: new Date(),
     })
     .where(eq(workUnits.id, unit.id));
 
-  await declareMedia({
+  await storeMedia({
     ownerType: "work_unit",
     ownerId: unit.id,
     workUnitId: unit.id,
     slot: "inspectie",
-    photos: Number(formData.get("photoCount") ?? 0),
+    files: pickedFiles(formData),
     userId: session.id,
   });
 
-  // Constatarea propriu-zisă. Fără probleme = un singur punct OK, ca fișa să nu fie goală.
+  /**
+   * Răspunsurile pe puncte. Se scriu ÎNAINTE de orice ramificație, ca fișa să rămână
+   * completă chiar și când nu s-a găsit nimic — asta e dovada că punctul a fost atins,
+   * iar din ea iese raportarea transversală pe `check_id`.
+   */
+  if (points.length > 0) {
+    await db.insert(inspectionAnswers).values(
+      points.map((point) => ({
+        workUnitId: unit.id,
+        itemId: point.itemId,
+        checkId: point.checkId,
+        itemText: point.text,
+        ok: point.status === "na" ? null : point.status === "ok",
+        na: point.status === "na",
+        measuredValue: point.value,
+        note: point.note,
+        outcome:
+          point.status === "nok" ? (resolvedOnSite ? "rezolvat" : "interventie") : null,
+      })),
+    );
+  }
+
+  // Fără listă și fără probleme: un singur punct OK, ca fișa să nu fie goală.
   if (!foundProblem) {
-    await db.insert(inspectionAnswers).values({
-      workUnitId: unit.id,
-      itemText: `${discipline} — verificare completă`,
-      ok: true,
-      note: description || null,
-    });
+    if (points.length === 0) {
+      await db.insert(inspectionAnswers).values({
+        workUnitId: unit.id,
+        itemText: `${discipline} — verificare completă`,
+        ok: true,
+        note: description || null,
+      });
+    }
     revalidatePath("/teren/mentenanta");
     redirect(`/teren/inspectii/${unit.id}`);
   }
@@ -252,24 +304,61 @@ export async function submitInspectionSheet(formData: FormData): Promise<void> {
     followUpId = followUp.id;
   }
 
-  await db.insert(inspectionAnswers).values({
-    workUnitId: unit.id,
-    itemText: `${discipline} — problemă constatată`,
-    ok: false,
-    note: description || null,
-    outcome: resolvedOnSite ? "rezolvat" : "interventie",
-  });
+  if (points.length === 0) {
+    await db.insert(inspectionAnswers).values({
+      workUnitId: unit.id,
+      itemText: `${discipline} — problemă constatată`,
+      ok: false,
+      note: description || null,
+      outcome: resolvedOnSite ? "rezolvat" : "interventie",
+    });
+  }
 
-  // Rezolvat pe loc: orele și materialele intră pe fișa de inspecție, nu se pierd.
+  /**
+   * Rezolvat pe loc: se naște o fișă de intervenție ADEVĂRATĂ, nu doar niște rânduri
+   * atârnate de inspecție — altfel „provine dintr-o inspecție" n-ar avea unde să stea.
+   * `sourceTag: 'inspectie'` + `sourceUnitId` fac legătura explicită, vizibilă pe fișă
+   * (§ecranul de intervenție arată „De unde a pornit"), exact ca la intervenția
+   * planificată din ramura de mai sus.
+   */
   if (resolvedOnSite) {
     const hours =
       Number(formData.get("hours") ?? 0) + Number(formData.get("minutes") ?? 0) / 60;
     const qualification = String(formData.get("qualification") ?? "muncitor");
-    const allocation = await activeAllocation(unit.id);
+    const interventionCost = (Number(String(formData.get("interventionCost") ?? "0").replace(/[^0-9]/g, "")) *
+      100) as Bani;
+    const interventionMaterialsNote = String(formData.get("interventionMaterialsNote") ?? "").trim();
+
+    const intervention = await createWorkUnit({
+      kind: "interventie",
+      title: `Remediere pe loc — ${discipline}`,
+      description: description || null,
+      firmId,
+      objectiveId,
+      responsibleId: session.id,
+      startDate: day,
+      endDate: day,
+      status: "finalizata",
+      createdBy: session.id,
+      funding,
+    });
+    await db
+      .update(workUnits)
+      .set({
+        sourceTag: "inspectie",
+        sourceUnitId: unit.id,
+        subcontractorId,
+        executant: subcontractorId ? "subcontractant" : "propriu",
+        closedAt: new Date(),
+      })
+      .where(eq(workUnits.id, intervention.id));
+    followUpId = intervention.id;
+
+    const allocation = await activeAllocation(intervention.id);
 
     await db.insert(interventionDetails).values({
-      workUnitId: unit.id,
-      description: description || null,
+      workUnitId: intervention.id,
+      description: `Provine din fișa de inspecție ${unit.code} — ${description || "fără detalii suplimentare"}`,
       hoursDeclared: hours.toFixed(2),
       peopleCount: 1,
       resolvedAt: new Date(),
@@ -278,7 +367,7 @@ export async function submitInspectionSheet(formData: FormData): Promise<void> {
     if (hours > 0) {
       await db.insert(timesheets).values({
         userId: session.id,
-        workUnitId: unit.id,
+        workUnitId: intervention.id,
         day,
         hours: hours.toFixed(2),
         qualification,
@@ -291,7 +380,7 @@ export async function submitInspectionSheet(formData: FormData): Promise<void> {
           firmId,
           documentDate: day,
           objectiveId,
-          workUnitId: unit.id,
+          workUnitId: intervention.id,
           usedContractId: allocation?.contractId ?? null,
           usedComponentId: allocation?.componentId ?? null,
           costType: "manopera",
@@ -308,13 +397,32 @@ export async function submitInspectionSheet(formData: FormData): Promise<void> {
 
     await consumeFromTeamStock({
       formData,
-      workUnitId: unit.id,
+      workUnitId: intervention.id,
       objectiveId,
       firmId,
       userId: session.id,
       day,
       note: "Rezolvat pe loc la inspecție",
     });
+
+    if (interventionCost > 0) {
+      await recordCost({
+        firmId,
+        documentDate: day,
+        objectiveId,
+        workUnitId: intervention.id,
+        usedContractId: allocation?.contractId ?? null,
+        usedComponentId: allocation?.componentId ?? null,
+        costType: "reparatii",
+        stage: "consumat",
+        value: interventionCost,
+        documentType: "interventie_pe_loc",
+        note: interventionMaterialsNote
+          ? `Cost declarat de cel care a intervenit, la fișa de inspecție — ${interventionMaterialsNote}`
+          : "Cost declarat de cel care a intervenit, la fișa de inspecție",
+        createdBy: session.id,
+      });
+    }
   }
 
   revalidatePath("/teren/mentenanta");
@@ -404,12 +512,12 @@ export async function addInterventionNote(formData: FormData): Promise<void> {
     createdBy: session.id,
   });
 
-  await declareMedia({
+  await storeMedia({
     ownerType: "work_unit",
     ownerId: id,
     workUnitId: id,
     slot: "interventie",
-    photos: Number(formData.get("photoCount") ?? 0),
+    files: pickedFiles(formData),
     userId: session.id,
   });
 

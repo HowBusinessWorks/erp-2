@@ -9,6 +9,8 @@ import { db } from "@/lib/db";
 import {
   checklistItems,
   checklistTemplates,
+  inspectionChecks,
+  ticketTypes,
   firms,
   fuelPrices,
   laborRates,
@@ -35,6 +37,7 @@ import { requireSession } from "@/lib/session";
 
 import {
   ChecklistForm,
+  InspectionCheckForm,
   FirmForm,
   FuelPriceForm,
   LaborRateForm,
@@ -101,6 +104,7 @@ export default async function NomenclatoarePage({
       {tab === "produse" ? <ProduseTab /> : null}
       {tab === "calificari" ? <CalificariTab /> : null}
       {tab === "operatiuni" ? <OperatiuniTab /> : null}
+      {tab === "puncte" ? <PuncteTab /> : null}
       {tab === "checklist" ? <ChecklistTab /> : null}
       {tab === "utilizatori" ? <UtilizatoriTab /> : null}
       {tab === "motorina" ? <MotorinaTab /> : null}
@@ -563,19 +567,135 @@ async function OperatiuniTab() {
   );
 }
 
-/* ───────────────────── Șabloane de checklist ───────────────────── */
+/* ───────────────────── Puncte de verificare ───────────────────── */
+
+/** Nomenclatorul de tipuri e cel de la tichete — nu construim al doilea. */
+async function inspectionTypeOptions(): Promise<Opt[]> {
+  const rows = await db
+    .select({ id: ticketTypes.id, name: ticketTypes.name })
+    .from(ticketTypes)
+    .where(eq(ticketTypes.active, true))
+    .orderBy(asc(ticketTypes.position));
+  return rows.map((r) => ({ value: r.id, label: r.name }));
+}
+
+async function objectiveKindOptions(): Promise<Opt[]> {
+  const rows = await db
+    .selectDistinct({ kind: objectives.kind })
+    .from(objectives)
+    .orderBy(asc(objectives.kind));
+  return rows.map((k) => ({ value: k.kind, label: k.kind }));
+}
+
+async function PuncteTab() {
+  const [rows, types, kinds] = await Promise.all([
+    db
+      .select({ point: inspectionChecks, type: ticketTypes })
+      .from(inspectionChecks)
+      .leftJoin(ticketTypes, eq(inspectionChecks.ticketTypeId, ticketTypes.id))
+      .orderBy(asc(inspectionChecks.code)),
+    inspectionTypeOptions(),
+    objectiveKindOptions(),
+  ]);
+
+  return (
+    <section className="space-y-3">
+      <TabHead
+        hint="Punctul se definește o dată și intră în oricâte liste. De-aia se poate răspunde la „la câte obiective a picat verificarea acumulatorilor” — altfel același punct e scris diferit în zece liste."
+        action={<InspectionCheckForm ticketTypes={types} objectiveKinds={kinds} />}
+      />
+      {rows.length === 0 ? (
+        <EmptyState
+          title="Niciun punct de verificare"
+          hint="Fără puncte, listele de inspecție rămân text liber și nu iese acoperire măsurabilă."
+          action={<InspectionCheckForm ticketTypes={types} objectiveKinds={kinds} />}
+        />
+      ) : (
+        <Sheet>
+          <Table>
+            <THead>
+              <TR>
+                <TH>Cod</TH>
+                <TH>Denumire</TH>
+                <TH>Tip de inspecție</TH>
+                <TH>Tip de obiectiv</TH>
+                <TH>Cere</TH>
+                <TH>Stare</TH>
+                <TH numeric>Acțiuni</TH>
+              </TR>
+            </THead>
+            <TBody>
+              {rows.map(({ point, type }) => (
+                <TR key={point.id} className={rowTone(point.active)}>
+                  <TD className="font-medium">{point.code}</TD>
+                  <TD>{point.name}</TD>
+                  <TD muted>{type?.name ?? "orice tip"}</TD>
+                  <TD muted>{point.objectiveKind ?? "orice tip"}</TD>
+                  <TD muted>{describeDemands(point.requiresPhoto, point.requiresValue, point.valueUnit)}</TD>
+                  <TD>
+                    <StatusBadge active={point.active} />
+                  </TD>
+                  <TD numeric>
+                    <div className="flex items-center justify-end gap-1">
+                      <InspectionCheckForm
+                        ticketTypes={types}
+                        objectiveKinds={kinds}
+                        point={{
+                          id: point.id,
+                          code: point.code,
+                          name: point.name,
+                          ticketTypeId: point.ticketTypeId,
+                          objectiveKind: point.objectiveKind,
+                          guidance: point.guidance,
+                          requiresPhoto: point.requiresPhoto,
+                          requiresValue: point.requiresValue,
+                          valueUnit: point.valueUnit,
+                        }}
+                      />
+                      <ActiveCell entity="puncte" id={point.id} active={point.active} />
+                    </div>
+                  </TD>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+        </Sheet>
+      )}
+    </section>
+  );
+}
+
+function describeDemands(photo: boolean, value: boolean, unit: string | null): string {
+  const parts: string[] = [];
+  if (photo) parts.push("poză");
+  if (value) parts.push(unit ? "valoare (" + unit + ")" : "valoare");
+  return parts.length > 0 ? parts.join(" · ") : "—";
+}
+
+/* ───────────────────── Liste de inspecție ───────────────────── */
 
 async function ChecklistTab() {
-  const [rows, itemRows, kindRows] = await Promise.all([
-    db.select().from(checklistTemplates).orderBy(asc(checklistTemplates.name)),
+  const [rows, itemRows, kindRows, types, catalog] = await Promise.all([
+    db
+      .select({ t: checklistTemplates, type: ticketTypes })
+      .from(checklistTemplates)
+      .leftJoin(ticketTypes, eq(checklistTemplates.ticketTypeId, ticketTypes.id))
+      .orderBy(asc(checklistTemplates.name)),
     db.select().from(checklistItems).orderBy(asc(checklistItems.position)),
     db.selectDistinct({ kind: objectives.kind }).from(objectives).orderBy(asc(objectives.kind)),
+    inspectionTypeOptions(),
+    db.select({ id: inspectionChecks.id, code: inspectionChecks.code }).from(inspectionChecks),
   ]);
 
   const byTemplate = new Map<string, { section: string | null; text: string }[]>();
+  const codeByCheck = new Map(catalog.map((c) => [c.id, c.code] as const));
   for (const item of itemRows) {
     const list = byTemplate.get(item.templateId) ?? [];
-    list.push({ section: item.section, text: item.text });
+    // Înapoi în text: punctul legat se re-scrie ca ce a fost tastat — codul lui.
+    list.push({
+      section: item.section,
+      text: (item.checkId ? codeByCheck.get(item.checkId) : null) ?? item.text,
+    });
     byTemplate.set(item.templateId, list);
   }
   const objectiveKinds: Opt[] = kindRows.map((k) => ({ value: k.kind, label: k.kind }));
@@ -584,13 +704,13 @@ async function ChecklistTab() {
     <section className="space-y-3">
       <TabHead
         hint="Un punct NOK din fișă trebuie să aibă mereu o ieșire — rezolvat pe loc, intervenție sau propunere. De aceea contează ce scrie exact în punct."
-        action={<ChecklistForm objectiveKinds={objectiveKinds} />}
+        action={<ChecklistForm ticketTypes={types} objectiveKinds={objectiveKinds} />}
       />
       {rows.length === 0 ? (
         <EmptyState
-          title="Niciun șablon de checklist"
-          hint="Inspecția fără șablon devine text liber, iar din text liber nu iese acoperire măsurabilă."
-          action={<ChecklistForm objectiveKinds={objectiveKinds} />}
+          title="Nicio listă de inspecție"
+          hint="Inspecția fără listă devine text liber, iar din text liber nu iese acoperire măsurabilă."
+          action={<ChecklistForm ticketTypes={types} objectiveKinds={objectiveKinds} />}
         />
       ) : (
         <Sheet>
@@ -599,20 +719,20 @@ async function ChecklistTab() {
               <TR>
                 <TH>Denumire</TH>
                 <TH>Tip de obiectiv</TH>
-                <TH>Disciplină</TH>
+                <TH>Tip de inspecție</TH>
                 <TH numeric>Puncte</TH>
                 <TH>Stare</TH>
                 <TH numeric>Acțiuni</TH>
               </TR>
             </THead>
             <TBody>
-              {rows.map((t) => {
+              {rows.map(({ t, type }) => {
                 const items = byTemplate.get(t.id) ?? [];
                 return (
                   <TR key={t.id} className={rowTone(t.active)}>
                     <TD className="font-medium">{t.name}</TD>
                     <TD muted>{t.objectiveKind ?? "orice tip"}</TD>
-                    <TD muted>{t.discipline ?? "—"}</TD>
+                    <TD muted>{type?.name ?? t.discipline ?? "—"}</TD>
                     <TD numeric muted>{items.length}</TD>
                     <TD>
                       <StatusBadge active={t.active} />
@@ -620,11 +740,13 @@ async function ChecklistTab() {
                     <TD numeric>
                       <div className="flex items-center justify-end gap-1">
                         <ChecklistForm
+                          ticketTypes={types}
                           objectiveKinds={objectiveKinds}
                           template={{
                             id: t.id,
                             name: t.name,
                             objectiveKind: t.objectiveKind,
+                            ticketTypeId: t.ticketTypeId,
                             discipline: t.discipline,
                             items: formatChecklistItems(items),
                           }}

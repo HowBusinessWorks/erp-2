@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
+import { Select } from "@/components/ui/select";
 import { Icon } from "./FieldIcons";
 
 /**
@@ -41,6 +43,46 @@ export function SubmitBar({
           </>
         )}
       </button>
+    </div>
+  );
+}
+
+/* ───────────────────────── filtru dropdown, cu căutare ───────────────────────── */
+
+/**
+ * Variantă de {@link Filters} pentru liste lungi (obiective, locuri) — în loc de
+ * un rând de chip-uri care se întinde la nesfârșit, un singur `Select` (tonul de
+ * teren, deja are panou cu căutare de la 8 opțiuni în sus). Alegerea navighează
+ * imediat, ca la un click pe chip.
+ */
+export function FilterSelect({
+  options,
+  current,
+  basePath,
+  param,
+  query,
+  placeholder,
+}: {
+  options: { value: string; label: string }[];
+  current: string;
+  basePath: string;
+  param: string;
+  query?: Record<string, string>;
+  placeholder?: string;
+}) {
+  const router = useRouter();
+  return (
+    <div className="f-flt-sel">
+      <Select
+        tone="field"
+        value={current}
+        placeholder={placeholder}
+        options={options}
+        onChange={(e) => {
+          const params = new URLSearchParams({ ...query, [param]: e.target.value });
+          router.push(`${basePath}?${params.toString()}`);
+        }}
+      />
     </div>
   );
 }

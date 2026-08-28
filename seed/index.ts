@@ -400,16 +400,93 @@ async function main() {
       items: ["Fațadă — fisuri", "Acoperiș și jgheaburi", "Tâmplărie exterioară", "Instalație stingere incendiu", "Căi de evacuare", "Grup sanitar", "Centrală termică"] },
   ];
 
+  /*
+   * Tipul de inspecție e nomenclatorul de la tichete — nu al doilea. Aici se asigură
+   * doar că există; fluxul de tichete îl populează la fel, cu `onConflictDoNothing`.
+   */
+  const TYPE_SPECS = [
+    { name: "Electric", tone: "warn", icon: "Zap", discipline: "electrica" },
+    { name: "Sanitar", tone: "blueprint", icon: "Droplets", discipline: "sanitara" },
+    { name: "Construcții", tone: "neutral", icon: "Hammer", discipline: "vizuala" },
+    { name: "HVAC", tone: "blueprint", icon: "Wind", discipline: null },
+  ];
+  await db
+    .insert(s.ticketTypes)
+    .values(TYPE_SPECS.map((t, i) => ({ name: t.name, tone: t.tone, icon: t.icon, position: i })))
+    .onConflictDoNothing();
+  const typeRows = await db.select().from(s.ticketTypes);
+  const typeByDiscipline = new Map(
+    TYPE_SPECS.filter((t) => t.discipline).map((t) => [
+      t.discipline as string,
+      typeRows.find((r) => r.name === t.name)?.id ?? null,
+    ]),
+  );
+
+  /*
+   * Catalogul de puncte: fiecare text de mai sus devine un punct global, cu cod.
+   * Textele care se repetă între liste ajung același punct — exact scopul catalogului.
+   */
+  const checkByText = new Map<string, string>();
+  const codeOf = (discipline: string | null, index: number) =>
+    `${(discipline ?? "gen").slice(0, 3).toUpperCase()}-${String(index).padStart(3, "0")}`;
+
+  let checkIndex = 0;
+  for (const spec of checklistSpecs) {
+    for (const text of spec.items) {
+      const key = `${spec.discipline ?? ""}|${text}`;
+      if (checkByText.has(key)) continue;
+      checkIndex += 1;
+      const [row] = await db
+        .insert(s.inspectionChecks)
+        .values({
+          code: codeOf(spec.discipline, checkIndex),
+          name: text,
+          ticketTypeId: typeByDiscipline.get(spec.discipline ?? "") ?? null,
+          objectiveKind: spec.objectiveKind,
+        })
+        .returning();
+      checkByText.set(key, row.id);
+    }
+  }
+
   const checklistTemplates = [];
   for (const spec of checklistSpecs) {
     const [tpl] = await db
       .insert(s.checklistTemplates)
-      .values({ name: spec.name, objectiveKind: spec.objectiveKind, discipline: spec.discipline })
+      .values({
+        name: spec.name,
+        objectiveKind: spec.objectiveKind,
+        ticketTypeId: typeByDiscipline.get(spec.discipline ?? "") ?? null,
+        discipline: spec.discipline,
+      })
       .returning();
     await db.insert(s.checklistItems).values(
-      spec.items.map((text, i) => ({ templateId: tpl.id, position: i + 1, text })),
+      spec.items.map((text, i) => ({
+        templateId: tpl.id,
+        position: i + 1,
+        checkId: checkByText.get(`${spec.discipline ?? ""}|${text}`) ?? null,
+        text,
+      })),
     );
     checklistTemplates.push({ tpl, items: spec.items });
+  }
+
+  /*
+   * Setul contractului: listele generice (fără tip de obiectiv) merg pe toate contractele
+   * de mentenanță, lunar. Obiectivele le moștenesc — nu se copiază nicăieri.
+   */
+  const inspectedContracts = contractRows.filter((c) => c.kind === "mentenanta");
+  const genericLists = checklistTemplates.filter((t) => t.tpl.objectiveKind === null);
+  if (inspectedContracts.length > 0 && genericLists.length > 0) {
+    await db.insert(s.contractChecklists).values(
+      inspectedContracts.flatMap((contract) =>
+        genericLists.map(({ tpl }) => ({
+          contractId: contract.id,
+          templateId: tpl.id,
+          frequencyMonths: 1,
+        })),
+      ),
+    );
   }
 
   /**

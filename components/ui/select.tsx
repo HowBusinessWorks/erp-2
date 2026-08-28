@@ -256,7 +256,7 @@ export function Select({
   }, [open, closePanel]);
 
   useEffect(() => {
-    if (open && withSearch && !sheet) searchRef.current?.focus();
+    if (open && withSearch) searchRef.current?.focus();
   }, [open, withSearch, sheet]);
 
   // Rândul activ rămâne în câmpul vizual când se navighează din tastatură.
@@ -429,8 +429,8 @@ export function Select({
                 </div>
               ) : null}
 
-              {withSearch && !sheet ? (
-                <div className="border-b border-rule p-1.5">
+              {withSearch ? (
+                <div className={clsx("border-b border-rule", sheet ? "p-2.5" : "p-1.5")}>
                   <input
                     ref={searchRef}
                     value={query}
@@ -439,7 +439,10 @@ export function Select({
                       setActive(0);
                     }}
                     placeholder="Caută…"
-                    className="h-8 w-full rounded-chip bg-sunk px-2.5 text-[13px] text-ink outline-none placeholder:text-ink-3"
+                    className={clsx(
+                      "w-full rounded-chip bg-sunk text-ink outline-none placeholder:text-ink-3",
+                      sheet ? "h-11 px-3.5 text-[16px]" : "h-8 px-2.5 text-[13px]",
+                    )}
                   />
                 </div>
               ) : null}

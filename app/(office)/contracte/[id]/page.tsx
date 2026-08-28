@@ -11,13 +11,19 @@ import {
   BudgetForm,
   ContractEditForm,
   ContractYearForm,
+  ContractChecklistForm,
   LinkObjectiveForm,
+  ObjectiveListsForm,
+  RemoveChecklistButton,
   UnlinkObjectiveButton,
 } from "./ContractForms";
 import { budgetsForMonth, marginOf } from "@/lib/budget";
 import { db } from "@/lib/db";
 import {
   checklistTemplates,
+  contractChecklists,
+  objectiveChecklists,
+  ticketTypes,
   componentBudgets,
   contractComponents,
   contractObjectives,
@@ -148,6 +154,28 @@ export default async function ContractPage({
     .orderBy(asc(objectives.code));
 
   const activeLinks = linked.filter((l) => !l.link.toDate || l.link.toDate >= day);
+
+  // Listele de inspecție: setul contractului + seturile proprii ale obiectivelor desprinse.
+  const [contractLists, objectiveLists] = await Promise.all([
+    db
+      .select({ row: contractChecklists, template: checklistTemplates, type: ticketTypes })
+      .from(contractChecklists)
+      .innerJoin(checklistTemplates, eq(contractChecklists.templateId, checklistTemplates.id))
+      .leftJoin(ticketTypes, eq(checklistTemplates.ticketTypeId, ticketTypes.id))
+      .where(eq(contractChecklists.contractId, id))
+      .orderBy(asc(checklistTemplates.name)),
+    db
+      .select({ row: objectiveChecklists, template: checklistTemplates })
+      .from(objectiveChecklists)
+      .innerJoin(checklistTemplates, eq(objectiveChecklists.templateId, checklistTemplates.id)),
+  ]);
+
+  const ownLists = new Map<string, { id: string; name: string; frequencyMonths: number }[]>();
+  for (const { row, template } of objectiveLists) {
+    const list = ownLists.get(row.contractObjectiveId) ?? [];
+    list.push({ id: row.id, name: template.name, frequencyMonths: row.frequencyMonths });
+    ownLists.set(row.contractObjectiveId, list);
+  }
 
   // Datele de referință ale formularelor — doar când rolul poate edita.
   const components = await db
@@ -385,6 +413,57 @@ export default async function ContractPage({
         <SectionRule
           right={
             canEdit ? (
+              <ContractChecklistForm contractId={id} templates={templateOpts} />
+            ) : (
+              `${contractLists.length} liste`
+            )
+          }
+        >
+          Liste de inspecție
+        </SectionRule>
+        <Sheet className="mt-2.5">
+          {contractLists.length === 0 ? (
+            <EmptyState
+              title="Nicio listă pe contract"
+              hint="Fără liste, inspecțiile rămân text liber. Listele puse aici se moștenesc automat de toate obiectivele contractului."
+            />
+          ) : (
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Listă</TH>
+                  <TH>Tip de inspecție</TH>
+                  <TH>Ritm</TH>
+                  {canEdit ? <TH /> : null}
+                </TR>
+              </THead>
+              <TBody>
+                {contractLists.map(({ row, template, type }) => (
+                  <TR key={row.id}>
+                    <TD strong>{template.name}</TD>
+                    <TD muted>{type?.name ?? template.discipline ?? "—"}</TD>
+                    <TD>
+                      <Badge tone="blueprint">
+                        {row.frequencyMonths === 1 ? "lunar" : `la ${row.frequencyMonths} luni`}
+                      </Badge>
+                    </TD>
+                    {canEdit ? (
+                      <TD numeric>
+                        <RemoveChecklistButton rowId={row.id} scope="contract" contractId={id} />
+                      </TD>
+                    ) : null}
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          )}
+        </Sheet>
+      </section>
+
+      <section>
+        <SectionRule
+          right={
+            canEdit ? (
               <span className="flex items-center gap-2">
                 <ObjectiveForm contractId={id} label="＋ Obiectiv nou" variant="quiet" />
                 <LinkObjectiveForm
@@ -415,7 +494,7 @@ export default async function ContractPage({
                   <TH>Tip</TH>
                   <TH>Perioadă pe contract</TH>
                   <TH>Inspecție</TH>
-                  <TH>Checklist</TH>
+                  <TH>Liste</TH>
                   {canEdit ? <TH /> : null}
                 </TR>
               </THead>
@@ -441,13 +520,34 @@ export default async function ContractPage({
                           <span className="text-ink-3">neprogramată</span>
                         )}
                       </TD>
-                      <TD muted>{template?.name ?? "—"}</TD>
+                      <TD muted>
+                        {link.inspectionSource === "propriu" ? (
+                          <span>
+                            proprii · {(ownLists.get(link.id) ?? []).length}
+                          </span>
+                        ) : (
+                          <span className="text-ink-3">
+                            moștenite · {contractLists.length}
+                            {template ? ` (+ ${template.name})` : ""}
+                          </span>
+                        )}
+                      </TD>
                       {canEdit ? (
                         <TD numeric>
                           {out ? (
                             <span className="text-micro text-ink-3">scos</span>
                           ) : (
-                            <UnlinkObjectiveButton linkId={link.id} contractId={id} />
+                            <div className="flex items-center justify-end gap-1">
+                              <ObjectiveListsForm
+                                linkId={link.id}
+                                contractId={id}
+                                objectiveName={objective.name}
+                                source={link.inspectionSource}
+                                templates={templateOpts}
+                                own={ownLists.get(link.id) ?? []}
+                              />
+                              <UnlinkObjectiveButton linkId={link.id} contractId={id} />
+                            </div>
                           )}
                         </TD>
                       ) : null}

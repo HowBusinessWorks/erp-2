@@ -20,7 +20,9 @@
  */
 html:has(.f-app),
 body:has(> .f-app) {
-  overflow: hidden;
+  /* `clip`, din acelasi motiv ca la `.f-app`: `hidden` ar lasa documentul derulabil
+     programatic, deci browserul l-ar putea deplasa ca sa urmareasca focusul. */
+  overflow: clip;
   height: 100%;
   /* Ce rămâne dedesubt e închis la culoare, nu alb: dacă vreun milimetru tot scapă de sub
      shell (bounce elastic, viewport raportat scurt), se citește ca parte din bara de jos. */
@@ -58,7 +60,16 @@ body:has(> .f-app) {
   bottom: calc(-1 * var(--f-extra, 0px));
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /*
+   * `clip`, nu `hidden`. Un element cu `overflow: hidden` ramane un container
+   * DERULABIL: browserul il deruleaza singur ca sa aduca in vizor elementul care
+   * tocmai a primit focus. Pe wizard — unde toti pasii stau in DOM si focusul sare
+   * la fiecare „Continua" — shell-ul se deruleaza intern cu cateva sute de pixeli,
+   * bara de tab-uri urca odata cu continutul, iar sub ea ramane descoperit fundalul
+   * deschis al lui `.f-app`. `clip` nu creeaza container de derulare, deci deplasarea
+   * devine imposibila; derularea ramane exclusiv treaba lui `.f-main`.
+   */
+  overflow: clip;
   background: var(--f-bg);
   color: var(--f-ink);
   font-family: var(--font-archivo), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -916,6 +927,14 @@ body:has(> .f-app) {
   border-color: var(--f-ink);
 }
 
+.f-flt-sel {
+  margin: 0 16px 14px;
+  padding: 9px 14px;
+  border: 1.5px solid var(--f-line);
+  border-radius: 12px;
+  background: #fff;
+}
+
 /* linie de listă */
 .f-li {
   display: flex;
@@ -989,6 +1008,15 @@ body:has(> .f-app) {
 
 .f-tabs {
   flex: 0 0 auto;
+  /*
+   * Bara sta lipita de marginea de jos a shell-ului chiar daca `.f-main` nu creste.
+   * Fara `margin-top: auto`, intreg layout-ul atarna de `flex-grow` pe `.f-main`:
+   * daca acela cedeaza — continut mai scurt decat ecranul, emulare de mobil care
+   * raporteaza alta inaltime, un `min-height` mostenit — bara urca dupa continut si
+   * sub ea ramane o fasie din fundalul deschis al lui `.f-app`. `auto` impinge tot
+   * spatiul liber deasupra barei, deci simptomul devine imposibil, nu doar improbabil.
+   */
+  margin-top: auto;
   background: var(--f-ink);
   display: flex;
   padding: 4px 6px 0;
@@ -1060,7 +1088,7 @@ body:has(> .f-app) {
   width: 46px;
   height: 46px;
   color: #cdd3dc;
-  margin-bottom: 10px;
+  margin: 0 auto 10px;
 }
 .f-emp b {
   display: block;
@@ -1288,6 +1316,12 @@ body:has(> .f-app) {
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
+}
+.f-bub .f-h svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: var(--f-mut);
 }
 .f-bub .f-h b {
   font-size: 12.5px;

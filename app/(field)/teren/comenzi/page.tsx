@@ -1,3 +1,4 @@
+import { FilterSelect } from "@/components/domain/FieldKit";
 import {
   Block,
   ButtonLink,
@@ -65,13 +66,15 @@ export default async function ComenziPage({
       />
 
       {places.length > 1 ? (
-        <Filters
+        <FilterSelect
           options={[
             { value: "toate", label: "Toate locurile" },
             ...places.map((name) => ({ value: name, label: name })),
           ]}
           current={place}
-          hrefFor={(value) => `/teren/comenzi?f=${tab}&loc=${value}`}
+          basePath="/teren/comenzi"
+          param="loc"
+          query={{ f: tab }}
         />
       ) : null}
 

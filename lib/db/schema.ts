@@ -412,6 +412,11 @@ export const contractObjectives = pgTable("contract_objectives", {
   fromDate: date("from_date").notNull(),
   toDate: date("to_date"),
   checklistTemplateId: uuid("checklist_template_id"),
+  /**
+   * De unde își ia listele de inspecție: `contract` = moștenește setul contractului,
+   * `propriu` = are rândurile lui în `objective_checklists`. Comutatorul din §5.
+   */
+  inspectionSource: text("inspection_source").notNull().default("contract"),
   /** frecvența contractuală de inspecție, în luni */
   inspectionFrequencyMonths: integer("inspection_frequency_months"),
   createdAt: createdAt(),
@@ -448,6 +453,16 @@ export const workUnits = pgTable("work_units", {
   /** doar la inspecții — ritmul și disciplina verificată (fișa de inspecție, v3) */
   inspectionType: inspectionType("inspection_type"),
   discipline: text("discipline"),
+  /** disciplina ca nomenclator — același ca la tichete */
+  ticketTypeId: uuid("ticket_type_id"),
+  /**
+   * LUNA DE RAPORTARE, nu data faptei. Se poate muta manual dintr-o lună în alta
+   * cât timp raportul nu a plecat — de aici iese acoperirea lunară (§20.1).
+   */
+  reportYear: integer("report_year"),
+  reportMonth: integer("report_month"),
+  /** raportul lunar în care a plecat la client; de aici iese data raportării */
+  monthlyReportId: uuid("monthly_report_id"),
   /**
    * De la ce a pornit. La intervenția născută dintr-o inspecție, `sourceUnitId`
    * trimite la fișa de inspecție — așa se vede „ce s-a întâmplat mai departe"
@@ -773,12 +788,40 @@ export const operationCatalogMaterials = pgTable("operation_catalog_materials", 
 
 /* ══════════════════════════ 6. FIȘE DE LUCRU ══════════════════════════ */
 
+/**
+ * Catalogul de puncte de verificare — „verificare cabluri”, „verificare acumulatori”.
+ * Global și reutilizabil: același punct intră în 20 de liste, iar întrebarea
+ * „la câte obiective a picat verificarea acumulatorilor” are un răspuns.
+ * Disciplina e `ticket_types` — același nomenclator ca la tichete, nu al doilea.
+ */
+export const inspectionChecks = pgTable(
+  "inspection_checks",
+  {
+    id: id(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    ticketTypeId: uuid("ticket_type_id").references(() => ticketTypes.id),
+    /** restrânge punctul la un tip de obiectiv; null = orice */
+    objectiveKind: text("objective_kind"),
+    guidance: text("guidance"),
+    requiresPhoto: boolean("requires_photo").notNull().default(false),
+    /** punctul cere o valoare măsurată (tensiune, presiune) */
+    requiresValue: boolean("requires_value").notNull().default(false),
+    valueUnit: text("value_unit"),
+    active: boolean("active").notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("inspection_checks_code_uq").on(sql`lower(${t.code})`)],
+);
+
 export const checklistTemplates = pgTable("checklist_templates", {
   id: id(),
   name: text("name").notNull(),
   /** pe ce tip de obiectiv se aplică */
   objectiveKind: text("objective_kind"),
-  /** electrica | sanitara | vizuala | … */
+  /** disciplina — același nomenclator ca la tichete */
+  ticketTypeId: uuid("ticket_type_id").references(() => ticketTypes.id),
+  /** electrica | sanitara | vizuala | … (istoric, se citește când nu e tip legat) */
   discipline: text("discipline"),
   active: boolean("active").notNull().default(true),
   createdAt: createdAt(),
@@ -790,11 +833,51 @@ export const checklistItems = pgTable("checklist_items", {
     .notNull()
     .references(() => checklistTemplates.id, { onDelete: "cascade" }),
   position: integer("position").notNull(),
+  /** punctul din catalog; null = punct scris liber, doar în lista asta */
+  checkId: uuid("check_id").references(() => inspectionChecks.id),
   text: text("text").notNull(),
   /** grupare vizuală în fișă */
   section: text("section"),
   createdAt: createdAt(),
 });
+
+/**
+ * Ce liste se aplică pe contract. Obiectivele cu `inspection_source = 'contract'`
+ * le moștenesc — LEGĂTURĂ, nu copie: modifici lista aici, o iau toate.
+ */
+export const contractChecklists = pgTable(
+  "contract_checklists",
+  {
+    id: id(),
+    contractId: uuid("contract_id")
+      .notNull()
+      .references(() => contracts.id, { onDelete: "cascade" }),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => checklistTemplates.id, { onDelete: "cascade" }),
+    /** ritmul contractual, în luni. 1 = în fiecare lună */
+    frequencyMonths: integer("frequency_months").notNull().default(1),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("contract_checklists_uq").on(t.contractId, t.templateId)],
+);
+
+/** Setul propriu al unui obiectiv, când nu moștenește de la contract. */
+export const objectiveChecklists = pgTable(
+  "objective_checklists",
+  {
+    id: id(),
+    contractObjectiveId: uuid("contract_objective_id")
+      .notNull()
+      .references(() => contractObjectives.id, { onDelete: "cascade" }),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => checklistTemplates.id, { onDelete: "cascade" }),
+    frequencyMonths: integer("frequency_months").notNull().default(1),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("objective_checklists_uq").on(t.contractObjectiveId, t.templateId)],
+);
 
 /**
  * Răspunsurile la o fișă de inspecție.
@@ -807,9 +890,15 @@ export const inspectionAnswers = pgTable("inspection_answers", {
     .notNull()
     .references(() => workUnits.id, { onDelete: "cascade" }),
   itemId: uuid("item_id").references(() => checklistItems.id),
+  /** punctul din catalog — pentru raportarea transversală pe puncte */
+  checkId: uuid("check_id").references(() => inspectionChecks.id),
   /** text liber pentru punctele adăugate pe teren */
   itemText: text("item_text").notNull(),
+  /** true = OK, false = NOK, null = neatins. `na` separă „nu se aplică” de „neatins” */
   ok: boolean("ok"),
+  na: boolean("na").notNull().default(false),
+  /** valoarea măsurată, când punctul o cere */
+  measuredValue: text("measured_value"),
   note: text("note"),
   /** ieșirea impusă la NOK */
   outcome: text("outcome"),
@@ -1707,7 +1796,7 @@ export const mediaSlots = pgTable("media_slots", {
   kind: mediaKind("kind").notNull().default("foto"),
   /** „N", „S", „film" — eticheta de sub miniatură */
   label: text("label"),
-  /** gol până la legarea cu R2 */
+  /** cheia din bucket-ul `fisiere` (Supabase Storage) */
   storageKey: text("storage_key"),
   capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
   createdBy: uuid("created_by").references(() => users.id),

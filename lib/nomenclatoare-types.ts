@@ -16,7 +16,8 @@ export const NOMENCLATOR_TABS = [
   { key: "produse", label: "Produse" },
   { key: "calificari", label: "Calificări" },
   { key: "operatiuni", label: "Operațiuni" },
-  { key: "checklist", label: "Checklist" },
+  { key: "puncte", label: "Puncte de verificare" },
+  { key: "checklist", label: "Liste de inspecție" },
   { key: "utilizatori", label: "Utilizatori" },
   { key: "motorina", label: "Preț motorină" },
   { key: "pv", label: "Șabloane PV" },
@@ -145,6 +146,16 @@ export function validateOperation(v: Record<string, string>): FormErrors {
     if (parsed.invalid.length > 0) {
       e.materials = `Linii pe care nu le pot citi: ${parsed.invalid.join("; ")}`;
     }
+  }
+  return e;
+}
+
+export function validateInspectionCheck(v: Record<string, string>): FormErrors {
+  const e: FormErrors = {};
+  req(v, e, "code", "Codul e obligatoriu — după el se pun punctele în liste.");
+  req(v, e, "name", "Denumirea e obligatorie.");
+  if (v.requiresValue === "1" && blank(v.valueUnit)) {
+    e.valueUnit = "Dacă punctul cere o valoare, spune și în ce unitate.";
   }
   return e;
 }

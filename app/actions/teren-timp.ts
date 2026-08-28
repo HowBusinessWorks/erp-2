@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, desc, eq, isNull, or, sql as raw } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or, sql as raw } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { recordCost } from "@/lib/cost-ledger";
@@ -85,7 +85,7 @@ export async function submitTeamAttendance(formData: FormData): Promise<void> {
   if (userIds.length === 0) return;
 
   const allocation = await activeAllocation(workUnitId);
-  const people = await db.select().from(users).where(raw`${users.id} = any(${userIds})`);
+  const people = await db.select().from(users).where(inArray(users.id, userIds));
 
   for (const person of people) {
     const qualification = person.qualification ?? "muncitor";

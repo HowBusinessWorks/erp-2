@@ -53,7 +53,12 @@ export default async function AcoperireInspectiiPage({
           raw`(${contractObjectives.toDate} is null or ${contractObjectives.toDate} >= ${from})`,
         ),
       ),
-    // inspecțiile lunii, o singură agregare
+    /**
+     * Inspecțiile lunii — după LUNA DE RAPORTARE, nu după ziua în care s-a fost pe teren.
+     * Mentenanța se face „când are cineva timp în luna aia", iar fișa poate fi mutată
+     * dintr-o lună în alta până pleacă raportul. Fișele vechi, fără lună pusă, cad
+     * înapoi pe data faptei, ca istoricul să nu se golească.
+     */
     db
       .select({
         objectiveId: workUnits.objectiveId,
@@ -64,7 +69,13 @@ export default async function AcoperireInspectiiPage({
       .where(
         and(
           eq(workUnits.kind, "inspectie"),
-          raw`coalesce(${workUnits.endDate}, ${workUnits.startDate}) between ${from} and ${to}`,
+          raw`(
+            (${workUnits.reportYear} = ${period.year} and ${workUnits.reportMonth} = ${period.month})
+            or (
+              ${workUnits.reportYear} is null
+              and coalesce(${workUnits.endDate}, ${workUnits.startDate}) between ${from} and ${to}
+            )
+          )`,
         ),
       )
       .groupBy(workUnits.objectiveId),
@@ -101,7 +112,7 @@ export default async function AcoperireInspectiiPage({
       <PageHeader
         eyebrow="Evidență"
         title="Acoperirea inspecțiilor"
-        meta="Câte obiective contractate au fost atinse luna asta. Măsoară procesul, nu oamenii."
+        meta="Câte obiective contractate sunt acoperite în luna de raportare. Nu contează ziua în care s-a mers pe teren — contează dacă luna are fișă. Măsoară procesul, nu oamenii."
         actions={
           <MonthNav
             period={period}

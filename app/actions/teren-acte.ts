@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { handoverProtocols, mediaSlots, pvDocuments, tools } from "@/lib/db/schema";
 import { can } from "@/lib/permissions";
 import { requireSession } from "@/lib/session";
+import { pickedFiles, uploadToStorage } from "@/lib/storage";
 
 /**
  * Actele făcute din teren: procesul verbal de lucrare și cel de unelte.
@@ -62,19 +63,23 @@ export async function createFieldPv(formData: FormData): Promise<void> {
     })
     .returning();
 
-  const photos = Number(formData.get("photoCount") ?? 0);
-  if (photos > 0) {
-    await db.insert(mediaSlots).values(
-      Array.from({ length: photos }, (_, i) => ({
-        ownerType: "pv" as const,
+  const files = pickedFiles(formData);
+  if (files.length > 0) {
+    const rows: (typeof mediaSlots.$inferInsert)[] = [];
+    for (const [i, file] of files.entries()) {
+      const video = file.type.startsWith("video/");
+      rows.push({
+        ownerType: "pv",
         ownerId: doc.id,
         workUnitId,
-        slot: "pv" as const,
-        kind: "foto" as const,
-        label: String(i + 1),
+        slot: "pv",
+        kind: video ? "video" : "foto",
+        label: video ? "film" : String(i + 1),
+        storageKey: await uploadToStorage(file, "teren/pv"),
         createdBy: session.id,
-      })),
-    );
+      });
+    }
+    await db.insert(mediaSlots).values(rows);
   }
 
   revalidatePath("/documente");
@@ -138,18 +143,21 @@ export async function saveToolProtocol(formData: FormData): Promise<void> {
     }
   }
 
-  const photos = Number(formData.get("photoCount") ?? 0);
-  if (photos > 0) {
-    await db.insert(mediaSlots).values(
-      Array.from({ length: photos }, (_, i) => ({
-        ownerType: "tool_protocol" as const,
+  const files = pickedFiles(formData);
+  if (files.length > 0) {
+    const rows: (typeof mediaSlots.$inferInsert)[] = [];
+    for (const [i, file] of files.entries()) {
+      rows.push({
+        ownerType: "tool_protocol",
         ownerId: id,
-        slot: "unealta" as const,
-        kind: "foto" as const,
+        slot: "unealta",
+        kind: file.type.startsWith("video/") ? "video" : "foto",
         label: `${phase} ${i + 1}`,
+        storageKey: await uploadToStorage(file, "teren/unealta"),
         createdBy: session.id,
-      })),
-    );
+      });
+    }
+    await db.insert(mediaSlots).values(rows);
   }
 
   revalidatePath(`/teren/pv/unelte/${id}`);
@@ -158,7 +166,7 @@ export async function saveToolProtocol(formData: FormData): Promise<void> {
 }
 
 /**
- * Poze declarate pentru seturile Înainte / După ale unei lucrări.
+ * Pozele pentru seturile Înainte / După ale unei lucrări.
  *
  * Prima și ultima „etapă" nu sunt etape de lucru — sunt două seturi de poze din aceleași
  * unghiuri. Se folosesc la recepție și la oferte, deci merită să existe ca rânduri, nu ca
@@ -170,37 +178,34 @@ export async function declareWorkPhotos(formData: FormData): Promise<void> {
 
   const workUnitId = String(formData.get("workUnitId") ?? "");
   const slot = String(formData.get("slot") ?? "inainte") as "inainte" | "dupa";
-  const count = Number(formData.get("photoCount") ?? 0);
-  const videos = Number(formData.get("videoCount") ?? 0);
-  if (!workUnitId || count + videos <= 0) return;
+  const files = pickedFiles(formData);
+  if (!workUnitId || files.length === 0) return;
 
   const labels = formData.getAll("label").map(String);
 
-  await db.insert(mediaSlots).values([
-    ...Array.from({ length: count }, (_, i) => ({
-      ownerType: "work_unit" as const,
+  const rows: (typeof mediaSlots.$inferInsert)[] = [];
+  let photos = 0;
+  for (const file of files) {
+    const video = file.type.startsWith("video/");
+    const storageKey = await uploadToStorage(file, `teren/${slot}`);
+    if (!video) photos += 1;
+    rows.push({
+      ownerType: "work_unit",
       ownerId: workUnitId,
       workUnitId,
       slot,
-      kind: "foto" as const,
-      label: labels[i] ?? String(i + 1),
+      kind: video ? "video" : "foto",
+      label: video ? "film" : (labels[photos - 1] ?? String(photos)),
+      storageKey,
       createdBy: session.id,
-    })),
-    ...Array.from({ length: videos }, () => ({
-      ownerType: "work_unit" as const,
-      ownerId: workUnitId,
-      workUnitId,
-      slot,
-      kind: "video" as const,
-      label: "film",
-      createdBy: session.id,
-    })),
-  ]);
+    });
+  }
+  await db.insert(mediaSlots).values(rows);
 
   revalidatePath(`/teren/lucrare/${workUnitId}/inainte-dupa`);
 }
 
-/** Ștergerea unui slot declarat greșit — până se leagă R2, e singura corecție posibilă. */
+/** Ștergerea unei poze puse greșit. Rândul dispare; fișierul rămâne în bucket, nefolosit. */
 export async function removeMediaSlot(formData: FormData): Promise<void> {
   const session = await requireSession();
   if (!can(session.role, "teren.opereaza")) return;

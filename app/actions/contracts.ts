@@ -7,10 +7,12 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   componentBudgets,
+  contractChecklists,
   contractComponents,
   contractObjectives,
   contractYears,
   contracts,
+  objectiveChecklists,
   objectives,
 } from "@/lib/db/schema";
 import { isPeriodClosed } from "@/lib/cost-ledger";
@@ -377,6 +379,107 @@ export async function unlinkObjective(fd: FormData): Promise<void> {
     .update(contractObjectives)
     .set({ toDate: str(fd, "toDate") || new Date().toISOString().slice(0, 10) })
     .where(eq(contractObjectives.id, linkId));
+
+  revalidatePath(`/contracte/${contractId}`);
+  revalidatePath("/obiective");
+}
+
+/* ═════════════════════ liste de inspecție ═════════════════════ */
+
+/**
+ * Setul contractului. Obiectivele care nu s-au desprins îl citesc direct — deci un rând
+ * adăugat aici apare imediat pe toate, fără nicio migrare. Asta e diferența dintre
+ * o legătură și o copie, și de ea depinde dacă cineva chiar întreține listele.
+ */
+export async function addContractChecklist(fd: FormData): Promise<void> {
+  await guard();
+  const contractId = str(fd, "contractId");
+  const templateId = str(fd, "templateId");
+  if (!contractId || !templateId) throw new Error("Lipsește lista.");
+  const frequencyMonths = Math.max(1, Number(str(fd, "frequencyMonths") || "1"));
+
+  await db
+    .insert(contractChecklists)
+    .values({ contractId, templateId, frequencyMonths })
+    .onConflictDoUpdate({
+      target: [contractChecklists.contractId, contractChecklists.templateId],
+      set: { frequencyMonths },
+    });
+
+  revalidatePath(`/contracte/${contractId}`);
+}
+
+export async function removeChecklistLink(fd: FormData): Promise<void> {
+  await guard();
+  const rowId = str(fd, "rowId");
+  const contractId = str(fd, "contractId");
+  if (!rowId) throw new Error("Rând inexistent.");
+
+  if (str(fd, "scope") === "obiectiv") {
+    await db.delete(objectiveChecklists).where(eq(objectiveChecklists.id, rowId));
+  } else {
+    await db.delete(contractChecklists).where(eq(contractChecklists.id, rowId));
+  }
+
+  revalidatePath(`/contracte/${contractId}`);
+}
+
+/**
+ * Comutatorul moștenit / propriu. La prima desprindere, setul contractului se copiază
+ * o dată — omul se așteaptă să plece de la ce avea, nu de la o listă goală.
+ */
+export async function setObjectiveInspectionSource(fd: FormData): Promise<void> {
+  await guard();
+  const linkId = str(fd, "linkId");
+  const contractId = str(fd, "contractId");
+  if (!linkId) throw new Error("Legătură inexistentă.");
+  const source = str(fd, "inspectionSource") === "propriu" ? "propriu" : "contract";
+
+  const [link] = await db
+    .select()
+    .from(contractObjectives)
+    .where(eq(contractObjectives.id, linkId))
+    .limit(1);
+  if (!link) throw new Error("Legătură inexistentă.");
+
+  if (source === "propriu" && link.inspectionSource !== "propriu") {
+    const existing = await db
+      .select()
+      .from(objectiveChecklists)
+      .where(eq(objectiveChecklists.contractObjectiveId, linkId));
+    if (existing.length === 0) {
+      const inherited = await db
+        .select()
+        .from(contractChecklists)
+        .where(eq(contractChecklists.contractId, link.contractId));
+      if (inherited.length > 0) {
+        await db.insert(objectiveChecklists).values(
+          inherited.map((row) => ({
+            contractObjectiveId: linkId,
+            templateId: row.templateId,
+            frequencyMonths: row.frequencyMonths,
+          })),
+        );
+      }
+    }
+  }
+
+  await db
+    .update(contractObjectives)
+    .set({ inspectionSource: source })
+    .where(eq(contractObjectives.id, linkId));
+
+  const templateId = str(fd, "templateId");
+  if (templateId) {
+    const frequencyMonths = Math.max(1, Number(str(fd, "frequencyMonths") || "1"));
+    await db
+      .insert(objectiveChecklists)
+      .values({ contractObjectiveId: linkId, templateId, frequencyMonths })
+      .onConflictDoUpdate({
+        target: [objectiveChecklists.contractObjectiveId, objectiveChecklists.templateId],
+        set: { frequencyMonths },
+      });
+  }
 
   revalidatePath(`/contracte/${contractId}`);
   revalidatePath("/obiective");

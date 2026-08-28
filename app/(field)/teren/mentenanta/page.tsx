@@ -1,3 +1,4 @@
+import { FilterSelect } from "@/components/domain/FieldKit";
 import { Block, ButtonLink, Buttons, Empty, FieldBar, Filters, Label, Pill, Row } from "@/components/domain/FieldUI";
 import { SOURCE_LABEL, maintenanceRows } from "@/lib/field-data";
 import { requireSession } from "@/lib/session";
@@ -71,10 +72,12 @@ export default async function MentenantaPage({
       <Filters options={TABS} current={tab} hrefFor={(value) => query({ f: value })} />
 
       {places.length > 1 ? (
-        <Filters
+        <FilterSelect
           options={[{ value: "toate", label: "Toate obiectivele" }, ...places.map(([id, name]) => ({ value: id, label: name }))]}
           current={place}
-          hrefFor={(value) => query({ loc: value })}
+          basePath="/teren/mentenanta"
+          param="loc"
+          query={{ f: tab }}
         />
       ) : null}
 

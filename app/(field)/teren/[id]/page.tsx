@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { and, asc, desc, eq, sql as raw } from "drizzle-orm";
+import { and, asc, eq, sql as raw } from "drizzle-orm";
 
 import { submitIntervention, submitInspection } from "@/app/actions/field";
 import { ChecklistPoint, SubmitBar } from "@/components/domain/FieldKit";
@@ -16,10 +16,10 @@ import {
 } from "@/components/domain/FieldUI";
 import { Select } from "@/components/ui/select";
 import { db } from "@/lib/db";
+import { listsForObjective } from "@/lib/inspections";
 import {
   checklistItems,
   checklistTemplates,
-  contractObjectives,
   fundingAllocations,
   objectives,
   products,
@@ -97,15 +97,18 @@ async function InspectionForm({
    * inspecții decât la altele" (§5). Dacă legătura nu are șablon, se cade pe tipul
    * de obiectiv.
    */
-  const [link] = await db
-    .select()
-    .from(contractObjectives)
-    .where(eq(contractObjectives.objectiveId, unit.objectiveId))
-    .orderBy(desc(contractObjectives.fromDate))
-    .limit(1);
+  const day = unit.endDate ?? unit.startDate ?? new Date().toISOString().slice(0, 10);
+  const lists = await listsForObjective(unit.objectiveId, day);
 
-  let templateId = link?.checklistTemplateId ?? null;
-  if (!templateId) {
+  // Fișa planificată de la birou poartă disciplina ei — atunci arată doar listele ei.
+  const matching = unit.discipline
+    ? lists.filter((list) => list.discipline === unit.discipline)
+    : lists;
+  const source = matching.length > 0 ? matching : lists;
+  let items = source.flatMap((list) => list.points);
+
+  // Nicio listă legată: se cade pe primul șablon potrivit tipului de obiectiv.
+  if (items.length === 0) {
     const [fallback] = await db
       .select()
       .from(checklistTemplates)
@@ -115,16 +118,24 @@ async function InspectionForm({
           : eq(checklistTemplates.active, true),
       )
       .limit(1);
-    templateId = fallback?.id ?? null;
-  }
-
-  const items = templateId
-    ? await db
+    if (fallback) {
+      const rows = await db
         .select()
         .from(checklistItems)
-        .where(eq(checklistItems.templateId, templateId))
-        .orderBy(asc(checklistItems.position))
-    : [];
+        .where(eq(checklistItems.templateId, fallback.id))
+        .orderBy(asc(checklistItems.position));
+      items = rows.map((row) => ({
+        id: row.id,
+        checkId: row.checkId,
+        text: row.text,
+        section: row.section,
+        guidance: null,
+        requiresPhoto: false,
+        requiresValue: false,
+        valueUnit: null,
+      }));
+    }
+  }
 
   return (
     <form action={submitInspection}>

@@ -57,6 +57,7 @@ referințele de tip §4.2, §13.1, §18.1.4 din cod și din plan trimit acolo.
 | Aplicația de teren (3 tab-uri) + concedii | ✅ **gata ca și cod** — `tsc` și `build` curate. **Neplimbată în browser** |
 | Redesign birou (sistemul vizual din `erp-mockup.html`) | ✅ **gata** — tokens, primitive, tabel, rail cu icoane, bară de sus cu Ctrl+K, temă și densitate. Componentele noi (`Kpi`, `Toolbar`, `Note`, `Pipeline`, `Trail`, `DetailHeader`) există, dar **nu sunt încă adoptate în pagini** |
 | F — Teren, funcțiile din mockup-ul v3 (mentenanță, timp, lucrare pe file, comenzi, acte) | ✅ **gata ca și cod** — 15 rute noi, `tsc` și `build` curate. **Neplimbată în browser**, `db:push` de rulat |
+| Inspecții — catalog de puncte, liste moștenite, lună de raportare | ✅ **gata ca și cod** — `tsc` și `build` curate. **`db:push` de rulat**, apoi seed și plimbare |
 | Tichete — kanban pe contract (`/tichete`) | ✅ **gata** — schemă, acțiuni, board, filtre, drawer, etape/tipuri de admin, seed aditiv. `tsc` și `build` curate; grilă, board, drawer și mutarea plimbate în browser |
 
 Legendă: ⬜ neînceput · 🟨 în lucru · ✅ gata
@@ -221,6 +222,34 @@ scrie aici și alege varianta cea mai simplă și mai ușor de schimbat.*
 ---
 
 ## 6. Istoric pe sesiuni
+
+### 2026-08-26 — Inspecții: catalog de puncte, liste moștenite, lună de raportare
+
+Schema: `inspection_checks` (catalog global de puncte, cu cod), `contract_checklists` și
+`objective_checklists` (setul contractului / setul propriu), `contract_objectives.inspection_source`,
+`checklist_templates.ticket_type_id`, `checklist_items.check_id`, pe `inspection_answers` (`check_id`,
+`na`, `measured_value`), pe `work_units` (`ticket_type_id`, `report_year`, `report_month`,
+`monthly_report_id`).
+
+Tipul de inspecție **refolosește `ticket_types`** — nomenclatorul de la tichete, nu al doilea.
+
+`lib/inspections.ts`: `effectiveLists(day)` rezolvă moștenirea (contract → obiectiv, legătură nu copie,
+cu cădere pe vechiul `checklist_template_id`), `isDueInMonth`, `reportPeriodFor`.
+
+Fișa de inspecție are patru pași (Unde · Ce verifici · Ce ai găsit · Trimite). Pasul 2: tipul filtrează
+listele obiectivului, bifezi punctele verificate. Pasul 3: OK / Problemă / N/A per punct + notă + valoare
+măsurată; verdictul fișei **iese din puncte**, nu se mai declară global.
+
+**Acoperirea se măsoară pe luna de raportare, nu pe data faptei** — decizia utilizatorului: mentenanța
+se face „când are cineva timp în luna aia". `/rapoarte/inspectii` numără după `report_year/month`, cu
+cădere pe date pentru fișele vechi.
+
+Birou: filă nouă `/nomenclatoare?fila=puncte`; în listă, o linie care e un COD din catalog leagă punctul,
+orice altceva rămâne text liber. Pe contract, secțiunea „Liste de inspecție"; pe rândul obiectivului,
+comutatorul moștenit/propriu (la desprindere, setul contractului se copiază o dată).
+
+`tsc` și `next build` curate. **`db:push` NU a rulat** — conexiunea la Supabase nu răspunde din mediul
+sesiunii (§5). De rulat înainte de orice plimbare în browser, apoi `npm run seed` pentru catalogul nou.
 
 ### 2026-08-26 — Tichete: kanban pe contract
 

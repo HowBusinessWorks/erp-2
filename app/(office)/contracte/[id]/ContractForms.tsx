@@ -1,9 +1,12 @@
 "use client";
 
 import {
+  addContractChecklist,
   addContractYear,
   linkObjective,
+  removeChecklistLink,
   saveComponentBudget,
+  setObjectiveInspectionSource,
   unlinkObjective,
   updateContract,
 } from "@/app/actions/contracts";
@@ -240,6 +243,108 @@ export function UnlinkObjectiveButton({
         Scoate
       </Button>
     </form>
+  );
+}
+
+/* ─────────────────── Liste de inspecție ─────────────────── */
+
+/**
+ * Setul contractului. Obiectivele îl MOȘTENESC — legătură, nu copie: modifici lista aici
+ * și o iau toate obiectivele care nu s-au desprins. Cine vrea altceva comută pe „proprie".
+ */
+export function ContractChecklistForm({
+  contractId,
+  templates,
+}: {
+  contractId: string;
+  templates: Opt[];
+}) {
+  return (
+    <FormModal
+      label="Adaugă o listă"
+      variant="default"
+      size="sm"
+      title="Listă de inspecție pe contract"
+      subtitle="O listă per tip de inspecție. Obiectivele contractului o moștenesc automat."
+      action={addContractChecklist}
+      submitLabel="Adaugă"
+    >
+      <input type="hidden" name="contractId" value={contractId} />
+      <Field name="templateId" label="Listă" kind="select" required full options={templates} />
+      <Field
+        name="frequencyMonths"
+        label="Se face la (luni)"
+        kind="number"
+        defaultValue="1"
+        hint="1 = în fiecare lună. Nu e scadență pe zi — contează doar dacă luna e acoperită."
+      />
+    </FormModal>
+  );
+}
+
+export function RemoveChecklistButton({
+  rowId,
+  scope,
+  contractId,
+}: {
+  rowId: string;
+  scope: "contract" | "obiectiv";
+  contractId: string;
+}) {
+  return (
+    <form action={removeChecklistLink}>
+      <input type="hidden" name="rowId" value={rowId} />
+      <input type="hidden" name="scope" value={scope} />
+      <input type="hidden" name="contractId" value={contractId} />
+      <Button type="submit" size="sm" variant="quiet">
+        Scoate
+      </Button>
+    </form>
+  );
+}
+
+/** Comutatorul moștenit / propriu, pe legătura obiectiv ↔ contract. */
+export function ObjectiveListsForm({
+  linkId,
+  contractId,
+  objectiveName,
+  source,
+  templates,
+  own,
+}: {
+  linkId: string;
+  contractId: string;
+  objectiveName: string;
+  source: string;
+  templates: Opt[];
+  own: { id: string; name: string; frequencyMonths: number }[];
+}) {
+  return (
+    <FormModal
+      label="Liste"
+      variant="quiet"
+      size="sm"
+      title={`Liste de inspecție — ${objectiveName}`}
+      subtitle="Moștenite de la contract sau proprii. Când comuți pe „proprii”, setul contractului se copiază o dată, ca punct de plecare."
+      action={setObjectiveInspectionSource}
+      submitLabel="Salvează"
+    >
+      <input type="hidden" name="linkId" value={linkId} />
+      <input type="hidden" name="contractId" value={contractId} />
+      <Field name="inspectionSource" label="De unde ia listele" kind="select" full defaultValue={source}>
+        <option value="contract">Moștenite de la contract</option>
+        <option value="propriu">Proprii obiectivului</option>
+      </Field>
+      {own.length > 0 ? (
+        <p className="col-span-full text-tiny text-ink-2">
+          Liste proprii acum: {own.map((o) => `${o.name} (la ${o.frequencyMonths} luni)`).join(" · ")}
+        </p>
+      ) : null}
+      <Field name="templateId" label="Adaugă o listă proprie" kind="select" full options={templates}>
+        <option value="">— nimic de adăugat —</option>
+      </Field>
+      <Field name="frequencyMonths" label="Se face la (luni)" kind="number" defaultValue="1" />
+    </FormModal>
   );
 }
 
